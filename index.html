@@ -393,9 +393,6 @@
             const teams = new Set();
             
             allGames.forEach(game => {
-                if (game.home_team) teams.add(game.home_team);
-                if (game.away_team) teams.add(game.away_team);
-                if (game.scorekeeper_team_short) teams.add(game.scorekeeper_team_short);
                 if (game.taefeler_team_short) teams.add(game.taefeler_team_short);
             });
             
