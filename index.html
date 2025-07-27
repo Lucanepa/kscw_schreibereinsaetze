@@ -786,11 +786,17 @@
                                     <span class="detail-value">${game.halle_short || '-'}</span>
                                 </div>
                                 <div class="detail-row">
-                                    <span class="detail-label">Scorekeeper:</span>
+                                    <span class="detail-label">
+                                        Scorekeeper: 
+                                        ${game.scorekeeper_name && game.scorekeeper_name.trim() ? '✅' : '⚠️'}
+                                    </span>
                                     <span class="detail-value">${game.scorekeeper_team_short || '-'}</span>
                                 </div>
                                 <div class="detail-row">
-                                    <span class="detail-label">Taefeler:</span>
+                                    <span class="detail-label">
+                                        Taefeler: 
+                                        ${game.taefeler_name && game.taefeler_name.trim() ? '✅' : '⚠️'}
+                                    </span>
                                     <span class="detail-value">${game.taefeler_team_short || '-'}</span>
                                 </div>
                             </div>
