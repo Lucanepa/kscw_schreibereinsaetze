@@ -7,36 +7,36 @@
 const SUPABASE_CONFIG = {
     // Supabase Project URL
     url: 'https://wilrrlwqgvzjdhmnwmte.supabase.co',
-    
+
     // Supabase Anonymous Key (safe for client-side use)
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpbHJybHdxZ3Z6amRobW53bXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2MDU2NzcsImV4cCI6MjA2OTE4MTY3N30.XUGU99itVC9sbNvh6qkuxgAT1lirnu4u_MBJDFzoB2Q',
-    
+
     // Database table names
     tables: {
         matches: 'matches_complete',
         teams: 'teams'
     },
-    
+
     // Application settings
     app: {
         name: 'Volleyball Games Management',
         version: '1.0.0',
         debug: false
     },
-    
+
     // UI Configuration
     ui: {
         // Date formatting
         dateFormat: 'en-US',
         timeFormat: 'HH:mm',
-        
+
         // Pagination
         itemsPerPage: 20,
-        
+
         // Mobile breakpoint
         mobileBreakpoint: 768
     },
-    
+
     // Feature flags
     features: {
         adminPanel: true,
