@@ -33,18 +33,18 @@ The system uses a separate configuration file to keep API keys secure:
 ### 3. Files Structure
 
 ```
-├── clubdesk_calendar_complete.html  # Main public page
-├── admin.html                       # Admin panel
-├── config.js                        # Configuration (not tracked)
-├── config.template.js               # Configuration template
-├── .gitignore                      # Git ignore rules
-└── README.md                       # This file
+├── index.html                      # Main public page
+├── admin.html                      # Admin panel
+├── config.js                       # Configuration (not tracked)
+├── config.template.js              # Configuration template
+├── .gitignore                     # Git ignore rules
+└── README.md                      # This file
 ```
 
 ## Usage
 
 ### Public Access
-- Open `clubdesk_calendar_complete.html` in a browser
+- Open `index.html` in a browser
 - Filter games by team or role
 - Click on games to view details and manage contact information
 
