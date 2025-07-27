@@ -49,27 +49,71 @@
             padding: 30px;
         }
 
-        .search-box {
+        .filters {
             margin-bottom: 30px;
-            position: relative;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
-        .search-box input {
-            width: 100%;
-            padding: 15px 45px 15px 15px;
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .filter-group select {
+            padding: 12px 15px;
             border: 2px solid #e9ecef;
-            border-radius: 25px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            min-width: 150px;
             outline: none;
+            transition: border-color 0.3s ease;
         }
 
-        .search-box::after {
-            content: "🔍";
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
+        .filter-group select:focus {
+            border-color: #667eea;
+        }
+
+        .filter-group select option {
+            padding: 8px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
         }
 
         .games-grid {
@@ -205,6 +249,75 @@
             .header h1 {
                 font-size: 2rem;
             }
+
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .filter-group select {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .filter-buttons {
+                justify-content: center;
+            }
+
+            .game-card {
+                margin: 0 10px;
+            }
+
+            .game-content {
+                padding: 15px;
+            }
+
+            .game-header {
+                padding: 12px 15px;
+            }
+
+            .game-date {
+                font-size: 1rem;
+            }
+
+            .game-time {
+                font-size: 0.9rem;
+            }
+
+            .team {
+                padding: 8px 0;
+            }
+
+            .game-details {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
@@ -216,8 +329,18 @@
         </div>
 
         <div class="main-content">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search games..." onkeyup="filterGames()">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="teamFilter">Filter by Team:</label>
+                    <select id="teamFilter" onchange="filterGames()">
+                        <option value="">All Teams</option>
+                    </select>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="setFilterType('all')">All Games</button>
+                    <button class="filter-btn" onclick="setFilterType('scorekeeper')">Scorekeeper</button>
+                    <button class="filter-btn" onclick="setFilterType('taefeler')">Taefeler</button>
+                </div>
             </div>
 
             <div id="loading" class="loading">Loading games...</div>
@@ -233,6 +356,8 @@
     <script>
         let allGames = [];
         let filteredGames = [];
+        let allTeams = [];
+        let currentFilterType = 'all';
 
         // Initialize Supabase
         const supabase = window.supabase.createClient(
@@ -252,6 +377,10 @@
 
                 allGames = data || [];
                 filteredGames = [...allGames];
+                
+                // Extract unique teams for dropdown
+                extractTeams();
+                populateTeamFilter();
                 renderGames();
             } catch (error) {
                 console.error('Error loading games:', error);
@@ -259,19 +388,73 @@
             }
         }
 
-        // Filter games based on search
-        function filterGames() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        // Extract unique teams from games
+        function extractTeams() {
+            const teams = new Set();
             
-            if (!searchTerm) {
-                filteredGames = [...allGames];
-            } else {
-                filteredGames = allGames.filter(game => {
-                    return Object.values(game).some(value => 
-                        String(value).toLowerCase().includes(searchTerm)
-                    );
-                });
-            }
+            allGames.forEach(game => {
+                if (game.home_team) teams.add(game.home_team);
+                if (game.away_team) teams.add(game.away_team);
+                if (game.scorekeeper_team_short) teams.add(game.scorekeeper_team_short);
+                if (game.taefeler_team_short) teams.add(game.taefeler_team_short);
+            });
+            
+            allTeams = Array.from(teams).sort();
+        }
+
+        // Populate team filter dropdown
+        function populateTeamFilter() {
+            const teamFilter = document.getElementById('teamFilter');
+            teamFilter.innerHTML = '<option value="">All Teams</option>';
+            
+            allTeams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                teamFilter.appendChild(option);
+            });
+        }
+
+        // Set filter type (all, scorekeeper, taefeler)
+        function setFilterType(type) {
+            currentFilterType = type;
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            filterGames();
+        }
+
+        // Filter games based on team and role
+        function filterGames() {
+            const selectedTeam = document.getElementById('teamFilter').value;
+            
+            filteredGames = allGames.filter(game => {
+                let teamMatch = true;
+                let roleMatch = true;
+                
+                // Filter by selected team
+                if (selectedTeam) {
+                    teamMatch = game.home_team === selectedTeam || 
+                               game.away_team === selectedTeam ||
+                               game.scorekeeper_team_short === selectedTeam ||
+                               game.taefeler_team_short === selectedTeam;
+                }
+                
+                // Filter by role (scorekeeper or taefeler)
+                if (currentFilterType === 'scorekeeper') {
+                    roleMatch = game.scorekeeper_team_short === selectedTeam;
+                } else if (currentFilterType === 'taefeler') {
+                    roleMatch = game.taefeler_team_short === selectedTeam;
+                } else {
+                    roleMatch = true; // 'all' - no role filtering
+                }
+                
+                return teamMatch && roleMatch;
+            });
 
             renderGames();
         }
