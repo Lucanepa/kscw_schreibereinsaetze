@@ -800,7 +800,7 @@
 
             try {
                 console.log('Saving game details for:', currentGame);
-                // Use composite key to identify the record (no ID column)
+                // Use match_id for updates (much simpler and more reliable)
                 const { error } = await supabase
                     .from('matches_complete')
                     .update({
@@ -809,10 +809,7 @@
                         scorekeeper_name: scorekeeperName,
                         scorekeeper_phone: scorekeeperPhone
                     })
-                    .eq('date', currentGame.date)
-                    .eq('time', currentGame.time)
-                    .eq('home_team', currentGame.home_team)
-                    .eq('away_team', currentGame.away_team);
+                    .eq('match_id', currentGame.match_id);
 
                 if (error) {
                     console.error('Database update error:', error);
@@ -820,12 +817,7 @@
                 }
 
                 // Update the game in our local array
-                const gameIndex = allGames.findIndex(g => 
-                    g.date === currentGame.date && 
-                    g.time === currentGame.time && 
-                    g.home_team === currentGame.home_team && 
-                    g.away_team === currentGame.away_team
-                );
+                const gameIndex = allGames.findIndex(g => g.match_id === currentGame.match_id);
                 if (gameIndex !== -1) {
                     allGames[gameIndex].taefeler_name = taefelerName;
                     allGames[gameIndex].taefeler_phone = taefelerPhone;
