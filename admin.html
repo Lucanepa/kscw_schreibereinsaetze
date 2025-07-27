@@ -134,6 +134,17 @@
             background: #c82333;
         }
 
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
         .admin-filters {
             background: #f8f9fa;
             padding: 20px;
@@ -438,19 +449,6 @@
                         <input type="password" id="adminPassword" placeholder="Enter your password">
                     </div>
                     <button class="btn btn-primary" onclick="loginAdmin()">Login</button>
-                    <button class="btn btn-secondary" onclick="toggleAuthForm()">Need to sign up?</button>
-                </div>
-                <div id="signupForm" style="display: none;">
-                    <div class="form-group">
-                        <label for="signupEmail">Email</label>
-                        <input type="email" id="signupEmail" placeholder="Enter your email">
-                    </div>
-                    <div class="form-group">
-                        <label for="signupPassword">Password</label>
-                        <input type="password" id="signupPassword" placeholder="Enter your password">
-                    </div>
-                    <button class="btn btn-primary" onclick="signupAdmin()">Sign Up</button>
-                    <button class="btn btn-secondary" onclick="toggleAuthForm()">Already have an account?</button>
                 </div>
             </div>
         </div>
@@ -464,6 +462,7 @@
                 <div>
                     <button class="btn btn-danger" onclick="logout()">Logout</button>
                     <button class="btn btn-secondary" onclick="goToMainPage()">← Back to Main Page</button>
+                    <button class="btn btn-outline" onclick="goBack()">← Back</button>
                 </div>
             </div>
 
@@ -615,20 +614,6 @@
             SUPABASE_CONFIG.anonKey
         );
 
-        // Toggle between login and signup forms
-        function toggleAuthForm() {
-            const loginForm = document.getElementById('loginForm');
-            const signupForm = document.getElementById('signupForm');
-            
-            if (loginForm.style.display === 'none') {
-                loginForm.style.display = 'block';
-                signupForm.style.display = 'none';
-            } else {
-                loginForm.style.display = 'none';
-                signupForm.style.display = 'block';
-            }
-        }
-
         // Login admin
         async function loginAdmin() {
             const email = document.getElementById('adminEmail').value;
@@ -654,35 +639,6 @@
             }
         }
 
-        // Sign up admin
-        async function signupAdmin() {
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-
-            if (!email || !password) {
-                alert('Please enter both email and password');
-                return;
-            }
-
-            if (password.length < 6) {
-                alert('Password must be at least 6 characters long');
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                alert('Account created successfully! Please check your email for verification.');
-            } catch (error) {
-                alert('Sign up failed: ' + error.message);
-            }
-        }
-
         // Logout
         async function logout() {
             await supabase.auth.signOut();
@@ -692,7 +648,12 @@
 
         // Go to main page
         function goToMainPage() {
-            window.location.href = 'clubdesk_calendar_complete.html';
+            window.location.href = 'index.html';
+        }
+
+        // Go back in browser history
+        function goBack() {
+            window.history.back();
         }
 
         // Show admin content
@@ -897,8 +858,10 @@
             // Show real phone numbers in admin mode
             document.getElementById('taefelerName').value = game.taefeler_name || '';
             document.getElementById('taefelerPhone').value = game.taefeler_phone || '';
+            document.getElementById('taefelerPhone').type = 'text';
             document.getElementById('scorekeeperName').value = game.scorekeeper_name || '';
             document.getElementById('scorekeeperPhone').value = game.scorekeeper_phone || '';
+            document.getElementById('scorekeeperPhone').type = 'text';
 
             const scorekeeperSection = document.getElementById('scorekeeperSection');
             if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
@@ -926,6 +889,8 @@
             const scorekeeperPhone = document.getElementById('scorekeeperPhone').value;
 
             try {
+                // Use a combination of unique fields to identify the record
+                // since there might not be an 'id' column
                 const { error } = await supabase
                     .from('matches_complete')
                     .update({
@@ -934,12 +899,20 @@
                         scorekeeper_name: scorekeeperName,
                         scorekeeper_phone: scorekeeperPhone
                     })
-                    .eq('id', currentGame.id);
+                    .eq('date', currentGame.date)
+                    .eq('time', currentGame.time)
+                    .eq('home_team', currentGame.home_team)
+                    .eq('away_team', currentGame.away_team);
 
                 if (error) throw error;
 
                 // Update the game in our local array
-                const gameIndex = allGames.findIndex(g => g.id === currentGame.id);
+                const gameIndex = allGames.findIndex(g => 
+                    g.date === currentGame.date && 
+                    g.time === currentGame.time && 
+                    g.home_team === currentGame.home_team && 
+                    g.away_team === currentGame.away_team
+                );
                 if (gameIndex !== -1) {
                     allGames[gameIndex].taefeler_name = taefelerName;
                     allGames[gameIndex].taefeler_phone = taefelerPhone;
