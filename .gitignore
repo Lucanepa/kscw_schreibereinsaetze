@@ -1,0 +1,136 @@
+# ===========================================
+# CONFIGURATION FILES (SENSITIVE DATA)
+# ===========================================
+config.js
+config.local.js
+.env
+.env.local
+.env.production
+.env.development
+secrets.json
+credentials.json
+
+# ===========================================
+# DEVELOPMENT FILES
+# ===========================================
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===========================================
+# OPERATING SYSTEM FILES
+# ===========================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# ===========================================
+# LOGS AND TEMPORARY FILES
+# ===========================================
+*.log
+logs/
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+
+# ===========================================
+# BUILD AND DEPLOYMENT
+# ===========================================
+dist/
+build/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===========================================
+# DATABASE AND DATA FILES
+# ===========================================
+*.db
+*.sqlite
+*.sqlite3
+data/
+databases/
+
+# ===========================================
+# MEDIA FILES (if not needed in repo)
+# ===========================================
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.m4v
+*.3gp
+*.ogv
+
+# ===========================================
+# EXCEL AND SPREADSHEET FILES
+# ===========================================
+# Temporary Excel files
+~$*.xlsx
+~$*.xls
+~$*.csv
+
+# ===========================================
+# PYTHON SPECIFIC (if using Python)
+# ===========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+.pytest_cache/
+
+# ===========================================
+# JAVASCRIPT/NODE SPECIFIC (if using Node.js)
+# ===========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+# ===========================================
+# MISCELLANEOUS
+# ===========================================
+*.pid
+*.seed
+*.pid.lock
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/ 
