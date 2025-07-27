@@ -533,7 +533,7 @@
                 </div>
 
                 <div class="form-section">
-                    <h3>Tfeler Information</h3>
+                    <h3>Täfeler Information</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="taefelerName">Name</label>
@@ -744,6 +744,7 @@
         // Open game modal
         function openGameModal(game) {
             currentGame = game;
+            console.log('Opening modal for game:', game);
             
             const gameDate = new Date(game.date);
             const formattedDate = gameDate.toLocaleDateString('en-US', {
@@ -763,13 +764,13 @@
             document.getElementById('modalScorekeeperTeam').textContent = game.scorekeeper_team_short || '-';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
 
-            // Populate form fields (hide phone numbers in main page)
+            // Populate form fields (mask phone numbers in main page)
             document.getElementById('taefelerName').value = game.taefeler_name || '';
             document.getElementById('taefelerPhone').value = game.taefeler_phone || '';
-            document.getElementById('taefelerPhone').type = 'password';
+            document.getElementById('taefelerPhone').type = 'password'; // Mask with dots
             document.getElementById('scorekeeperName').value = game.scorekeeper_name || '';
             document.getElementById('scorekeeperPhone').value = game.scorekeeper_phone || '';
-            document.getElementById('scorekeeperPhone').type = 'password';
+            document.getElementById('scorekeeperPhone').type = 'password'; // Mask with dots
 
             // Show/hide scorekeeper section based on whether scorekeeper team exists
             const scorekeeperSection = document.getElementById('scorekeeperSection');
@@ -798,8 +799,8 @@
             const scorekeeperPhone = document.getElementById('scorekeeperPhone').value;
 
             try {
-                // Use a combination of unique fields to identify the record
-                // since there might not be an 'id' column
+                console.log('Saving game details for:', currentGame);
+                // Use composite key to identify the record (no ID column)
                 const { error } = await supabase
                     .from('matches_complete')
                     .update({
@@ -813,7 +814,10 @@
                     .eq('home_team', currentGame.home_team)
                     .eq('away_team', currentGame.away_team);
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Database update error:', error);
+                    throw error;
+                }
 
                 // Update the game in our local array
                 const gameIndex = allGames.findIndex(g => 
