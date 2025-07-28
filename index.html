@@ -901,7 +901,7 @@
                         <label for="roleFilter">Filter by Role:</label>
                         <select id="roleFilter" onchange="filterGames()">
                             <option value="">All Roles</option>
-                            <option value="scorekeeper">Scorekeeper</option>
+                            <option value="scorer">Scorer</option>
                             <option value="taefeler">Täfeler</option>
                         </select>
                     </div>
@@ -961,8 +961,8 @@
                             <div class="detail-value" id="modalAwayTeam">-</div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-label">Scorekeeper Team</div>
-                            <div class="detail-value" id="modalScorekeeperTeam">-</div>
+                            <div class="detail-label">Scorer Team</div>
+                            <div class="detail-value" id="modalScorerTeam">-</div>
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Täfeler Team</div>
@@ -985,16 +985,16 @@
                     </div>
                 </div>
 
-                <div class="form-section" id="scorekeeperSection" style="display: none;">
-                    <h3>Scorekeeper Information</h3>
+                <div class="form-section" id="scorerSection" style="display: none;">
+                    <h3>Scorer Information</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="scorekeeperName">Name</label>
-                            <input type="text" id="scorekeeperName" placeholder="Enter scorekeeper name">
+                            <label for="scorerName">Name</label>
+                            <input type="text" id="scorerName" placeholder="Enter scorer name">
                         </div>
                         <div class="form-group">
-                            <label for="scorekeeperPhone">Phone</label>
-                            <input type="text" id="scorekeeperPhone" placeholder="Enter scorekeeper phone">
+                            <label for="scorerPhone">Phone</label>
+                            <input type="text" id="scorerPhone" placeholder="Enter scorer phone">
                         </div>
                     </div>
                 </div>
@@ -1011,12 +1011,12 @@
                             <div class="detail-value" id="modalTaefelerPhone">-</div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-label">Scorekeeper Name</div>
-                            <div class="detail-value" id="modalScorekeeperName">-</div>
+                            <div class="detail-label">Scorer Name</div>
+                            <div class="detail-value" id="modalScorerName">-</div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-label">Scorekeeper Phone</div>
-                            <div class="detail-value" id="modalScorekeeperPhone">-</div>
+                            <div class="detail-label">Scorer Phone</div>
+                            <div class="detail-value" id="modalScorerPhone">-</div>
                         </div>
                     </div>
                 </div>
@@ -1083,7 +1083,7 @@
                 <div id="info-en" style="display: none;">
                     <div class="info-section">
                         <h4>⏰ Arrival Times</h4>
-                        <p><strong><span class="highlight">Scorekeeper</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
+                        <p><strong><span class="highlight">Scorer</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
                         <p><strong><span class="highlight">Täfeler</span> must be in the hall at least 10 minutes before the start of play.</strong></p>
                     </div>
                     <div class="info-section">
@@ -1092,8 +1092,8 @@
                     </div>
                     <div class="info-section">
                         <h4>📋 Game Requirements</h4>
-                        <p>Games from 4L and under only need a <span class="highlight">Scorekeeper</span>, without licence. It is indicated as the only "Täfeler" in the game details.</p>
-                        <p><strong>In this case, the Scorekeeper/Täfeler must be in the hall at least 30 minutes before the start of play.</strong></p>
+                        <p>Games from 4L and under only need a <span class="highlight">Scorer</span>, without licence. It is indicated as the only "Täfeler" in the game details.</p>
+                        <p><strong>In this case, the Scorer/Täfeler must be in the hall at least 30 minutes before the start of play.</strong></p>
                     </div>
                     <div class="info-section">
                         <h4>📞 Contact Information</h4>
@@ -1218,8 +1218,8 @@
                 options.forEach((option, index) => {
                     if (index === 0) {
                         option.textContent = translations[currentLanguage].allRoles;
-                    } else if (option.value === 'scorekeeper') {
-                        option.textContent = translations[currentLanguage].scorekeeperRole;
+                    } else if (option.value === 'scorer') {
+                        option.textContent = translations[currentLanguage].scorerRole;
                     } else if (option.value === 'taefeler') {
                         option.textContent = translations[currentLanguage].taefelerRole;
                     }
@@ -1279,12 +1279,12 @@
                 gamesWithIssues: 'Games with Issues',
                 issues: 'issues',
                 taefeler: 'Täfeler',
-                scorekeeper: 'Scorekeeper',
+                scorer: 'Scorer',
                 close: 'Close',
                 teamGames: 'Games',
                 allGamesForTeam: 'All games for this team',
                 missingTaefeler: 'Missing Täfeler name',
-                missingScorekeeper: 'Missing Scorekeeper name',
+                missingScorer: 'Missing Scorer name',
                 location: 'Location',
                 vs: 'vs',
                 at: 'at',
@@ -1296,7 +1296,7 @@
                 allGames: 'All Games',
                 gamesWithIssues: 'Games with Issues',
                 noIssues: 'No Issues',
-                scorekeeperRole: 'Scorekeeper',
+                scorerRole: 'Scorer',
                 taefelerRole: 'Täfeler',
                 clearFilters: 'Clear Filters',
                 noGamesFound: 'No games found',
@@ -1310,12 +1310,12 @@
                 gamesWithIssues: 'Spiele mit Problemen',
                 issues: 'Probleme',
                 taefeler: 'Täfeler',
-                scorekeeper: 'Schreiber',
+                scorer: 'Schreiber',
                 close: 'Schließen',
                 teamGames: 'Spiele',
                 allGamesForTeam: 'Alle Spiele für dieses Team',
                 missingTaefeler: 'Fehlender Täfeler Name',
-                missingScorekeeper: 'Fehlender Schreiber Name',
+                missingScorer: 'Fehlender Schreiber Name',
                 location: 'Ort',
                 vs: 'gegen',
                 at: 'in',
@@ -1327,7 +1327,7 @@
                 allGames: 'Alle Spiele',
                 gamesWithIssues: 'Spiele mit Problemen',
                 noIssues: 'Keine Probleme',
-                scorekeeperRole: 'Schreiber',
+                scorerRole: 'Schreiber',
                 taefelerRole: 'Täfeler',
                 clearFilters: 'Filter löschen',
                 noGamesFound: 'Keine Spiele gefunden',
@@ -1361,7 +1361,7 @@
                 `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `SUMMARY:${currentGame.home_team} vs ${currentGame.away_team}`,
-                `DESCRIPTION:Volleyball match at ${currentGame.halle_short || 'TBD'}. Scorekeeper: ${currentGame.scorekeeper_team_short || 'TBD'}. Täfeler: ${currentGame.taefeler_team_short || 'TBD'}.`,
+                `DESCRIPTION:Volleyball match at ${currentGame.halle_short || 'TBD'}. Scorer: ${currentGame.scorer_team_short || 'TBD'}. Täfeler: ${currentGame.taefeler_team_short || 'TBD'}.`,
                 `LOCATION:${currentGame.halle_short || 'TBD'}`,
                 'BEGIN:VALARM',
                 `TRIGGER:-P1D`,
@@ -1394,7 +1394,7 @@
                 this.type = 'text';
             });
             
-            document.getElementById('scorekeeperPhone').addEventListener('focus', function() {
+            document.getElementById('scorerPhone').addEventListener('focus', function() {
                 this.type = 'text';
             });
         });
@@ -1512,14 +1512,14 @@
                 filtered = filtered.filter(game => 
                     game.home_team === teamLongName || 
                     game.away_team === teamLongName ||
-                    game.scorekeeper_team_short === teamFilter ||
+                    game.scorer_team_short === teamFilter ||
                     game.taefeler_team_short === teamFilter
                 );
             }
 
-            if (roleFilter === 'scorekeeper') {
+            if (roleFilter === 'scorer') {
                 filtered = filtered.filter(game => 
-                    game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== ''
+                    game.scorer_team_short && game.scorer_team_short.trim() !== ''
                 );
             } else if (roleFilter === 'taefeler') {
                 filtered = filtered.filter(game => 
@@ -1530,14 +1530,14 @@
             if (attentionFilter === 'issues') {
                 filtered = filtered.filter(game => 
                     !game.taefeler_name || !game.taefeler_name.trim() ||
-                    (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && 
-                     (!game.scorekeeper_name || !game.scorekeeper_name.trim()))
+                    (game.scorer_team_short && game.scorer_team_short.trim() !== '' && 
+                     (!game.scorer_name || !game.scorer_name.trim()))
                 );
             } else if (attentionFilter === 'no-issues') {
                 filtered = filtered.filter(game => 
                     game.taefeler_name && game.taefeler_name.trim() &&
-                    (!game.scorekeeper_team_short || game.scorekeeper_team_short.trim() === '' || 
-                     (game.scorekeeper_name && game.scorekeeper_name.trim()))
+                    (!game.scorer_team_short || game.scorer_team_short.trim() === '' || 
+                     (game.scorer_name && game.scorer_name.trim()))
                 );
             }
 
@@ -1569,8 +1569,8 @@
 
                 // Check for issues
                 const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
-                const hasScorekeeperIssue = game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && 
-                                         (!game.scorekeeper_name || !game.scorekeeper_name.trim());
+                const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && 
+                                         (!game.scorer_name || !game.scorer_name.trim());
                 const isEditable = isGameEditable(game);
 
                 const gameCard = document.createElement('div');
@@ -1587,10 +1587,10 @@
                     </div>
                     <div class="game-location">📍 ${game.halle_short || 'TBD'}</div>
                     <div class="game-roles">
-                        ${game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && isEditable ? `
+                        ${game.scorer_team_short && game.scorer_team_short.trim() !== '' && isEditable ? `
                             <div class="role-item">
-                                <span class="role-label">📝 Scorekeeper: ${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</span>
-                                <span class="status-icon">${hasScorekeeperIssue ? '⚠️' : '✅'}</span>
+                                <span class="role-label">📝 Scorer: ${game.scorer_team_short}${game.scorer_name ? ` (${game.scorer_name})` : ''}</span>
+                                <span class="status-icon">${hasScorerIssue ? '⚠️' : '✅'}</span>
                             </div>
                         ` : ''}
                         <div class="role-item">
@@ -1641,7 +1641,7 @@
             document.getElementById('modalGym').textContent = game.halle_short || '-';
             document.getElementById('modalHomeTeam').textContent = game.home_team || '-';
             document.getElementById('modalAwayTeam').textContent = game.away_team || '-';
-            document.getElementById('modalScorekeeperTeam').textContent = game.scorekeeper_team_short || '-';
+            document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || '-';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
 
             if (isEditable) {
@@ -1651,10 +1651,10 @@
                 // Show phone as text if empty, password if has value
                 document.getElementById('taefelerPhone').type = game.taefeler_phone ? 'password' : 'text';
                 
-                document.getElementById('scorekeeperName').value = game.scorekeeper_name || '';
-                document.getElementById('scorekeeperPhone').value = game.scorekeeper_phone || '';
+                document.getElementById('scorerName').value = game.scorer_name || '';
+                document.getElementById('scorerPhone').value = game.scorer_phone || '';
                 // Show phone as text if empty, password if has value
-                document.getElementById('scorekeeperPhone').type = game.scorekeeper_phone ? 'password' : 'text';
+                document.getElementById('scorerPhone').type = game.scorer_phone ? 'password' : 'text';
 
                 // Show form fields, hide read-only section
                 document.getElementById('formSection').style.display = 'block';
@@ -1665,13 +1665,13 @@
                 document.getElementById('modalTaefelerName').textContent = game.taefeler_name || '-';
                 document.getElementById('modalTaefelerPhone').textContent = game.taefeler_phone || '-';
                 
-                // Only show scorekeeper info if game is editable
+                // Only show scorer info if game is editable
                 if (isEditable) {
-                    document.getElementById('modalScorekeeperName').textContent = game.scorekeeper_name || '-';
-                    document.getElementById('modalScorekeeperPhone').textContent = game.scorekeeper_phone || '-';
+                    document.getElementById('modalScorerName').textContent = game.scorer_name || '-';
+                    document.getElementById('modalScorerPhone').textContent = game.scorer_phone || '-';
                 } else {
-                    document.getElementById('modalScorekeeperName').textContent = '-';
-                    document.getElementById('modalScorekeeperPhone').textContent = '-';
+                    document.getElementById('modalScorerName').textContent = '-';
+                    document.getElementById('modalScorerPhone').textContent = '-';
                 }
 
                 // Hide form fields, show read-only section
@@ -1680,12 +1680,12 @@
                 document.getElementById('saveButton').style.display = 'none';
             }
 
-            // Show/hide scorekeeper section based on whether scorekeeper team exists AND game is editable
-            const scorekeeperSection = document.getElementById('scorekeeperSection');
-            if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && isEditable) {
-                scorekeeperSection.style.display = 'block';
+            // Show/hide scorer section based on whether scorer team exists AND game is editable
+            const scorerSection = document.getElementById('scorerSection');
+            if (game.scorer_team_short && game.scorer_team_short.trim() !== '' && isEditable) {
+                scorerSection.style.display = 'block';
             } else {
-                scorekeeperSection.style.display = 'none';
+                scorerSection.style.display = 'none';
             }
 
             document.getElementById('gameModal').style.display = 'block';
@@ -1709,8 +1709,8 @@
 
             const taefelerName = document.getElementById('taefelerName').value;
             const taefelerPhone = document.getElementById('taefelerPhone').value;
-            const scorekeeperName = document.getElementById('scorekeeperName').value;
-            const scorekeeperPhone = document.getElementById('scorekeeperPhone').value;
+            const scorerName = document.getElementById('scorerName').value;
+            const scorerPhone = document.getElementById('scorerPhone').value;
 
             try {
                 console.log('Saving game details for:', currentGame);
@@ -1720,8 +1720,8 @@
                     .update({
                         taefeler_name: taefelerName,
                         taefeler_phone: taefelerPhone,
-                        scorekeeper_name: scorekeeperName,
-                        scorekeeper_phone: scorekeeperPhone
+                        scorer_name: scorerName,
+                        scorer_phone: scorerPhone
                     })
                     .eq('match_id', currentGame.match_id);
 
@@ -1735,13 +1735,13 @@
                 if (gameIndex !== -1) {
                     allGames[gameIndex].taefeler_name = taefelerName;
                     allGames[gameIndex].taefeler_phone = taefelerPhone;
-                    allGames[gameIndex].scorekeeper_name = scorekeeperName;
-                    allGames[gameIndex].scorekeeper_phone = scorekeeperPhone;
+                    allGames[gameIndex].scorer_name = scorerName;
+                    allGames[gameIndex].scorer_phone = scorerPhone;
                 }
 
                 // Hide phone numbers again after saving
                 document.getElementById('taefelerPhone').type = taefelerPhone ? 'password' : 'text';
-                document.getElementById('scorekeeperPhone').type = scorekeeperPhone ? 'password' : 'text';
+                document.getElementById('scorerPhone').type = scorerPhone ? 'password' : 'text';
                 
                 closeModal();
                 renderGames();
@@ -1787,19 +1787,19 @@
                 if (!game.taefeler_name || !game.taefeler_name.trim()) {
                     if (game.taefeler_team_short) {
                         if (!teamIssues[game.taefeler_team_short]) {
-                            teamIssues[game.taefeler_team_short] = { taefeler: 0, scorekeeper: 0 };
+                            teamIssues[game.taefeler_team_short] = { taefeler: 0, scorer: 0 };
                         }
                         teamIssues[game.taefeler_team_short].taefeler++;
                     }
                 }
 
-                // Check Scorekeeper issues
-                if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
-                    if (!game.scorekeeper_name || !game.scorekeeper_name.trim()) {
-                        if (!teamIssues[game.scorekeeper_team_short]) {
-                            teamIssues[game.scorekeeper_team_short] = { taefeler: 0, scorekeeper: 0 };
+                // Check Scorer issues
+                if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
+                    if (!game.scorer_name || !game.scorer_name.trim()) {
+                        if (!teamIssues[game.scorer_team_short]) {
+                            teamIssues[game.scorer_team_short] = { taefeler: 0, scorer: 0 };
                         }
-                        teamIssues[game.scorekeeper_team_short].scorekeeper++;
+                        teamIssues[game.scorer_team_short].scorer++;
                     }
                 }
             });
@@ -1808,12 +1808,12 @@
             
             Object.keys(teamIssues).sort().forEach(team => {
                 const issues = teamIssues[team];
-                const totalIssues = issues.taefeler + issues.scorekeeper;
+                const totalIssues = issues.taefeler + issues.scorer;
                 summaryHTML += `
                     <div class="team-issue-item">
                         <strong class="clickable-team" onclick="showTeamGames('${team}')">${teamNameMapping[team] || team}</strong>: ${totalIssues} ${translations[currentLanguage].issues}
                         ${issues.taefeler > 0 ? `(${issues.taefeler} ${translations[currentLanguage].taefeler}, ` : ''}
-                        ${issues.scorekeeper > 0 ? `${issues.scorekeeper} ${translations[currentLanguage].scorekeeper})` : ''}
+                        ${issues.scorer > 0 ? `${issues.scorer} ${translations[currentLanguage].scorer})` : ''}
                     </div>
                 `;
             });
@@ -1827,7 +1827,7 @@
             const teamLongName = teamNameMapping[teamShortName];
             const teamGames = allGames.filter(game => 
                 game.taefeler_team_short === teamShortName || 
-                game.scorekeeper_team_short === teamShortName ||
+                game.scorer_team_short === teamShortName ||
                 game.home_team === teamLongName ||
                 game.away_team === teamLongName
             );
@@ -1844,9 +1844,9 @@
 
                 // Check for issues
                 const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
-                const hasScorekeeperIssue = game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && 
-                                         (!game.scorekeeper_name || !game.scorekeeper_name.trim());
-                const hasIssues = hasTaefelerIssue || hasScorekeeperIssue;
+                const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && 
+                                         (!game.scorer_name || !game.scorer_name.trim());
+                const hasIssues = hasTaefelerIssue || hasScorerIssue;
 
                 const gameClass = hasIssues ? 'team-game-item has-issues' : 'team-game-item';
 
@@ -1859,9 +1859,9 @@
                         <div class="team-game-teams">${game.home_team} ${translations[currentLanguage].vs} ${game.away_team}</div>
                         <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
                         <div class="team-game-roles">
-                            ${game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' ? `
-                                <div class="team-role-item ${!game.scorekeeper_name || !game.scorekeeper_name.trim() ? 'has-issue' : ''}">
-                                    📝 ${translations[currentLanguage].scorekeeper}: ${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}
+                            ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? `
+                                <div class="team-role-item ${!game.scorer_name || !game.scorer_name.trim() ? 'has-issue' : ''}">
+                                    📝 ${translations[currentLanguage].scorer}: ${game.scorer_team_short}${game.scorer_name ? ` (${game.scorer_name})` : ''}
                                 </div>
                             ` : ''}
                             <div class="team-role-item ${!game.taefeler_name || !game.taefeler_name.trim() ? 'has-issue' : ''}">
