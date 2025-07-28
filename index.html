@@ -1715,6 +1715,16 @@
             currentGame = null;
         }
 
+        // Generate a session ID that persists during the session
+        function getSessionId() {
+            let sessionId = sessionStorage.getItem('volleyball_session_id');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('volleyball_session_id', sessionId);
+            }
+            return sessionId;
+        }
+
         // Log changes to edit_log table
         async function logChange(action, fieldName, oldValue, newValue, gameInfo) {
             try {
@@ -1727,9 +1737,8 @@
                         field_name: fieldName,
                         old_value: oldValue,
                         new_value: newValue,
-                        user_ip: null, // Will be set by Supabase RLS if needed
                         user_agent: navigator.userAgent,
-                        session_id: null, // Optional
+                        session_id: getSessionId(),
                         game_info: {
                             home_team: currentGame.home_team,
                             away_team: currentGame.away_team,
