@@ -689,18 +689,22 @@
 
             <div id="en-text" style="display: none;">
                 <h2>Important Information</h2>
-                <p><span class="highlight">Scorekeeper</span> must be in the hall at least 30 minutes before the start of play.</p>
-                <p><span class="highlight">Täfeler</span> must be in the hall at least 20 minutes before the start of play.</p>
-                <p>Late arrival or failure to appear will result in a fine (50.- CHF).</p>
+                <p><strong><span class="highlight">Scorekeeper</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
+                <p><strong><span class="highlight">Täfeler</span> must be in the hall at least 20 minutes before the start of play.</strong></p>
+                <p><strong>⚠️ Late arrival or failure to appear will result in a fine (50.- CHF).</strong></p>
                 <p>Games from 4L and under only need a <span class="highlight">Scorekeeper</span>, without licence.</p>
+                <p>Your phone number can be seen by the team's coach only. It is used to contact you in case of emergency.</p>
+                <p><strong>📅 Please note you can sign up or edit your information until 2 days before the game.</strong></p>
                 <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
             </div>
             <div id="de-text">
                 <h2>Wichtige Informationen</h2>
-                <p><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</p>
-                <p><span class="highlight">Täfler:in</span> muss mindestens 20 Minuten vor Spielbeginn in der Halle sein.</p>
-                <p>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</p>
+                <p><strong><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
+                <p><strong><span class="highlight">Täfler:in</span> muss mindestens 20 Minuten vor Spielbeginn in der Halle sein.</strong></p>
+                <p><strong>⚠️ Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</strong></p>
                 <p>Für 4L, 5L und DU23-2 Spiele wird nur ein/e <span class="highlight">Schreiber:in</span> ohne Lizenz benötigt.</p>
+                <p>Deine Telefonnummer kann nur vom Teamcoach gesehen werden. Sie wird verwendet, um du im Notfall zu kontaktieren.</p>
+                <p><strong>📅 Bitte beachte, dass du deine Informationen bis 2 Tage vor dem Spiel bearbeiten kannst.</strong></p>
                 <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
             </div>
         </div>
@@ -793,7 +797,7 @@
                     </div>
                 </div>
 
-                <div class="form-section">
+                <div class="form-section" id="formSection">
                     <h3>Täfeler Information</h3>
                     <div class="form-row">
                         <div class="form-group">
@@ -802,7 +806,7 @@
                         </div>
                         <div class="form-group">
                             <label for="taefelerPhone">Phone</label>
-                            <input type="password" id="taefelerPhone" placeholder="Enter täfeler phone">
+                            <input type="text" id="taefelerPhone" placeholder="Enter täfeler phone">
                         </div>
                     </div>
                 </div>
@@ -816,7 +820,29 @@
                         </div>
                         <div class="form-group">
                             <label for="scorekeeperPhone">Phone</label>
-                            <input type="password" id="scorekeeperPhone" placeholder="Enter scorekeeper phone">
+                            <input type="text" id="scorekeeperPhone" placeholder="Enter scorekeeper phone">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section" id="readOnlySection" style="display: none;">
+                    <h3>Contact Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Täfeler Name</div>
+                            <div class="detail-value" id="modalTaefelerName">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Täfeler Phone</div>
+                            <div class="detail-value" id="modalTaefelerPhone">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Scorekeeper Name</div>
+                            <div class="detail-value" id="modalScorekeeperName">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Scorekeeper Phone</div>
+                            <div class="detail-value" id="modalScorekeeperPhone">-</div>
                         </div>
                     </div>
                 </div>
@@ -825,7 +851,7 @@
             <div class="modal-actions">
                 <button class="btn btn-success" onclick="downloadICS()">📅 Download ICS</button>
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveGameDetails()">Save Changes</button>
+                <button class="btn btn-primary" id="saveButton" onclick="saveGameDetails()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -1108,6 +1134,15 @@
             loadGames();
             // Update UI language when page loads
             updateUILanguage();
+            
+            // Add event listeners for phone number fields
+            document.getElementById('taefelerPhone').addEventListener('focus', function() {
+                this.type = 'text';
+            });
+            
+            document.getElementById('scorekeeperPhone').addEventListener('focus', function() {
+                this.type = 'text';
+            });
         });
 
         // Load games from matches_complete table
@@ -1311,6 +1346,21 @@
             });
         }
 
+        // Check if game is within 2 days of start time (editable)
+        function isGameEditable(game) {
+            const now = new Date();
+            const gameDate = new Date(game.date);
+            const gameTime = game.time ? game.time : '00:00';
+            const [hours, minutes] = gameTime.split(':');
+            gameDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            
+            // Calculate 2 days before game
+            const twoDaysBefore = new Date(gameDate);
+            twoDaysBefore.setDate(twoDaysBefore.getDate() - 2);
+            
+            return now <= twoDaysBefore;
+        }
+
         // Open game modal
         function openGameModal(game) {
             currentGame = game;
@@ -1324,6 +1374,8 @@
                 day: 'numeric'
             });
 
+            const isEditable = isGameEditable(game);
+
             document.getElementById('modalTitle').textContent = `${game.home_team} vs ${game.away_team}`;
             document.getElementById('modalSubtitle').textContent = formattedDate;
             document.getElementById('modalDate').textContent = formattedDate;
@@ -1334,13 +1386,34 @@
             document.getElementById('modalScorekeeperTeam').textContent = game.scorekeeper_team_short || '-';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
 
-            // Populate form fields (mask phone numbers in main page)
-            document.getElementById('taefelerName').value = game.taefeler_name || '';
-            document.getElementById('taefelerPhone').value = game.taefeler_phone || '';
-            document.getElementById('taefelerPhone').type = 'password'; // Mask with dots
-            document.getElementById('scorekeeperName').value = game.scorekeeper_name || '';
-            document.getElementById('scorekeeperPhone').value = game.scorekeeper_phone || '';
-            document.getElementById('scorekeeperPhone').type = 'password'; // Mask with dots
+            if (isEditable) {
+                // Populate form fields with smart phone number display
+                document.getElementById('taefelerName').value = game.taefeler_name || '';
+                document.getElementById('taefelerPhone').value = game.taefeler_phone || '';
+                // Show phone as text if empty, password if has value
+                document.getElementById('taefelerPhone').type = game.taefeler_phone ? 'password' : 'text';
+                
+                document.getElementById('scorekeeperName').value = game.scorekeeper_name || '';
+                document.getElementById('scorekeeperPhone').value = game.scorekeeper_phone || '';
+                // Show phone as text if empty, password if has value
+                document.getElementById('scorekeeperPhone').type = game.scorekeeper_phone ? 'password' : 'text';
+
+                // Show form fields, hide read-only section
+                document.getElementById('formSection').style.display = 'block';
+                document.getElementById('readOnlySection').style.display = 'none';
+                document.getElementById('saveButton').style.display = 'inline-block';
+            } else {
+                // Show read-only contact information
+                document.getElementById('modalTaefelerName').textContent = game.taefeler_name || '-';
+                document.getElementById('modalTaefelerPhone').textContent = game.taefeler_phone || '-';
+                document.getElementById('modalScorekeeperName').textContent = game.scorekeeper_name || '-';
+                document.getElementById('modalScorekeeperPhone').textContent = game.scorekeeper_phone || '-';
+
+                // Hide form fields, show read-only section
+                document.getElementById('formSection').style.display = 'none';
+                document.getElementById('readOnlySection').style.display = 'block';
+                document.getElementById('saveButton').style.display = 'none';
+            }
 
             // Show/hide scorekeeper section based on whether scorekeeper team exists
             const scorekeeperSection = document.getElementById('scorekeeperSection');
@@ -1362,6 +1435,12 @@
         // Save game details
         async function saveGameDetails() {
             if (!currentGame) return;
+
+            // Check if game is still editable
+            if (!isGameEditable(currentGame)) {
+                alert('This game can no longer be edited (less than 2 days before start time).');
+                return;
+            }
 
             const taefelerName = document.getElementById('taefelerName').value;
             const taefelerPhone = document.getElementById('taefelerPhone').value;
@@ -1395,6 +1474,10 @@
                     allGames[gameIndex].scorekeeper_phone = scorekeeperPhone;
                 }
 
+                // Hide phone numbers again after saving
+                document.getElementById('taefelerPhone').type = taefelerPhone ? 'password' : 'text';
+                document.getElementById('scorekeeperPhone').type = scorekeeperPhone ? 'password' : 'text';
+                
                 closeModal();
                 renderGames();
                 alert('Game details saved successfully!');
