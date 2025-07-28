@@ -1715,6 +1715,38 @@
             currentGame = null;
         }
 
+        // Log changes to edit_log table
+        async function logChange(action, fieldName, oldValue, newValue, gameInfo) {
+            try {
+                const { data, error } = await supabase
+                    .from('edit_log')
+                    .insert({
+                        action: action, // 'CREATE', 'UPDATE', 'DELETE'
+                        table_name: 'matches_complete',
+                        record_id: currentGame.match_id,
+                        field_name: fieldName,
+                        old_value: oldValue,
+                        new_value: newValue,
+                        user_ip: null, // Will be set by Supabase RLS if needed
+                        user_agent: navigator.userAgent,
+                        session_id: null, // Optional
+                        game_info: {
+                            home_team: currentGame.home_team,
+                            away_team: currentGame.away_team,
+                            date: currentGame.date,
+                            time: currentGame.time,
+                            halle_short: currentGame.halle_short
+                        }
+                    });
+
+                if (error) {
+                    console.error('Logging error:', error);
+                }
+            } catch (error) {
+                console.error('Error logging change:', error);
+            }
+        }
+
         // Save game details
         async function saveGameDetails() {
             if (!currentGame) return;
@@ -1732,6 +1764,21 @@
 
             try {
                 console.log('Saving game details for:', currentGame);
+                
+                // Log changes for each field that was modified
+                if (currentGame.taefeler_name !== taefelerName) {
+                    await logChange('UPDATE', 'taefeler_name', currentGame.taefeler_name, taefelerName);
+                }
+                if (currentGame.taefeler_phone !== taefelerPhone) {
+                    await logChange('UPDATE', 'taefeler_phone', currentGame.taefeler_phone, taefelerPhone);
+                }
+                if (currentGame.scorer_name !== scorerName) {
+                    await logChange('UPDATE', 'scorer_name', currentGame.scorer_name, scorerName);
+                }
+                if (currentGame.scorer_phone !== scorerPhone) {
+                    await logChange('UPDATE', 'scorer_phone', currentGame.scorer_phone, scorerPhone);
+                }
+                
                 // Use match_id for updates (much simpler and more reliable)
                 const { error } = await supabase
                     .from('matches_complete')
