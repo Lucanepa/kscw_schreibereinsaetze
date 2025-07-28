@@ -914,6 +914,38 @@
             document.getElementById('gameModal').style.display = 'block';
         }
 
+        // Log changes to edit_log table (for consistency, though archive is read-only)
+        async function logChange(action, fieldName, oldValue, newValue, gameInfo) {
+            try {
+                const { data, error } = await supabase
+                    .from('edit_log')
+                    .insert({
+                        action: action, // 'CREATE', 'UPDATE', 'DELETE'
+                        table_name: 'matches_complete',
+                        record_id: currentGame.match_id,
+                        field_name: fieldName,
+                        old_value: oldValue,
+                        new_value: newValue,
+                        user_ip: null, // Will be set by Supabase RLS if needed
+                        user_agent: navigator.userAgent,
+                        session_id: null, // Optional
+                        game_info: {
+                            home_team: currentGame.home_team,
+                            away_team: currentGame.away_team,
+                            date: currentGame.date,
+                            time: currentGame.time,
+                            halle_short: currentGame.halle_short
+                        }
+                    });
+
+                if (error) {
+                    console.error('Logging error:', error);
+                }
+            } catch (error) {
+                console.error('Error logging change:', error);
+            }
+        }
+
         // Close modal
         function closeModal() {
             document.getElementById('gameModal').style.display = 'none';
