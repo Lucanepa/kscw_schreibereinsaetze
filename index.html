@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schreibereinsätze</title>
+    <title>KSCW Schreibereinsätze</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -483,6 +483,13 @@
             margin-bottom: 20px;
         }
 
+        .team-issues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
         .team-issue-item {
             background: #f8f9fa;
             padding: 10px;
@@ -529,6 +536,10 @@
                 grid-template-columns: 1fr;
             }
             
+            .team-issues-grid {
+                grid-template-columns: 1fr;
+            }
+            
             .game-roles {
                 flex-direction: column;
             }
@@ -549,7 +560,7 @@
                 width: 100%;
                 margin-bottom: 10px;
             }
-  }
+        }
 
         .issue-details {
             color: #856404;
@@ -649,15 +660,15 @@
                     <p><span class="highlight">Scorekeeper</span> must be in the hall 30 minutes before the start of play.</p>
                     <p><span class="highlight">Täfeler</span> must be in the hall 10 minutes before the start of play.</p>
                     <p>Late arrival or failure to appear will result in a fine.</p>
-                    <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence (scorekeeper blacked out).</p>
+                    <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence.</p>
                     <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
                 </div>
                 <div id="de-text" style="display: none;">
                     <h2>Wichtige Informationen</h2>
-                    <p><span class="highlight">Schreiber:in</span> müsst 30 Minuten vor Spielbeginn in der Halle sein.</p>
-                    <p><span class="highlight">Täfler:in</span> müsst 10 Minuten vor Spielbeginn in der Halle sein.</p>
+                    <p><span class="highlight">Schreiber:in</span> muss 30 Minuten vor Spielbeginn in der Halle sein.</p>
+                    <p><span class="highlight">Täfler:in</span> muss 10 Minuten vor Spielbeginn in der Halle sein.</p>
                     <p>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Strafe.</p>
-                    <p>Für Spiele ab 4L (und darunter) wird nur ein/e <span class="highlight">Täfler:in</span> ohne Lizenz benötigt (Schreiber:in schwarz ausgemalt).</p>
+                    <p>Für Spiele von Liga 4L, 5L und DU23-2 wird nur ein/e <span class="highlight">Täfler:in</span> ohne Lizenz benötigt.</p>
                     <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
                 </div>
             </div>
@@ -1259,7 +1270,7 @@
             });
 
             let summaryHTML = '<h3>Issues Summary by Team</h3>';
-            summaryHTML += '<div class="team-issues">';
+            summaryHTML += '<div class="team-issues-grid">';
             
             Object.keys(teamIssues).sort().forEach(team => {
                 const issues = teamIssues[team];
