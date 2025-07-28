@@ -235,6 +235,14 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            min-width: 800px;
+        }
+
+        .admin-table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            background: white;
         }
 
         .admin-table th {
@@ -738,24 +746,26 @@
 
             <div id="adminLoading" class="loading">Loading admin data...</div>
             <div id="adminTableContainer" style="display: none;">
-                <table id="adminTable" class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Home Team</th>
-                            <th>Away Team</th>
-                            <th>Gym</th>
-                            <th>Scorekeeper</th>
-                            <th>Täfeler</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminTableBody">
-                        <!-- Admin table data will be populated here -->
-                    </tbody>
-                </table>
+                <div class="admin-table-container">
+                    <table id="adminTable" class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Home Team</th>
+                                <th>Away Team</th>
+                                <th>Gym</th>
+                                <th>Scorekeeper</th>
+                                <th>Täfeler</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody">
+                            <!-- Admin table data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
