@@ -236,6 +236,7 @@
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             min-width: 800px;
+            display: table;
         }
 
         .admin-table-container {
@@ -596,19 +597,93 @@
             }
             
             .admin-table {
+                display: none;
+            }
+            
+            .admin-table-container {
+                display: block;
+            }
+            
+                    .admin-table-container .mobile-game-card {
+            display: none;
+        }
+        
+                @media (max-width: 768px) {
+            .admin-table-container .mobile-game-card {
+                display: block;
+                background: white;
+                border: 1px solid #e9ecef;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .mobile-game-card .game-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            
+            .mobile-game-card .game-date-time {
+                font-weight: 600;
+                color: #333;
+                font-size: 14px;
+            }
+            
+            .mobile-game-card .game-teams {
+                font-weight: 600;
+                color: #1e3a8a;
+                font-size: 13px;
+            }
+            
+            .mobile-game-card .game-details {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+            
+            .mobile-game-card .detail-item {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+            
+            .mobile-game-card .detail-label {
+                font-size: 10px;
+                color: #666;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+            
+            .mobile-game-card .detail-value {
                 font-size: 12px;
-                overflow-x: auto;
+                color: #333;
+                font-weight: 500;
             }
             
-            .admin-table th,
-            .admin-table td {
-                padding: 8px 6px;
-                min-width: 80px;
+            .mobile-game-card .game-status {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
             }
             
-            .admin-table .game-teams {
-                min-width: 120px;
+            .mobile-game-card .status-indicator {
+                font-size: 16px;
             }
+            
+            .mobile-game-card .action-button {
+                width: 100%;
+                padding: 8px;
+                font-size: 12px;
+                border-radius: 6px;
+            }
+        }
 
             .detail-grid {
                 grid-template-columns: 1fr;
@@ -975,7 +1050,7 @@
                 await loadGames();
                 await loadTeams();
                 populateAdminFilters();
-                renderAdminTable();
+                renderAdminTable(filterCurrentGames(allGames));
             } catch (error) {
                 console.error('Error loading admin data:', error);
                 document.getElementById('adminLoading').innerHTML = 'Error loading admin data. Please try again.';
@@ -1135,9 +1210,11 @@
         }
 
         // Render admin table
-        function renderAdminTable(games = allGames) {
+        function renderAdminTable(games = filterCurrentGames(allGames)) {
             const tbody = document.getElementById('adminTableBody');
+            const container = document.querySelector('.admin-table-container');
             
+            // Desktop table rendering
             tbody.innerHTML = games.map(game => {
                 const gameDate = new Date(game.date);
                 const formattedDate = gameDate.toLocaleDateString('en-US', {
@@ -1179,6 +1256,73 @@
                     </tr>
                 `;
             }).join('');
+            
+            // Mobile cards rendering
+            renderMobileCards(games, container);
+        }
+        
+        // Render mobile cards for admin
+        function renderMobileCards(games, container) {
+            // Remove existing mobile cards
+            const existingCards = container.querySelectorAll('.mobile-game-card');
+            existingCards.forEach(card => card.remove());
+            
+            games.forEach(game => {
+                const gameDate = new Date(game.date);
+                const formattedDate = gameDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+
+                const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
+
+                const statusIcons = [];
+                if (!game.taefeler_name || !game.taefeler_name.trim()) {
+                    statusIcons.push('⚠️ Täfeler');
+                } else {
+                    statusIcons.push('✅ Täfeler');
+                }
+                
+                // Only show scorekeeper status if there's a scorekeeper team assigned
+                if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
+                    if (!game.scorekeeper_name || !game.scorekeeper_name.trim()) {
+                        statusIcons.push('⚠️ Scorekeeper');
+                    } else {
+                        statusIcons.push('✅ Scorekeeper');
+                    }
+                }
+
+                const mobileCard = document.createElement('div');
+                mobileCard.className = 'mobile-game-card';
+                mobileCard.innerHTML = `
+                    <div class="game-header">
+                        <div class="game-date-time">${formattedDate} ${formattedTime}</div>
+                        <div class="game-teams">${game.home_team || '-'} vs ${game.away_team || '-'}</div>
+                    </div>
+                    <div class="game-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Gym</div>
+                            <div class="detail-value">${game.halle_short || '-'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Scorekeeper</div>
+                            <div class="detail-value">${game.scorekeeper_team_short || '-'}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Täfeler</div>
+                            <div class="detail-value">${game.taefeler_team_short || '-'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value status-indicator">${statusIcons.join(' ')}</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-warning action-button" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">Edit Game</button>
+                `;
+                
+                container.appendChild(mobileCard);
+            });
         }
 
         // Open game modal
@@ -1263,7 +1407,7 @@
                 }
 
                 closeModal();
-                renderAdminTable();
+                renderAdminTable(filterCurrentGames(allGames));
                 alert('Game details saved successfully!');
             } catch (error) {
                 console.error('Error saving game details:', error);
