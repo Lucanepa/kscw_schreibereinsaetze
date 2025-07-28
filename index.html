@@ -964,6 +964,10 @@
                             <div class="detail-value" id="modalAwayTeam">-</div>
                         </div>
                         <div class="detail-item">
+                            <div class="detail-label">Game Number</div>
+                            <div class="detail-value" id="modalGameNumber">-</div>
+                        </div>
+                        <div class="detail-item">
                             <div class="detail-label">Scorer Team</div>
                             <div class="detail-value" id="modalScorerTeam">-</div>
                         </div>
@@ -1599,7 +1603,7 @@
                             </div>
                         ` : ''}
                         <div class="role-item">
-                            <div class="role-label">🏐 Täfeler: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
+                            <div class="role-label">🏐 Schreiber/Täfeler: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
                             <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
                         </div>
                     </div>
@@ -1648,6 +1652,7 @@
             document.getElementById('modalAwayTeam').textContent = game.away_team || '-';
             document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || '-';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
+            document.getElementById('modalGameNumber').textContent = game.gamen || '-';
 
             if (isEditable) {
                 // Populate form fields with smart phone number display
