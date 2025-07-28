@@ -38,7 +38,7 @@
         .header {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
-            padding: 35px 20px;
+            padding: 25px 20px;
             text-align: center;
             border-radius: 0 0 25px 25px;
             margin-bottom: 30px;
@@ -47,15 +47,15 @@
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
             font-weight: 700;
             letter-spacing: -0.02em;
         }
 
         .header p {
             opacity: 0.9;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 400;
             letter-spacing: 0.01em;
         }
@@ -662,12 +662,66 @@
         }
 
         @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+                margin-bottom: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 6px;
+            }
+            
+            .header p {
+                font-size: 0.9rem;
+            }
+            
+            .language-switcher {
+                top: 15px;
+                right: 15px;
+            }
+            
+            .archive-link {
+                top: 15px;
+                left: 15px;
+            }
+            
+            .lang-btn, .btn-archive, .btn-info {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
             .filters-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
             
             .games-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .game-card {
+                padding: 15px;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .game-time {
+                align-self: flex-end;
             }
             
             .team-issues-grid {
@@ -676,6 +730,13 @@
             
             .game-roles {
                 flex-direction: column;
+                gap: 8px;
+            }
+            
+            .role-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
             }
             
             .detail-grid {
@@ -686,6 +747,12 @@
                 grid-template-columns: 1fr;
             }
             
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                margin: 10% auto;
+            }
+            
             .modal-actions {
                 flex-direction: column;
             }
@@ -693,6 +760,19 @@
             .modal-actions .btn {
                 width: 100%;
                 margin-bottom: 10px;
+            }
+            
+            .info-section {
+                padding: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .info-section h4 {
+                font-size: 1rem;
+            }
+            
+            .info-section p {
+                font-size: 0.9rem;
             }
         }
 
@@ -795,7 +875,7 @@
                 <button class="lang-btn" onclick="switchLanguage('en')">EN</button>
                 <button class="lang-btn active" onclick="switchLanguage('de')">DE</button>
             </div>
-            <button id="infoButton" class="btn btn-info" onclick="openInfoModal()">ℹ️ Important Info</button>
+            <button id="infoButton" class="btn btn-info" onclick="openInfoModal()">ℹ️ <span id="infoButtonText">Wichtige Informationen</span></button>
             <div class="archive-link">
                 <a href="archive.html" class="btn btn-archive">📚 Archive</a>
             </div>
@@ -1029,7 +1109,6 @@
                     </div>
                 </div>
                 <div id="info-de">
-                    <h3>🏐 Volleyball Spielanforderungen</h3>
                     <div class="info-section">
                         <h4>⏰ Ankunftszeiten</h4>
                         <p><strong><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
@@ -1082,6 +1161,7 @@
             const deText = document.getElementById('de-text');
             const infoEn = document.getElementById('info-en');
             const infoDe = document.getElementById('info-de');
+            const infoButtonText = document.getElementById('infoButtonText');
             const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
             const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
             
@@ -1090,6 +1170,7 @@
                 if (deText) deText.style.display = 'none';
                 if (infoEn) infoEn.style.display = 'block';
                 if (infoDe) infoDe.style.display = 'none';
+                if (infoButtonText) infoButtonText.textContent = 'Important Info';
                 enBtn.classList.add('active');
                 deBtn.classList.remove('active');
             } else {
@@ -1097,6 +1178,7 @@
                 if (deText) deText.style.display = 'block';
                 if (infoEn) infoEn.style.display = 'none';
                 if (infoDe) infoDe.style.display = 'block';
+                if (infoButtonText) infoButtonText.textContent = 'Wichtige Informationen';
                 deBtn.classList.add('active');
                 enBtn.classList.remove('active');
             }
