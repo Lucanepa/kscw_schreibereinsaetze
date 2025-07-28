@@ -1065,7 +1065,9 @@
             const { data, error } = await supabase
                 .from('matches_complete')
                 .select('*')
-                .order('date', { ascending: true });
+                .order('date', { ascending: true })
+                .order('time', { ascending: true })
+                .order('halle_short', { ascending: true });
 
             if (error) throw error;
             allGames = data || [];
