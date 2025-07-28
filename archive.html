@@ -536,7 +536,7 @@
     <div class="container">
         <div class="header archive-header">
             <div class="back-link">
-                <a href="index.html" class="btn btn-back">← Back to Current Games</a>
+                <a href="index.html" class="btn btn-back">← Back</a>
             </div>
             <h1>📚 Game Archive</h1>
             <p>Past games and completed assignments</p>
@@ -701,15 +701,16 @@
         // Get past games for archive
         function getPastGames(games) {
             const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
             return games.filter(game => {
                 const gameDate = new Date(game.date);
+                // Set time to 00:01 of the day after the game
                 const dayAfterGame = new Date(gameDate);
                 dayAfterGame.setDate(dayAfterGame.getDate() + 1);
+                dayAfterGame.setHours(0, 1, 0, 0); // 00:01
                 
-                // Game is past if it's older than the day after
-                return dayAfterGame < today;
+                // Game is past if it's older than 00:01 the day after
+                return now >= dayAfterGame;
             });
         }
 
