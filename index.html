@@ -688,16 +688,19 @@
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
                 const statusIcons = [];
-                if (!game.taefeler_name || !game.taefeler_name.trim()) {
-                    statusIcons.push('⚠️ Taefeler');
-                } else {
-                    statusIcons.push('✅ Taefeler');
-                }
-                if (!game.scorekeeper_name || !game.scorekeeper_name.trim()) {
-                    statusIcons.push('⚠️ Scorekeeper');
-                } else {
-                    statusIcons.push('✅ Scorekeeper');
-                }
+                                 if (!game.taefeler_name || !game.taefeler_name.trim()) {
+                     statusIcons.push('⚠️ Täfeler');
+                 } else {
+                     statusIcons.push('✅ Täfeler');
+                 }
+                                 // Only show scorekeeper status if there's a scorekeeper team assigned
+                 if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
+                     if (!game.scorekeeper_name || !game.scorekeeper_name.trim()) {
+                         statusIcons.push('⚠️ Scorekeeper');
+                     } else {
+                         statusIcons.push('✅ Scorekeeper');
+                     }
+                 }
 
                 return `
                     <div class="game-card" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">
@@ -728,7 +731,7 @@
                                 <div class="role-team">${game.scorekeeper_team_short || '-'}</div>
                             </div>
                             <div class="role-item">
-                                <div class="role-label">Taefeler</div>
+                                <div class="role-label">Täfeler</div>
                                 <div class="role-team">${game.taefeler_team_short || '-'}</div>
                             </div>
                         </div>
