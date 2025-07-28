@@ -80,6 +80,30 @@
             border-color: rgba(255, 255, 255, 0.6);
         }
 
+        .archive-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .btn-archive {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-archive:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
         .info-text {
             max-width: 800px;
             margin: 0 auto;
@@ -659,6 +683,7 @@
                 <button class="lang-btn" onclick="switchLanguage('en')">EN</button>
                 <button class="lang-btn active" onclick="switchLanguage('de')">DE</button>
             </div>
+
             <div id="en-text" style="display: none;">
                 <h2>Important Information</h2>
                 <p><span class="highlight">Scorekeeper</span> must be in the hall at least 30 minutes before the start of play.</p>
@@ -1094,7 +1119,7 @@
                 allGames = data || [];
 
                 await loadTeams();
-                renderGames(allGames);
+                renderGames(filterCurrentGames(allGames));
                 populateTeamFilter();
             } catch (error) {
                 console.error('Error loading games:', error);
@@ -1103,6 +1128,36 @@
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('gamesGrid').style.display = 'grid';
             }
+        }
+
+        // Filter out past games (games older than the day after their scheduled date)
+        function filterCurrentGames(games) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            return games.filter(game => {
+                const gameDate = new Date(game.date);
+                const dayAfterGame = new Date(gameDate);
+                dayAfterGame.setDate(dayAfterGame.getDate() + 1);
+                
+                // Game is current if it's not older than the day after
+                return dayAfterGame >= today;
+            });
+        }
+
+        // Get past games for archive
+        function getPastGames(games) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            return games.filter(game => {
+                const gameDate = new Date(game.date);
+                const dayAfterGame = new Date(gameDate);
+                dayAfterGame.setDate(dayAfterGame.getDate() + 1);
+                
+                // Game is past if it's older than the day after
+                return dayAfterGame < today;
+            });
         }
 
         // Load teams from teams table
@@ -1155,7 +1210,7 @@
             const roleFilter = document.getElementById('roleFilter').value;
             const attentionFilter = document.getElementById('attentionFilter').value;
 
-            let filtered = allGames;
+            let filtered = filterCurrentGames(allGames);
 
             if (teamFilter) {
                 const teamLongName = teamNameMapping[teamFilter];
@@ -1199,7 +1254,7 @@
             document.getElementById('teamFilter').value = '';
             document.getElementById('roleFilter').value = '';
             document.getElementById('attentionFilter').value = '';
-            renderGames(allGames);
+            renderGames(filterCurrentGames(allGames));
         }
 
         // Render games
