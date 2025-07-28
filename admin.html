@@ -830,8 +830,6 @@
                                 <th>Home Team</th>
                                 <th>Away Team</th>
                                 <th>Gym</th>
-                                <th>Scorer</th>
-                                <th>Täfeler</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -1232,19 +1230,23 @@
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
                 const statusIcons = [];
-                                 if (!game.taefeler_name || !game.taefeler_name.trim()) {
-                     statusIcons.push('⚠️ Täfeler');
-                 } else {
-                     statusIcons.push('✅ Täfeler');
-                 }
-                                 // Only show scorer status if there's a scorer team assigned
-                 if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
-                     if (!game.scorer_name || !game.scorer_name.trim()) {
-                         statusIcons.push('⚠️ Scorer');
-                     } else {
-                         statusIcons.push('✅ Scorer');
-                     }
-                 }
+                
+                // Täfeler status
+                const taefelerLabel = game.scorer_team_short && game.scorer_team_short.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
+                const taefelerInfo = game.taefeler_name && game.taefeler_name.trim() ? 
+                    `${game.taefeler_name} (${game.taefeler_team_short})` : 
+                    game.taefeler_team_short || 'TBD';
+                const taefelerStatus = !game.taefeler_name || !game.taefeler_name.trim() ? '⚠️' : '✅';
+                statusIcons.push(`${taefelerStatus} ${taefelerLabel}: ${taefelerInfo}`);
+                
+                // Scorer status (only if scorer team is assigned)
+                if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
+                    const scorerInfo = game.scorer_name && game.scorer_name.trim() ? 
+                        `${game.scorer_name} (${game.scorer_team_short})` : 
+                        game.scorer_team_short;
+                    const scorerStatus = !game.scorer_name || !game.scorer_name.trim() ? '⚠️' : '✅';
+                    statusIcons.push(`${scorerStatus} Scorer: ${scorerInfo}`);
+                }
 
                 return `
                     <tr>
@@ -1253,8 +1255,6 @@
                         <td>${game.home_team || '-'}</td>
                         <td>${game.away_team || '-'}</td>
                         <td>${game.halle_short || '-'}</td>
-                                                 <td>${game.scorer_team_short || '-'}${game.scorer_name ? ` (${game.scorer_name})` : ''}</td>
-                         <td>${game.taefeler_team_short || '-'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</td>
                         <td class="status-indicator">${statusIcons.join('<br>')}</td>
                         <td>
                             <button class="btn btn-warning" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">Edit</button>
@@ -1284,19 +1284,22 @@
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
                 const statusIcons = [];
-                if (!game.taefeler_name || !game.taefeler_name.trim()) {
-                    statusIcons.push('⚠️ Täfeler');
-                } else {
-                    statusIcons.push('✅ Täfeler');
-                }
                 
-                // Only show scorer status if there's a scorer team assigned
+                // Täfeler status
+                const taefelerLabel = game.scorer_team_short && game.scorer_team_short.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
+                const taefelerInfo = game.taefeler_name && game.taefeler_name.trim() ? 
+                    `${game.taefeler_name} (${game.taefeler_team_short})` : 
+                    game.taefeler_team_short || 'TBD';
+                const taefelerStatus = !game.taefeler_name || !game.taefeler_name.trim() ? '⚠️' : '✅';
+                statusIcons.push(`${taefelerStatus} ${taefelerLabel}: ${taefelerInfo}`);
+                
+                // Scorer status (only if scorer team is assigned)
                 if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
-                    if (!game.scorer_name || !game.scorer_name.trim()) {
-                        statusIcons.push('⚠️ Scorer');
-                    } else {
-                        statusIcons.push('✅ Scorer');
-                    }
+                    const scorerInfo = game.scorer_name && game.scorer_name.trim() ? 
+                        `${game.scorer_name} (${game.scorer_team_short})` : 
+                        game.scorer_team_short;
+                    const scorerStatus = !game.scorer_name || !game.scorer_name.trim() ? '⚠️' : '✅';
+                    statusIcons.push(`${scorerStatus} Scorer: ${scorerInfo}`);
                 }
 
                 const mobileCard = document.createElement('div');
@@ -1311,14 +1314,7 @@
                             <div class="detail-label">Gym</div>
                             <div class="detail-value">${game.halle_short || '-'}</div>
                         </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Scorer</div>
-                            <div class="detail-value">${game.scorer_team_short || '-'}${game.scorer_name ? ` (${game.scorer_name})` : ''}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Täfeler</div>
-                            <div class="detail-value">${game.taefeler_team_short || '-'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
-                        </div>
+
                         <div class="detail-item">
                             <div class="detail-label">Status</div>
                             <div class="detail-value status-indicator">${statusIcons.join(' ')}</div>
