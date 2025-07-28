@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schreibereinsätze</title>
+    <title>KSCW Schreibereinsätze</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -196,7 +196,7 @@
         .game-card {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
@@ -213,7 +213,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .game-date {
@@ -232,7 +232,7 @@
         }
 
         .game-teams {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .team-row {
@@ -255,9 +255,9 @@
 
         .game-location {
             background: #f8f9fa;
-            padding: 10px;
+            padding: 8px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .location-label {
@@ -273,8 +273,8 @@
 
         .game-roles {
             display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
         .role-item {
@@ -515,7 +515,7 @@
                     <p><span class="highlight">Scorekeeper</span> must be in the hall 30 minutes before the start of play.</p>
                     <p><span class="highlight">Täfeler</span> must be in the hall 10 minutes before the start of play.</p>
                     <p>Late arrival or failure to appear will result in a fine.</p>
-                    <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence.</p>
+                    <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence (scorekeeper blacked out).</p>
                     <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
                 </div>
                 <div id="de-text" style="display: none;">
@@ -523,7 +523,7 @@
                     <p><span class="highlight">Schreiber:in</span> müsst 30 Minuten vor Spielbeginn in der Halle sein.</p>
                     <p><span class="highlight">Täfler:in</span> müsst 10 Minuten vor Spielbeginn in der Halle sein.</p>
                     <p>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Strafe.</p>
-                    <p>Für Spiele ab 4L (und darunter) wird nur ein/e <span class="highlight">Täfler:in</span> ohne Lizenz benötigt.</p>
+                    <p>Für Spiele ab 4L (und darunter) wird nur ein/e <span class="highlight">Täfler:in</span> ohne Lizenz benötigt (Schreiber:in schwarz ausgemalt).</p>
                     <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
                 </div>
             </div>
@@ -548,6 +548,14 @@
                             <option value="">All Roles</option>
                             <option value="scorekeeper">Scorekeeper</option>
                             <option value="taefeler">Täfeler</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="attentionFilter">Filter by Issues:</label>
+                        <select id="attentionFilter" onchange="filterGames()">
+                            <option value="">All Games</option>
+                            <option value="issues">Games with Issues</option>
+                            <option value="no-issues">Games without Issues</option>
                         </select>
                     </div>
                 </div>
@@ -784,6 +792,7 @@
         function filterGames() {
             const teamFilter = document.getElementById('teamFilter').value;
             const roleFilter = document.getElementById('roleFilter').value;
+            const attentionFilter = document.getElementById('attentionFilter').value;
 
             let filtered = allGames;
 
@@ -806,6 +815,20 @@
                 );
             }
 
+            if (attentionFilter === 'issues') {
+                filtered = filtered.filter(game => 
+                    !game.taefeler_name || !game.taefeler_name.trim() ||
+                    (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && 
+                     (!game.scorekeeper_name || !game.scorekeeper_name.trim()))
+                );
+            } else if (attentionFilter === 'no-issues') {
+                filtered = filtered.filter(game => 
+                    game.taefeler_name && game.taefeler_name.trim() &&
+                    (!game.scorekeeper_team_short || game.scorekeeper_team_short.trim() === '' || 
+                     (game.scorekeeper_name && game.scorekeeper_name.trim()))
+                );
+            }
+
             renderGames(filtered);
         }
 
@@ -813,6 +836,7 @@
         function clearFilters() {
             document.getElementById('teamFilter').value = '';
             document.getElementById('roleFilter').value = '';
+            document.getElementById('attentionFilter').value = '';
             renderGames();
         }
 
@@ -870,10 +894,12 @@
                         </div>
                         
                         <div class="game-roles">
+                            ${game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' ? `
                             <div class="role-item">
                                 <div class="role-label">Scorekeeper</div>
-                                <div class="role-team">${game.scorekeeper_team_short || '-'}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</div>
+                                <div class="role-team">${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</div>
                             </div>
+                            ` : ''}
                             <div class="role-item">
                                 <div class="role-label">Täfeler</div>
                                 <div class="role-team">${game.taefeler_team_short || '-'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
