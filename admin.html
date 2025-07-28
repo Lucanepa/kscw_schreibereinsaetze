@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schreibereinsätze Admin Panel</title>
+    <title>Schreibereinsätze</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <style>
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -20,7 +21,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -47,52 +48,113 @@
             font-size: 1.1rem;
         }
 
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            background: #fbbf24;
+            color: #1e3a8a;
+            border-color: #fbbf24;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .lang-btn.active:hover {
+            background: #f59e0b;
+        }
+
+        .info-text {
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .info-text h2 {
+            color: #fbbf24;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .info-text p {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .info-text .highlight {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
         .main-content {
             padding: 30px;
         }
 
-        .auth-section {
+        .admin-access {
             text-align: center;
-            padding: 60px 20px;
-        }
-
-        .auth-form {
-            max-width: 400px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .auth-form h2 {
             margin-bottom: 30px;
-            color: #333;
         }
 
-        .form-group {
+        .filters {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
             margin-bottom: 20px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
+        .filter-group {
+            display: flex;
+            flex-direction: column;
         }
 
-        .form-group input {
-            width: 100%;
+        .filter-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .filter-group select {
             padding: 12px;
             border: 2px solid #e9ecef;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
+            background: white;
             transition: border-color 0.3s ease;
         }
 
-        .form-group input:focus {
+        .filter-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #1e3a8a;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -125,95 +187,124 @@
             background: #5a6268;
         }
 
-        .btn-danger {
-            background: #dc3545;
-            color: white;
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
         }
 
-        .btn-danger:hover {
-            background: #c82333;
+        .game-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
         }
 
-        .btn-outline {
-            background: transparent;
-            color: #667eea;
-            border: 2px solid #667eea;
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #1e3a8a;
         }
 
-        .btn-outline:hover {
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .game-date {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .game-time {
             background: #667eea;
             color: white;
-        }
-
-        .admin-filters {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-
-        .admin-filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .filter-group label {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
             font-weight: 600;
-            color: #333;
+        }
+
+        .game-teams {
+            margin-bottom: 15px;
+        }
+
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 8px;
         }
 
-        .filter-group select {
-            padding: 12px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 14px;
-            background: white;
-            transition: border-color 0.3s ease;
-        }
-
-        .filter-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }
-
-        .admin-table th {
-            background: #f8f9fa;
-            padding: 15px;
-            text-align: left;
+        .team-label {
             font-weight: 600;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .team-name {
+            font-weight: 500;
             color: #333;
-            border-bottom: 2px solid #e9ecef;
         }
 
-        .admin-table td {
-            padding: 15px;
-            border-bottom: 1px solid #e9ecef;
-            vertical-align: middle;
-        }
-
-        .admin-table tr:hover {
+        .game-location {
             background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .location-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .location-name {
+            color: #333;
+        }
+
+        .game-roles {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .role-item {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .role-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .role-team {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
 
         .status-indicator {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
 
         .loading {
@@ -238,16 +329,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .user-info {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .modal {
@@ -390,135 +471,95 @@
         }
 
         @media (max-width: 768px) {
-            .admin-filters-grid {
+            .filters-grid {
                 grid-template-columns: 1fr;
             }
             
-            .admin-table {
-                font-size: 14px;
+            .games-grid {
+                grid-template-columns: 1fr;
             }
             
-            .admin-table th,
-            .admin-table td {
-                padding: 10px 8px;
+            .game-roles {
+                flex-direction: column;
             }
-
+            
             .detail-grid {
                 grid-template-columns: 1fr;
             }
-
+            
             .form-row {
                 grid-template-columns: 1fr;
             }
-
+            
             .modal-actions {
                 flex-direction: column;
             }
-
+            
             .modal-actions .btn {
                 width: 100%;
                 margin-bottom: 10px;
             }
-
-            .user-info {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-        }
-    </style>
+  }
+</style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Volleyball Admin Panel</h1>
-            <p>Manage all games and contact information</p>
+            <div class="language-switcher">
+                <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
+                <button class="lang-btn" onclick="switchLanguage('de')">DE</button>
+            </div>
+            <div class="info-text">
+                <div id="en-text">
+                    <h2>Important Information</h2>
+                    <p><span class="highlight">Scorekeeper</span> must be in the hall 30 minutes before the start of play.</p>
+                    <p><span class="highlight">Täfeler</span> must be in the hall 10 minutes before the start of play.</p>
+                    <p>Late arrival or failure to appear will result in a fine.</p>
+                    <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence (scorekeeper blacked out).</p>
+                    <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
+                </div>
+                <div id="de-text" style="display: none;">
+                    <h2>Wichtige Informationen</h2>
+                    <p><span class="highlight">Schreiber:in</span> müsst 30 Minuten vor Spielbeginn in der Halle sein.</p>
+                    <p><span class="highlight">Täfler:in</span> müsst 10 Minuten vor Spielbeginn in der Halle sein.</p>
+                    <p>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Strafe.</p>
+                    <p>Für Spiele ab 4L (und darunter) wird nur ein/e <span class="highlight">Täfler:in</span> ohne Lizenz benötigt (Schreiber:in schwarz ausgemalt).</p>
+                    <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
+                </div>
+            </div>
         </div>
 
-                 <!-- Authentication Section -->
-         <div id="authSection" class="auth-section">
-             <div class="auth-form">
-                 <div style="text-align: left; margin-bottom: 20px;">
-                     <button class="btn btn-outline" onclick="goBack()">← Back</button>
-                 </div>
-                 <h2>Admin Login</h2>
-                 <div id="loginForm">
-                     <div class="form-group">
-                         <label for="adminEmail">Email</label>
-                         <input type="email" id="adminEmail" placeholder="Enter your email">
-                     </div>
-                     <div class="form-group">
-                         <label for="adminPassword">Password</label>
-                         <input type="password" id="adminPassword" placeholder="Enter your password">
-                     </div>
-                     <button class="btn btn-primary" onclick="loginAdmin()">Login</button>
-                 </div>
-             </div>
-         </div>
+        <div class="main-content">
+            <div class="admin-access">
+                <a href="calendar.html" class="btn btn-primary">📅 Calendar View</a>
+                <a href="admin.html" class="btn btn-secondary">Admin Access</a>
+            </div>
 
-        <!-- Admin Content -->
-        <div id="adminContent" class="main-content" style="display: none;">
-            <div class="user-info">
-                <div>
-                    <strong>Logged in as:</strong> <span id="userEmail"></span>
+            <div class="filters">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="teamFilter">Filter by Team:</label>
+                        <select id="teamFilter" onchange="filterGames()">
+                            <option value="">All Teams</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="roleFilter">Filter by Role:</label>
+                        <select id="roleFilter" onchange="filterGames()">
+                            <option value="">All Roles</option>
+                            <option value="scorekeeper">Scorekeeper</option>
+                            <option value="taefeler">Täfeler</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <button class="btn btn-danger" onclick="logout()">Logout</button>
-                    <button class="btn btn-outline" onclick="goBack()">← Back</button>
+                <div class="filter-buttons">
+                    <button class="btn btn-primary" onclick="clearFilters()">Clear Filters</button>
                 </div>
             </div>
 
-            <div class="admin-filters">
-                <div class="admin-filters-grid">
-                                         <div class="filter-group">
-                         <label for="adminTaefelerFilter">Filter by Täfeler Team:</label>
-                         <select id="adminTaefelerFilter" onchange="filterAdminGames()">
-                             <option value="">All Täfeler Teams</option>
-                         </select>
-                     </div>
-                    <div class="filter-group">
-                        <label for="adminScorekeeperFilter">Filter by Scorekeeper Team:</label>
-                        <select id="adminScorekeeperFilter" onchange="filterAdminGames()">
-                            <option value="">All Scorekeeper Teams</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="adminHomeFilter">Filter by Home Team:</label>
-                        <select id="adminHomeFilter" onchange="filterAdminGames()">
-                            <option value="">All Home Teams</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="adminIssuesFilter">Filter by Issues:</label>
-                        <select id="adminIssuesFilter" onchange="filterAdminGames()">
-                            <option value="">All Games</option>
-                            <option value="issues">Games with Issues</option>
-                            <option value="no-issues">Games without Issues</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div id="adminLoading" class="loading">Loading admin data...</div>
-            <div id="adminTableContainer" style="display: none;">
-                <table id="adminTable" class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Home Team</th>
-                            <th>Away Team</th>
-                            <th>Gym</th>
-                            <th>Scorekeeper</th>
-                            <th>Täfeler</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminTableBody">
-                        <!-- Admin table data will be populated here -->
-                    </tbody>
-                </table>
+            <div id="loading" class="loading">Loading games...</div>
+            <div id="gamesGrid" class="games-grid" style="display: none;">
+                <!-- Games will be populated here -->
             </div>
         </div>
     </div>
@@ -561,15 +602,15 @@
                             <div class="detail-label">Scorekeeper Team</div>
                             <div class="detail-value" id="modalScorekeeperTeam">-</div>
                         </div>
-                                                 <div class="detail-item">
-                             <div class="detail-label">Täfeler Team</div>
-                             <div class="detail-value" id="modalTaefelerTeam">-</div>
-                         </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Täfeler Team</div>
+                            <div class="detail-value" id="modalTaefelerTeam">-</div>
+                        </div>
                     </div>
                 </div>
 
-                                 <div class="form-section">
-                     <h3>Täfeler Information</h3>
+                <div class="form-section">
+                    <h3>Täfeler Information</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="taefelerName">Name</label>
@@ -577,7 +618,7 @@
                         </div>
                         <div class="form-group">
                             <label for="taefelerPhone">Phone</label>
-                            <input type="tel" id="taefelerPhone" placeholder="Enter taefeler phone">
+                            <input type="password" id="taefelerPhone" placeholder="Enter taefeler phone">
                         </div>
                     </div>
                 </div>
@@ -591,24 +632,24 @@
                         </div>
                         <div class="form-group">
                             <label for="scorekeeperPhone">Phone</label>
-                            <input type="tel" id="scorekeeperPhone" placeholder="Enter scorekeeper phone">
+                            <input type="password" id="scorekeeperPhone" placeholder="Enter scorekeeper phone">
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="modal-actions">
+                <button class="btn btn-success" onclick="downloadICS()">📅 Download ICS</button>
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveGameDetails()">Save Changes</button>
             </div>
         </div>
     </div>
 
-    <script>
+<script>
         let allGames = [];
         let allTeams = [];
         let currentGame = null;
-        let currentUser = null;
 
         // Initialize Supabase
         const supabase = window.supabase.createClient(
@@ -616,94 +657,100 @@
             SUPABASE_CONFIG.anonKey
         );
 
-        // Login admin
-        async function loginAdmin() {
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-
-            if (!email || !password) {
-                alert('Please enter both email and password');
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                currentUser = data.user;
-                showAdminContent();
-            } catch (error) {
-                alert('Login failed: ' + error.message);
-            }
-        }
-
-        // Logout
-        async function logout() {
-            await supabase.auth.signOut();
-            currentUser = null;
-            showAuthSection();
-        }
-
-        // Go to main page
-        function goToMainPage() {
-            window.location.href = 'index.html';
-        }
-
-        // Go back in browser history
-        function goBack() {
-            if (window.history.length > 1) {
-                window.history.back();
+        // Language switching function
+        function switchLanguage(lang) {
+            const enText = document.getElementById('en-text');
+            const deText = document.getElementById('de-text');
+            const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
+            const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
+            
+            if (lang === 'en') {
+                enText.style.display = 'block';
+                deText.style.display = 'none';
+                enBtn.classList.add('active');
+                deBtn.classList.remove('active');
             } else {
-                window.location.href = 'index.html';
+                enText.style.display = 'none';
+                deText.style.display = 'block';
+                deBtn.classList.add('active');
+                enBtn.classList.remove('active');
             }
         }
 
-        // Show admin content
-        function showAdminContent() {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('adminContent').style.display = 'block';
-            document.getElementById('userEmail').textContent = currentUser.email;
-            loadAdminData();
+        // Download ICS file
+        function downloadICS() {
+            if (!currentGame) return;
+
+            const gameDate = new Date(currentGame.date);
+            const gameTime = currentGame.time ? currentGame.time.substring(0, 5) : '19:00';
+            const [hours, minutes] = gameTime.split(':');
+            
+            // Set event time (1 hour duration)
+            const eventStart = new Date(gameDate);
+            eventStart.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            
+            const eventEnd = new Date(eventStart);
+            eventEnd.setHours(eventStart.getHours() + 1);
+
+            const icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Volleyball Calendar//EN',
+                'BEGIN:VEVENT',
+                `UID:${currentGame.match_id}@volleyball-calendar.com`,
+                `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                `SUMMARY:${currentGame.home_team} vs ${currentGame.away_team}`,
+                `DESCRIPTION:Volleyball match at ${currentGame.halle_short || 'TBD'}. Scorekeeper: ${currentGame.scorekeeper_team_short || 'TBD'}. Täfeler: ${currentGame.taefeler_team_short || 'TBD'}.`,
+                `LOCATION:${currentGame.halle_short || 'TBD'}`,
+                'BEGIN:VALARM',
+                `TRIGGER:-P1D`,
+                'ACTION:DISPLAY',
+                'DESCRIPTION:Volleyball match tomorrow',
+                'END:VALARM',
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\r\n');
+
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `volleyball-${currentGame.home_team}-vs-${currentGame.away_team}-${currentGame.date}.ics`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
-        // Show auth section
-        function showAuthSection() {
-            document.getElementById('authSection').style.display = 'block';
-            document.getElementById('adminContent').style.display = 'none';
-        }
-
-        // Load admin data
-        async function loadAdminData() {
-            document.getElementById('adminLoading').style.display = 'block';
-            document.getElementById('adminTableContainer').style.display = 'none';
-
-            try {
-                await loadGames();
-                await loadTeams();
-                populateAdminFilters();
-                renderAdminTable();
-            } catch (error) {
-                console.error('Error loading admin data:', error);
-                document.getElementById('adminLoading').innerHTML = 'Error loading admin data. Please try again.';
-            } finally {
-                document.getElementById('adminLoading').style.display = 'none';
-                document.getElementById('adminTableContainer').style.display = 'block';
-            }
-        }
+        // Load games when page loads
+        document.addEventListener('DOMContentLoaded', loadGames);
 
         // Load games from Supabase
         async function loadGames() {
-            const { data, error } = await supabase
-                .from('matches_complete')
-                .select('*')
-                .order('date', { ascending: true });
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('gamesGrid').style.display = 'none';
 
-            if (error) throw error;
-            allGames = data || [];
+            try {
+                const { data, error } = await supabase
+                    .from('matches_complete')
+                    .select('*')
+                    .order('date', { ascending: true });
+
+                if (error) throw error;
+                allGames = data || [];
+
+                await loadTeams();
+                renderGames();
+                populateTeamFilter();
+            } catch (error) {
+                console.error('Error loading games:', error);
+                document.getElementById('loading').innerHTML = 'Error loading games. Please try again.';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('gamesGrid').style.display = 'grid';
+            }
         }
 
         // Load teams from teams table
@@ -722,86 +769,62 @@
             }
         }
 
-        // Populate admin filters
-        function populateAdminFilters() {
-            // Taefeler teams
-            const taefelerFilter = document.getElementById('adminTaefelerFilter');
-                         taefelerFilter.innerHTML = '<option value="">All Täfeler Teams</option>';
+        // Populate team filter dropdown
+        function populateTeamFilter() {
+            const teamFilter = document.getElementById('teamFilter');
+            teamFilter.innerHTML = '<option value="">All Teams</option>';
             allTeams.forEach(team => {
                 const option = document.createElement('option');
                 option.value = team;
                 option.textContent = team;
-                taefelerFilter.appendChild(option);
-            });
-
-            // Scorekeeper teams
-            const scorekeeperFilter = document.getElementById('adminScorekeeperFilter');
-            scorekeeperFilter.innerHTML = '<option value="">All Scorekeeper Teams</option>';
-            allTeams.forEach(team => {
-                const option = document.createElement('option');
-                option.value = team;
-                option.textContent = team;
-                scorekeeperFilter.appendChild(option);
-            });
-
-            // Home teams
-            const homeFilter = document.getElementById('adminHomeFilter');
-            homeFilter.innerHTML = '<option value="">All Home Teams</option>';
-            allTeams.forEach(team => {
-                const option = document.createElement('option');
-                option.value = team;
-                option.textContent = team;
-                homeFilter.appendChild(option);
+                teamFilter.appendChild(option);
             });
         }
 
-        // Filter admin games
-        function filterAdminGames() {
-            const taefelerTeam = document.getElementById('adminTaefelerFilter').value;
-            const scorekeeperTeam = document.getElementById('adminScorekeeperFilter').value;
-            const homeTeam = document.getElementById('adminHomeFilter').value;
-            const issuesFilter = document.getElementById('adminIssuesFilter').value;
+        // Filter games
+        function filterGames() {
+            const teamFilter = document.getElementById('teamFilter').value;
+            const roleFilter = document.getElementById('roleFilter').value;
 
             let filtered = allGames;
 
-            // Filter by taefeler team
-            if (taefelerTeam) {
-                filtered = filtered.filter(game => game.taefeler_team_short === taefelerTeam);
-            }
-
-            // Filter by scorekeeper team
-            if (scorekeeperTeam) {
-                filtered = filtered.filter(game => game.scorekeeper_team_short === scorekeeperTeam);
-            }
-
-            // Filter by home team
-            if (homeTeam) {
-                filtered = filtered.filter(game => game.home_team === homeTeam);
-            }
-
-            // Filter by issues
-            if (issuesFilter === 'issues') {
+            if (teamFilter) {
                 filtered = filtered.filter(game => 
-                    !game.taefeler_name || !game.taefeler_name.trim() ||
-                    !game.scorekeeper_name || !game.scorekeeper_name.trim()
-                );
-            } else if (issuesFilter === 'no-issues') {
-                filtered = filtered.filter(game => 
-                    game.taefeler_name && game.taefeler_name.trim() &&
-                    game.scorekeeper_name && game.scorekeeper_name.trim()
+                    game.home_team === teamFilter || 
+                    game.away_team === teamFilter ||
+                    game.scorekeeper_team_short === teamFilter ||
+                    game.taefeler_team_short === teamFilter
                 );
             }
 
-            renderAdminTable(filtered);
+            if (roleFilter === 'scorekeeper') {
+                filtered = filtered.filter(game => 
+                    game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== ''
+                );
+            } else if (roleFilter === 'taefeler') {
+                filtered = filtered.filter(game => 
+                    game.taefeler_team_short && game.taefeler_team_short.trim() !== ''
+                );
+            }
+
+            renderGames(filtered);
         }
 
-        // Render admin table
-        function renderAdminTable(games = allGames) {
-            const tbody = document.getElementById('adminTableBody');
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('teamFilter').value = '';
+            document.getElementById('roleFilter').value = '';
+            renderGames();
+        }
+
+        // Render games
+        function renderGames(games = allGames) {
+            const gamesGrid = document.getElementById('gamesGrid');
             
-            tbody.innerHTML = games.map(game => {
+            gamesGrid.innerHTML = games.map(game => {
                 const gameDate = new Date(game.date);
                 const formattedDate = gameDate.toLocaleDateString('en-US', {
+                    weekday: 'short',
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric'
@@ -825,19 +848,43 @@
                  }
 
                 return `
-                    <tr>
-                        <td>${formattedDate}</td>
-                        <td>${formattedTime}</td>
-                        <td>${game.home_team || '-'}</td>
-                        <td>${game.away_team || '-'}</td>
-                        <td>${game.halle_short || '-'}</td>
-                        <td>${game.scorekeeper_team_short || '-'}</td>
-                        <td>${game.taefeler_team_short || '-'}</td>
-                        <td class="status-indicator">${statusIcons.join('<br>')}</td>
-                        <td>
-                            <button class="btn btn-warning" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">Edit</button>
-                        </td>
-                    </tr>
+                    <div class="game-card" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">
+                        <div class="game-header">
+                            <div class="game-date">${formattedDate}</div>
+                            <div class="game-time">${formattedTime}</div>
+                        </div>
+                        
+                        <div class="game-teams">
+                            <div class="team-row">
+                                <span class="team-label">Home:</span>
+                                <span class="team-name">${game.home_team || '-'}</span>
+                            </div>
+                            <div class="team-row">
+                                <span class="team-label">Away:</span>
+                                <span class="team-name">${game.away_team || '-'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="game-location">
+                            <div class="location-label">Gym</div>
+                            <div class="location-name">${game.halle_short || '-'}</div>
+                        </div>
+                        
+                        <div class="game-roles">
+                            <div class="role-item">
+                                <div class="role-label">Scorekeeper</div>
+                                <div class="role-team">${game.scorekeeper_team_short || '-'}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</div>
+                            </div>
+                            <div class="role-item">
+                                <div class="role-label">Täfeler</div>
+                                <div class="role-team">${game.taefeler_team_short || '-'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="status-indicators">
+                            ${statusIcons.map(icon => `<span class="status-indicator">${icon}</span>`).join('')}
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
@@ -845,6 +892,7 @@
         // Open game modal
         function openGameModal(game) {
             currentGame = game;
+            console.log('Opening modal for game:', game);
             
             const gameDate = new Date(game.date);
             const formattedDate = gameDate.toLocaleDateString('en-US', {
@@ -864,14 +912,15 @@
             document.getElementById('modalScorekeeperTeam').textContent = game.scorekeeper_team_short || '-';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
 
-            // Show real phone numbers in admin mode
+            // Populate form fields (mask phone numbers in main page)
             document.getElementById('taefelerName').value = game.taefeler_name || '';
             document.getElementById('taefelerPhone').value = game.taefeler_phone || '';
-            document.getElementById('taefelerPhone').type = 'text';
+            document.getElementById('taefelerPhone').type = 'password'; // Mask with dots
             document.getElementById('scorekeeperName').value = game.scorekeeper_name || '';
             document.getElementById('scorekeeperPhone').value = game.scorekeeper_phone || '';
-            document.getElementById('scorekeeperPhone').type = 'text';
+            document.getElementById('scorekeeperPhone').type = 'password'; // Mask with dots
 
+            // Show/hide scorekeeper section based on whether scorekeeper team exists
             const scorekeeperSection = document.getElementById('scorekeeperSection');
             if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
                 scorekeeperSection.style.display = 'block';
@@ -898,6 +947,7 @@
             const scorekeeperPhone = document.getElementById('scorekeeperPhone').value;
 
             try {
+                console.log('Saving game details for:', currentGame);
                 // Use match_id for updates (much simpler and more reliable)
                 const { error } = await supabase
                     .from('matches_complete')
@@ -924,20 +974,11 @@
                 }
 
                 closeModal();
-                renderAdminTable();
+                renderGames();
                 alert('Game details saved successfully!');
             } catch (error) {
                 console.error('Error saving game details:', error);
                 alert('Error saving game details. Please try again.');
-            }
-        }
-
-        // Check authentication status on page load
-        async function checkAuthStatus() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                currentUser = user;
-                showAdminContent();
             }
         }
 
@@ -948,9 +989,6 @@
                 closeModal();
             }
         }
-
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', checkAuthStatus);
-    </script>
+</script>
 </body>
-</html> 
+</html>
