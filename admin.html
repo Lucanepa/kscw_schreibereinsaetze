@@ -34,11 +34,12 @@
         .header {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
-            padding: 30px 20px;
+            padding: 40px 20px 30px 20px;
             text-align: center;
             border-radius: 0 0 20px 20px;
             margin-bottom: 30px;
             position: relative;
+            min-height: 120px;
         }
 
         .language-switcher {
@@ -1608,8 +1609,12 @@
 
         // Language switching function
         function switchLanguage(lang) {
+            console.log('Language switching to:', lang);
             const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
             const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
+            
+            console.log('EN button found:', enBtn);
+            console.log('DE button found:', deBtn);
             
             if (lang === 'en') {
                 enBtn.classList.add('active');
@@ -1687,7 +1692,22 @@
         }
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', checkAuthStatus);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, checking language switcher...');
+            const languageSwitcher = document.querySelector('.language-switcher');
+            const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
+            const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
+            
+            console.log('Language switcher found:', languageSwitcher);
+            console.log('EN button found:', enBtn);
+            console.log('DE button found:', deBtn);
+            
+            if (languageSwitcher) {
+                console.log('Language switcher styles:', window.getComputedStyle(languageSwitcher));
+            }
+            
+            checkAuthStatus();
+        });
     </script>
 </body>
 </html> 
