@@ -14,7 +14,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
@@ -31,7 +31,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -45,6 +45,61 @@
         .header p {
             opacity: 0.9;
             font-size: 1.1rem;
+        }
+
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            background: #fbbf24;
+            color: #1e3a8a;
+            border-color: #fbbf24;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .lang-btn.active:hover {
+            background: #f59e0b;
+        }
+
+        .info-text {
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .info-text h2 {
+            color: #fbbf24;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .info-text p {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .info-text .highlight {
+            color: #fbbf24;
+            font-weight: bold;
         }
 
         .main-content {
@@ -92,7 +147,7 @@
 
         .filter-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #1e3a8a;
         }
 
         .filter-buttons {
@@ -113,13 +168,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(30, 58, 138, 0.4);
         }
 
         .btn-secondary {
@@ -150,7 +205,7 @@
         .game-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            border-color: #667eea;
+            border-color: #1e3a8a;
         }
 
         .game-header {
@@ -449,8 +504,28 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Volleyball Games</h1>
-            <p>Browse and manage game information</p>
+            <div class="language-switcher">
+                <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
+                <button class="lang-btn" onclick="switchLanguage('de')">DE</button>
+            </div>
+            <div class="info-text">
+                <div id="en-text">
+                    <h2>Important Information</h2>
+                    <p><span class="highlight">Scorekeeper</span> must be in the hall 30 minutes before the start of play.</p>
+                    <p><span class="highlight">Täfeler</span> must be in the hall 10 minutes before the start of play.</p>
+                    <p>Late arrival or failure to appear will result in a fine.</p>
+                    <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence (scorekeeper blacked out).</p>
+                    <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
+                </div>
+                <div id="de-text" style="display: none;">
+                    <h2>Wichtige Informationen</h2>
+                    <p><span class="highlight">Schreiber:in</span> müsst 30 Minuten vor Spielbeginn in der Halle sein.</p>
+                    <p><span class="highlight">Täfler:in</span> müsst 10 Minuten vor Spielbeginn in der Halle sein.</p>
+                    <p>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Strafe.</p>
+                    <p>Für Spiele ab 4L (und darunter) wird nur ein/e <span class="highlight">Täfler:in</span> ohne Lizenz benötigt (Schreiber:in schwarz ausgemalt).</p>
+                    <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
+                </div>
+            </div>
         </div>
 
         <div class="main-content">
@@ -578,6 +653,26 @@
             SUPABASE_CONFIG.url,
             SUPABASE_CONFIG.anonKey
         );
+
+        // Language switching function
+        function switchLanguage(lang) {
+            const enText = document.getElementById('en-text');
+            const deText = document.getElementById('de-text');
+            const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
+            const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
+            
+            if (lang === 'en') {
+                enText.style.display = 'block';
+                deText.style.display = 'none';
+                enBtn.classList.add('active');
+                deBtn.classList.remove('active');
+            } else {
+                enText.style.display = 'none';
+                deText.style.display = 'block';
+                deBtn.classList.add('active');
+                enBtn.classList.remove('active');
+            }
+        }
 
         // Load games when page loads
         document.addEventListener('DOMContentLoaded', loadGames);
