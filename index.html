@@ -6,7 +6,7 @@
     <title>Schreibereinsätze</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <style>
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -498,8 +498,8 @@
                 width: 100%;
                 margin-bottom: 10px;
             }
-        }
-    </style>
+  }
+</style>
 </head>
 <body>
     <div class="container">
@@ -530,6 +530,7 @@
 
         <div class="main-content">
             <div class="admin-access">
+                <a href="calendar.html" class="btn btn-primary">📅 Calendar View</a>
                 <a href="admin.html" class="btn btn-secondary">Admin Access</a>
             </div>
 
@@ -637,13 +638,14 @@
             </div>
 
             <div class="modal-actions">
+                <button class="btn btn-success" onclick="downloadICS()">📅 Download ICS</button>
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveGameDetails()">Save Changes</button>
             </div>
         </div>
     </div>
 
-    <script>
+<script>
         let allGames = [];
         let allTeams = [];
         let currentGame = null;
@@ -672,6 +674,53 @@
                 deBtn.classList.add('active');
                 enBtn.classList.remove('active');
             }
+        }
+
+        // Download ICS file
+        function downloadICS() {
+            if (!currentGame) return;
+
+            const gameDate = new Date(currentGame.date);
+            const gameTime = currentGame.time ? currentGame.time.substring(0, 5) : '19:00';
+            const [hours, minutes] = gameTime.split(':');
+            
+            // Set event time (1 hour duration)
+            const eventStart = new Date(gameDate);
+            eventStart.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            
+            const eventEnd = new Date(eventStart);
+            eventEnd.setHours(eventStart.getHours() + 1);
+
+            const icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Volleyball Calendar//EN',
+                'BEGIN:VEVENT',
+                `UID:${currentGame.match_id}@volleyball-calendar.com`,
+                `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                `SUMMARY:${currentGame.home_team} vs ${currentGame.away_team}`,
+                `DESCRIPTION:Volleyball match at ${currentGame.halle_short || 'TBD'}. Scorekeeper: ${currentGame.scorekeeper_team_short || 'TBD'}. Täfeler: ${currentGame.taefeler_team_short || 'TBD'}.`,
+                `LOCATION:${currentGame.halle_short || 'TBD'}`,
+                'BEGIN:VALARM',
+                `TRIGGER:-P1D`,
+                'ACTION:DISPLAY',
+                'DESCRIPTION:Volleyball match tomorrow',
+                'END:VALARM',
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\r\n');
+
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `volleyball-${currentGame.home_team}-vs-${currentGame.away_team}-${currentGame.date}.ics`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         // Load games when page loads
@@ -939,6 +988,6 @@
                 closeModal();
             }
         }
-    </script>
+</script>
 </body>
 </html>
