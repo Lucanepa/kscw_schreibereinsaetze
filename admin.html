@@ -549,17 +549,57 @@
         }
 
         @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 6px;
+            }
+            
+            .archive-link {
+                top: 15px;
+                left: 15px;
+            }
+            
+            .btn-archive {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .auth-form {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            
             .admin-filters-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
             
             .admin-table {
-                font-size: 14px;
+                font-size: 12px;
+                overflow-x: auto;
             }
             
             .admin-table th,
             .admin-table td {
-                padding: 10px 8px;
+                padding: 8px 6px;
+                min-width: 80px;
+            }
+            
+            .admin-table .game-teams {
+                min-width: 120px;
             }
 
             .detail-grid {
@@ -568,6 +608,12 @@
 
             .form-row {
                 grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                margin: 10% auto;
             }
 
             .modal-actions {
@@ -584,6 +630,12 @@
                 gap: 10px;
                 text-align: center;
             }
+            
+            .user-info .btn {
+                margin: 5px;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
 
             .team-issues-grid {
                 grid-template-columns: 1fr;
@@ -591,6 +643,19 @@
             
             .game-roles {
                 flex-direction: column;
+            }
+            
+            .info-section {
+                padding: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .info-section h4 {
+                font-size: 1rem;
+            }
+            
+            .info-section p {
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -924,30 +989,32 @@
         // Filter out past games (games older than the day after their scheduled date)
         function filterCurrentGames(games) {
             const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
             return games.filter(game => {
                 const gameDate = new Date(game.date);
+                // Set time to 00:01 of the day after the game
                 const dayAfterGame = new Date(gameDate);
                 dayAfterGame.setDate(dayAfterGame.getDate() + 1);
+                dayAfterGame.setHours(0, 1, 0, 0); // 00:01
                 
-                // Game is current if it's not older than the day after
-                return dayAfterGame >= today;
+                // Game is current if it's not older than 00:01 the day after
+                return now < dayAfterGame;
             });
         }
 
         // Get past games for archive
         function getPastGames(games) {
             const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
             return games.filter(game => {
                 const gameDate = new Date(game.date);
+                // Set time to 00:01 of the day after the game
                 const dayAfterGame = new Date(gameDate);
                 dayAfterGame.setDate(dayAfterGame.getDate() + 1);
+                dayAfterGame.setHours(0, 1, 0, 0); // 00:01
                 
-                // Game is past if it's older than the day after
-                return dayAfterGame < today;
+                // Game is past if it's older than 00:01 the day after
+                return now >= dayAfterGame;
             });
         }
 
