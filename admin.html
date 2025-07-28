@@ -412,6 +412,13 @@
             margin-bottom: 20px;
         }
 
+        .team-issues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
         .team-issue-item {
             background: #f8f9fa;
             padding: 10px;
@@ -553,14 +560,21 @@
                 gap: 10px;
                 text-align: center;
             }
+
+            .team-issues-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-roles {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Volleyball Admin Panel</h1>
-            <p>Manage all games and contact information</p>
+            <h1>Schreibereinsätze Admin Panel</h1>
         </div>
 
                  <!-- Authentication Section -->
@@ -1367,7 +1381,7 @@
             });
 
             let summaryHTML = '<h3>Issues Summary by Team</h3>';
-            summaryHTML += '<div class="team-issues">';
+            summaryHTML += '<div class="team-issues-grid">';
             
             Object.keys(teamIssues).sort().forEach(team => {
                 const issues = teamIssues[team];
