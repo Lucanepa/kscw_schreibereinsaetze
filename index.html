@@ -18,37 +18,46 @@
             font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            font-feature-settings: "liga" 1, "kern" 1;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.12);
             overflow: hidden;
             margin-top: 20px;
             margin-bottom: 20px;
+            backdrop-filter: blur(10px);
         }
 
         .header {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
-            padding: 30px 20px;
+            padding: 35px 20px;
             text-align: center;
-            border-radius: 0 0 20px 20px;
+            border-radius: 0 0 25px 25px;
             margin-bottom: 30px;
             position: relative;
+            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.3);
         }
 
         .header h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
 
         .header p {
             opacity: 0.9;
             font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 0.01em;
         }
 
         .language-switcher {
@@ -67,8 +76,10 @@
             border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             transition: all 0.3s ease;
+            letter-spacing: 0.01em;
         }
 
         .lang-btn:hover {
@@ -94,8 +105,10 @@
             border-radius: 20px;
             text-decoration: none;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             transition: all 0.3s ease;
+            letter-spacing: 0.01em;
         }
 
         .btn-archive:hover {
@@ -114,11 +127,16 @@
             color: #fbbf24;
             margin-bottom: 15px;
             font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
         }
 
         .info-text p {
             margin-bottom: 15px;
             font-size: 1.1rem;
+            font-weight: 400;
+            line-height: 1.6;
+            letter-spacing: 0.01em;
         }
 
         .info-text .highlight {
@@ -158,6 +176,8 @@
             font-weight: 600;
             color: #333;
             margin-bottom: 8px;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
         }
 
         .filter-group select {
@@ -167,6 +187,8 @@
             font-size: 14px;
             background: white;
             transition: border-color 0.3s ease;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 500;
         }
 
         .filter-group select:focus {
@@ -186,9 +208,11 @@
             border-radius: 8px;
             font-size: 14px;
             font-weight: 600;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             cursor: pointer;
             transition: all 0.3s ease;
             margin: 5px;
+            letter-spacing: 0.01em;
         }
 
         .btn-primary {
@@ -227,17 +251,18 @@
 
         .game-card {
             background: white;
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
             border: 2px solid transparent;
+            backdrop-filter: blur(5px);
         }
 
         .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
             border-color: #1e3a8a;
         }
 
@@ -250,8 +275,10 @@
 
         .game-date {
             font-size: 1.2rem;
-            font-weight: bold;
+            font-weight: 700;
             color: #333;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: -0.01em;
         }
 
         .game-time {
@@ -261,6 +288,8 @@
             border-radius: 20px;
             font-size: 0.9rem;
             font-weight: 600;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
         }
 
         .game-teams {
@@ -278,11 +307,15 @@
             font-weight: 600;
             color: #666;
             font-size: 0.9rem;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
         }
 
         .team-name {
             font-weight: 500;
             color: #333;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
         }
 
         .game-location {
@@ -297,6 +330,8 @@
             color: #666;
             font-size: 0.9rem;
             margin-bottom: 5px;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
         }
 
         .location-name {
@@ -377,12 +412,14 @@
         .modal-content {
             background-color: white;
             margin: 5% auto;
-            padding: 30px;
-            border-radius: 15px;
+            padding: 35px;
+            border-radius: 20px;
             width: 90%;
             max-width: 600px;
             max-height: 80vh;
             overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
         }
 
         .close {
@@ -405,14 +442,19 @@
 
         .modal-title {
             font-size: 1.5rem;
-            font-weight: bold;
+            font-weight: 700;
             color: #333;
             margin-bottom: 10px;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: -0.01em;
         }
 
         .modal-subtitle {
             color: #666;
             font-size: 1rem;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.01em;
         }
 
         .game-details-modal {
@@ -427,6 +469,9 @@
             color: #667eea;
             margin-bottom: 10px;
             font-size: 1.1rem;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
         .detail-grid {
@@ -446,11 +491,15 @@
             color: #666;
             font-size: 0.9rem;
             margin-bottom: 5px;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
         }
 
         .detail-value {
             color: #333;
             font-weight: 500;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
         }
 
         .form-section {
@@ -461,6 +510,9 @@
             color: #667eea;
             margin-bottom: 15px;
             font-size: 1.1rem;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
         .form-row {
@@ -480,6 +532,8 @@
             color: #333;
             margin-bottom: 5px;
             font-size: 0.9rem;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
         }
 
         .form-group input {
@@ -488,6 +542,8 @@
             border-radius: 6px;
             font-size: 14px;
             transition: border-color 0.3s ease;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 500;
         }
 
         .form-group input:focus {
@@ -568,11 +624,17 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
         .info-section p {
             margin: 8px 0;
             line-height: 1.5;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.01em;
         }
 
         .info-section strong {
@@ -587,9 +649,11 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
+            letter-spacing: 0.01em;
         }
 
         .btn-info:hover {
@@ -934,15 +998,13 @@
             <span class="close" onclick="closeInfoModal()">&times;</span>
             <div class="modal-header">
                 <div class="modal-title">Important Information</div>
-                <div class="modal-subtitle">Please read carefully</div>
             </div>
             <div class="info-content">
                 <div id="info-en" style="display: none;">
-                    <h3>🏐 Volleyball Game Requirements</h3>
                     <div class="info-section">
                         <h4>⏰ Arrival Times</h4>
                         <p><strong><span class="highlight">Scorekeeper</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
-                        <p><strong><span class="highlight">Täfeler</span> must be in the hall at least 20 minutes before the start of play.</strong></p>
+                        <p><strong><span class="highlight">Täfeler</span> must be in the hall at least 10 minutes before the start of play.</strong></p>
                     </div>
                     <div class="info-section">
                         <h4>⚠️ Important Warnings</h4>
@@ -951,6 +1013,7 @@
                     <div class="info-section">
                         <h4>📋 Game Requirements</h4>
                         <p>Games from 4L and under only need a <span class="highlight">Scorekeeper</span>, without licence. It is indicated as the only "Täfeler" in the game details.</p>
+                        <p><strong>In this case, the Scorekeeper/Täfeler must be in the hall at least 30 minutes before the start of play.</strong></p>
                     </div>
                     <div class="info-section">
                         <h4>📞 Contact Information</h4>
@@ -970,7 +1033,7 @@
                     <div class="info-section">
                         <h4>⏰ Ankunftszeiten</h4>
                         <p><strong><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                        <p><strong><span class="highlight">Täfler:in</span> muss mindestens 20 Minuten vor Spielbeginn in der Halle sein.</strong></p>
+                        <p><strong><span class="highlight">Täfler:in</span> muss mindestens 10 Minuten vor Spielbeginn in der Halle sein.</strong></p>
                     </div>
                     <div class="info-section">
                         <h4>⚠️ Wichtige Warnungen</h4>
@@ -979,6 +1042,7 @@
                     <div class="info-section">
                         <h4>📋 Spielanforderungen</h4>
                         <p>Für 4L, 5L und DU23-2 Spiele wird nur ein/e <span class="highlight">Schreiber:in</span> ohne Lizenz benötigt. Es ist als einziger "Täfeler" in den Spieldetails angegeben.</p>
+                        <p><strong>In diesem Fall muss der Schreiber:in/Täfeler:in mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
                     </div>
                     <div class="info-section">
                         <h4>📞 Kontaktinformationen</h4>
@@ -1283,26 +1347,29 @@
             
             return games.filter(game => {
                 const gameDate = new Date(game.date);
+                // Set time to 00:01 of the day after the game
                 const dayAfterGame = new Date(gameDate);
                 dayAfterGame.setDate(dayAfterGame.getDate() + 1);
+                dayAfterGame.setHours(0, 1, 0, 0); // 00:01
                 
-                // Game is current if it's not older than the day after
-                return dayAfterGame >= today;
+                // Game is current if it's not older than 00:01 the day after
+                return now < dayAfterGame;
             });
         }
 
         // Get past games for archive
         function getPastGames(games) {
             const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
             return games.filter(game => {
                 const gameDate = new Date(game.date);
+                // Set time to 00:01 of the day after the game
                 const dayAfterGame = new Date(gameDate);
                 dayAfterGame.setDate(dayAfterGame.getDate() + 1);
+                dayAfterGame.setHours(0, 1, 0, 0); // 00:01
                 
-                // Game is past if it's older than the day after
-                return dayAfterGame < today;
+                // Game is past if it's older than 00:01 the day after
+                return now >= dayAfterGame;
             });
         }
 
@@ -1422,6 +1489,7 @@
                 const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
                 const hasScorekeeperIssue = game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && 
                                          (!game.scorekeeper_name || !game.scorekeeper_name.trim());
+                const isEditable = isGameEditable(game);
 
                 const gameCard = document.createElement('div');
                 gameCard.className = 'game-card';
@@ -1437,7 +1505,7 @@
                     </div>
                     <div class="game-location">📍 ${game.halle_short || 'TBD'}</div>
                     <div class="game-roles">
-                        ${game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' ? `
+                        ${game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && isEditable ? `
                             <div class="role-item">
                                 <span class="role-label">📝 Scorekeeper: ${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</span>
                                 <span class="status-icon">${hasScorekeeperIssue ? '⚠️' : '✅'}</span>
@@ -1511,11 +1579,18 @@
                 document.getElementById('readOnlySection').style.display = 'none';
                 document.getElementById('saveButton').style.display = 'inline-block';
             } else {
-                // Show read-only contact information
+                // Show read-only contact information (only Täfeler for disabled games)
                 document.getElementById('modalTaefelerName').textContent = game.taefeler_name || '-';
                 document.getElementById('modalTaefelerPhone').textContent = game.taefeler_phone || '-';
-                document.getElementById('modalScorekeeperName').textContent = game.scorekeeper_name || '-';
-                document.getElementById('modalScorekeeperPhone').textContent = game.scorekeeper_phone || '-';
+                
+                // Only show scorekeeper info if game is editable
+                if (isEditable) {
+                    document.getElementById('modalScorekeeperName').textContent = game.scorekeeper_name || '-';
+                    document.getElementById('modalScorekeeperPhone').textContent = game.scorekeeper_phone || '-';
+                } else {
+                    document.getElementById('modalScorekeeperName').textContent = '-';
+                    document.getElementById('modalScorekeeperPhone').textContent = '-';
+                }
 
                 // Hide form fields, show read-only section
                 document.getElementById('formSection').style.display = 'none';
@@ -1523,9 +1598,9 @@
                 document.getElementById('saveButton').style.display = 'none';
             }
 
-            // Show/hide scorekeeper section based on whether scorekeeper team exists
+            // Show/hide scorekeeper section based on whether scorekeeper team exists AND game is editable
             const scorekeeperSection = document.getElementById('scorekeeperSection');
-            if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
+            if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && isEditable) {
                 scorekeeperSection.style.display = 'block';
             } else {
                 scorekeeperSection.style.display = 'none';
