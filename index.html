@@ -983,11 +983,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="taefelerName">Name</label>
-                            <input type="text" id="taefelerName" placeholder="Enter Täfeler name">
+                            <input type="text" id="taefelerName" placeholder="Enter täfeler name">
                         </div>
                         <div class="form-group">
                             <label for="taefelerPhone">Phone</label>
-                            <input type="text" id="taefelerPhone" placeholder="Enter Täfeler phone">
+                            <input type="text" id="taefelerPhone" placeholder="Enter täfeler phone">
                         </div>
                     </div>
                 </div>
@@ -997,11 +997,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="scorerName">Name</label>
-                            <input type="text" id="scorerName" placeholder="Enter Scorer name">
+                            <input type="text" id="scorerName" placeholder="Enter scorer name">
                         </div>
                         <div class="form-group">
                             <label for="scorerPhone">Phone</label>
-                            <input type="text" id="scorerPhone" placeholder="Enter Scorer phone">
+                            <input type="text" id="scorerPhone" placeholder="Enter scorer phone">
                         </div>
                     </div>
                 </div>
@@ -1368,8 +1368,8 @@
                 `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `SUMMARY:${currentGame.home_team} vs ${currentGame.away_team}`,
-                `DESCRIPTION:Volleyball match at ${currentGame.halle_short || 'TBD'}. Scorer: ${currentGame.scorer_team_short || 'TBD'}. Täfeler: ${currentGame.taefeler_team_short || 'TBD'}.`,
-                `LOCATION:${currentGame.halle_short || 'TBD'}`,
+                `DESCRIPTION:Volleyball match at ${currentGame.halle || 'TBD'}. Scorer: ${currentGame.scorer_team_short || 'TBD'}. Täfeler: ${currentGame.taefeler_team_short || 'TBD'}.`,
+                `LOCATION:${currentGame.halle || 'TBD'}`,
                 'BEGIN:VALARM',
                 `TRIGGER:-P1D`,
                 'ACTION:DISPLAY',
@@ -1399,10 +1399,18 @@
             // Add event listeners for phone number fields
             document.getElementById('taefelerPhone').addEventListener('focus', function() {
                 this.type = 'text';
+                // Clear the field for privacy when focused
+                if (this.value && this.value.trim() !== '') {
+                    this.value = '';
+                }
             });
             
             document.getElementById('scorerPhone').addEventListener('focus', function() {
                 this.type = 'text';
+                // Clear the field for privacy when focused
+                if (this.value && this.value.trim() !== '') {
+                    this.value = '';
+                }
             });
         });
 
