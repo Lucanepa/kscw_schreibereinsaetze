@@ -538,30 +538,31 @@
                     </div>
                 </div>
 
-                <div class="form-section">
-                    <h3>Contact Information</h3>
-                    <div class="form-group">
-                        <label for="taefelerName">Täfeler Name</label>
-                        <input type="text" id="taefelerName" placeholder="Enter Täfeler name">
-                    </div>
-                    <div class="form-group">
-                        <label for="taefelerPhone">Täfeler Phone</label>
-                        <input type="tel" id="taefelerPhone" placeholder="Enter Täfeler phone number">
-                    </div>
-                    <div class="form-group">
-                        <label for="scorekeeperName">Scorekeeper Name</label>
-                        <input type="text" id="scorekeeperName" placeholder="Enter Scorekeeper name">
-                    </div>
-                    <div class="form-group">
-                        <label for="scorekeeperPhone">Scorekeeper Phone</label>
-                        <input type="tel" id="scorekeeperPhone" placeholder="Enter Scorekeeper phone number">
-                    </div>
-                </div>
+                                 <div class="detail-section">
+                     <h3>Contact Information</h3>
+                     <div class="detail-grid">
+                         <div class="detail-item">
+                             <div class="detail-label">Täfeler Name</div>
+                             <div class="detail-value" id="modalTaefelerName">-</div>
+                         </div>
+                         <div class="detail-item">
+                             <div class="detail-label">Täfeler Phone</div>
+                             <div class="detail-value" id="modalTaefelerPhone">-</div>
+                         </div>
+                         <div class="detail-item">
+                             <div class="detail-label">Scorekeeper Name</div>
+                             <div class="detail-value" id="modalScorekeeperName">-</div>
+                         </div>
+                         <div class="detail-item">
+                             <div class="detail-label">Scorekeeper Phone</div>
+                             <div class="detail-value" id="modalScorekeeperPhone">-</div>
+                         </div>
+                     </div>
+                 </div>
 
-                <div class="modal-actions">
-                    <button class="btn btn-secondary" onclick="closeModal()">Close</button>
-                    <button class="btn btn-success" onclick="saveGame()">Save Changes</button>
-                </div>
+                 <div class="modal-actions">
+                     <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                 </div>
             </div>
         </div>
     </div>
@@ -576,10 +577,10 @@
         // Initialize Supabase
         const supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            loadGames();
-        });
+                 // Initialize page
+         document.addEventListener('DOMContentLoaded', function() {
+             loadGames();
+         });
 
         // Load games from matches_complete table
         async function loadGames() {
@@ -800,11 +801,11 @@
             document.getElementById('modalScorekeeperTeam').textContent = game.scorekeeper_team_short || '-';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
 
-            // Populate form fields
-            document.getElementById('taefelerName').value = game.taefeler_name || '';
-            document.getElementById('taefelerPhone').value = game.taefeler_phone || '';
-            document.getElementById('scorekeeperName').value = game.scorekeeper_name || '';
-            document.getElementById('scorekeeperPhone').value = game.scorekeeper_phone || '';
+                         // Populate read-only contact information
+             document.getElementById('modalTaefelerName').textContent = game.taefeler_name || '-';
+             document.getElementById('modalTaefelerPhone').textContent = game.taefeler_phone || '-';
+             document.getElementById('modalScorekeeperName').textContent = game.scorekeeper_name || '-';
+             document.getElementById('modalScorekeeperPhone').textContent = game.scorekeeper_phone || '-';
 
             document.getElementById('gameModal').style.display = 'block';
         }
@@ -814,47 +815,7 @@
             document.getElementById('gameModal').style.display = 'none';
         }
 
-        // Save game changes
-        async function saveGame() {
-            if (!currentGame) return;
-
-            const taefelerName = document.getElementById('taefelerName').value;
-            const taefelerPhone = document.getElementById('taefelerPhone').value;
-            const scorekeeperName = document.getElementById('scorekeeperName').value;
-            const scorekeeperPhone = document.getElementById('scorekeeperPhone').value;
-
-            try {
-                const { error } = await supabase
-                    .from('matches_complete')
-                    .update({
-                        taefeler_name: taefelerName,
-                        taefeler_phone: taefelerPhone,
-                        scorekeeper_name: scorekeeperName,
-                        scorekeeper_phone: scorekeeperPhone
-                    })
-                    .eq('date', currentGame.date)
-                    .eq('time', currentGame.time)
-                    .eq('home_team', currentGame.home_team)
-                    .eq('away_team', currentGame.away_team);
-
-                if (error) throw error;
-
-                // Update the current game object
-                currentGame.taefeler_name = taefelerName;
-                currentGame.taefeler_phone = taefelerPhone;
-                currentGame.scorekeeper_name = scorekeeperName;
-                currentGame.scorekeeper_phone = scorekeeperPhone;
-
-                // Refresh the display
-                filterGames();
-
-                closeModal();
-                alert('Game updated successfully!');
-            } catch (error) {
-                console.error('Error updating game:', error);
-                alert('Error updating game. Please try again.');
-            }
-        }
+        
 
         // Close modal when clicking outside
         window.onclick = function(event) {
