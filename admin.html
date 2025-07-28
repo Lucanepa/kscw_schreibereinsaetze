@@ -44,6 +44,30 @@
             margin-bottom: 10px;
         }
 
+        .archive-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .btn-archive {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-archive:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
         .header p {
             opacity: 0.9;
             font-size: 1.1rem;
@@ -574,6 +598,9 @@
 <body>
     <div class="container">
         <div class="header">
+            <div class="archive-link">
+                <a href="archive.html" class="btn btn-archive">📚 Archive</a>
+            </div>
             <h1>Schreibereinsätze Admin Panel</h1>
         </div>
 
@@ -894,6 +921,36 @@
             allGames = data || [];
         }
 
+        // Filter out past games (games older than the day after their scheduled date)
+        function filterCurrentGames(games) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            return games.filter(game => {
+                const gameDate = new Date(game.date);
+                const dayAfterGame = new Date(gameDate);
+                dayAfterGame.setDate(dayAfterGame.getDate() + 1);
+                
+                // Game is current if it's not older than the day after
+                return dayAfterGame >= today;
+            });
+        }
+
+        // Get past games for archive
+        function getPastGames(games) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            return games.filter(game => {
+                const gameDate = new Date(game.date);
+                const dayAfterGame = new Date(gameDate);
+                dayAfterGame.setDate(dayAfterGame.getDate() + 1);
+                
+                // Game is past if it's older than the day after
+                return dayAfterGame < today;
+            });
+        }
+
         // Load teams from teams table
         async function loadTeams() {
             try {
@@ -966,7 +1023,7 @@
             const homeTeam = document.getElementById('adminHomeFilter').value;
             const issuesFilter = document.getElementById('adminIssuesFilter').value;
 
-            let filtered = allGames;
+            let filtered = filterCurrentGames(allGames);
 
             // Filter by taefeler team
             if (taefelerTeam) {
@@ -1296,7 +1353,7 @@
             const homeTeam = document.getElementById('adminHomeFilter').value;
             const issuesFilter = document.getElementById('adminIssuesFilter').value;
 
-            let filtered = allGames;
+            let filtered = filterCurrentGames(allGames);
 
             // Filter by taefeler team
             if (taefelerTeam) {
