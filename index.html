@@ -34,8 +34,11 @@
         .header {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
-            padding: 30px;
+            padding: 30px 20px;
             text-align: center;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 30px;
+            position: relative;
         }
 
         .header h1 {
@@ -58,27 +61,23 @@
 
         .lang-btn {
             background: rgba(255, 255, 255, 0.2);
-            color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
             padding: 8px 16px;
             border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
             transition: all 0.3s ease;
-        }
-
-        .lang-btn.active {
-            background: #fbbf24;
-            color: #1e3a8a;
-            border-color: #fbbf24;
         }
 
         .lang-btn:hover {
             background: rgba(255, 255, 255, 0.3);
         }
 
-        .lang-btn.active:hover {
-            background: #f59e0b;
+        .lang-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.6);
         }
 
         .info-text {
@@ -653,23 +652,21 @@
                 <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
                 <button class="lang-btn" onclick="switchLanguage('de')">DE</button>
             </div>
-            <div class="info-text">
-                <div id="en-text">
-                    <h2>Important Information</h2>
-                    <p><span class="highlight">Scorekeeper</span> must be in the hall 30 minutes before the start of play.</p>
-                    <p><span class="highlight">Täfeler</span> must be in the hall 10 minutes before the start of play.</p>
-                    <p>Late arrival or failure to appear will result in a fine.</p>
-                    <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence.</p>
-                    <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
-                </div>
-                <div id="de-text" style="display: none;">
-                    <h2>Wichtige Informationen</h2>
-                    <p><span class="highlight">Schreiber:in</span> muss 30 Minuten vor Spielbeginn in der Halle sein.</p>
-                    <p><span class="highlight">Täfler:in</span> muss 10 Minuten vor Spielbeginn in der Halle sein.</p>
-                    <p>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Strafe.</p>
-                    <p>Für Spiele von Liga 4L, 5L und DU23-2 wird nur ein/e <span class="highlight">Täfler:in</span> ohne Lizenz benötigt.</p>
-                    <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
-                </div>
+            <div id="en-text">
+                <h2>Important Information</h2>
+                <p><span class="highlight">Scorekeeper</span> must be in the hall 30 minutes before the start of play.</p>
+                <p><span class="highlight">Täfeler</span> must be in the hall 10 minutes before the start of play.</p>
+                <p>Late arrival or failure to appear will result in a fine.</p>
+                <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence.</p>
+                <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
+            </div>
+            <div id="de-text" style="display: none;">
+                <h2>Wichtige Informationen</h2>
+                <p><span class="highlight">Schreiber:in</span> muss 30 Minuten vor Spielbeginn in der Halle sein.</p>
+                <p><span class="highlight">Täfler:in</span> muss 10 Minuten vor Spielbeginn in der Halle sein.</p>
+                <p>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Strafe.</p>
+                <p>Für Spiele von Liga 4L, 5L und DU23-2 wird nur ein/e <span class="highlight">Täfler:in</span> ohne Lizenz benötigt.</p>
+                <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
             </div>
         </div>
 
@@ -863,13 +860,66 @@
                 deText.style.display = 'none';
                 enBtn.classList.add('active');
                 deBtn.classList.remove('active');
+                currentLanguage = 'en';
             } else {
                 enText.style.display = 'none';
                 deText.style.display = 'block';
                 deBtn.classList.add('active');
                 enBtn.classList.remove('active');
+                currentLanguage = 'de';
             }
         }
+
+        let currentLanguage = 'en';
+
+        // Format date with day of week
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dayName = days[date.getDay()];
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${dayName}, ${day}/${month}/${year}`;
+        }
+
+        // German translations
+        const translations = {
+            en: {
+                summary: 'Game Issues Summary',
+                overview: 'Overview of missing information',
+                issuesSummary: 'Issues Summary by Team',
+                gamesWithIssues: 'Games with Issues',
+                issues: 'issues',
+                taefeler: 'Täfeler',
+                scorekeeper: 'Scorekeeper',
+                close: 'Close',
+                teamGames: 'Games',
+                allGamesForTeam: 'All games for this team',
+                missingTaefeler: 'Missing Täfeler name',
+                missingScorekeeper: 'Missing Scorekeeper name',
+                location: 'Location',
+                vs: 'vs',
+                at: 'at'
+            },
+            de: {
+                summary: 'Spielprobleme Zusammenfassung',
+                overview: 'Übersicht fehlender Informationen',
+                issuesSummary: 'Probleme nach Team',
+                gamesWithIssues: 'Spiele mit Problemen',
+                issues: 'Probleme',
+                taefeler: 'Täfeler',
+                scorekeeper: 'Schreiber',
+                close: 'Schließen',
+                teamGames: 'Spiele',
+                allGamesForTeam: 'Alle Spiele für dieses Team',
+                missingTaefeler: 'Fehlender Täfeler Name',
+                missingScorekeeper: 'Fehlender Schreiber Name',
+                location: 'Ort',
+                vs: 'gegen',
+                at: 'in'
+            }
+        };
 
         // Download ICS file
         function downloadICS() {
@@ -1028,77 +1078,49 @@
         }
 
         // Render games
-        function renderGames(games = allGames) {
-            const gamesGrid = document.getElementById('gamesGrid');
-            
-            gamesGrid.innerHTML = games.map(game => {
-                const gameDate = new Date(game.date);
-                const formattedDate = gameDate.toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                });
+        function renderGames(games) {
+            const gamesContainer = document.getElementById('gamesGrid');
+            gamesContainer.innerHTML = '';
 
+            games.forEach(game => {
+                const gameDate = new Date(game.date);
+                const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
-                const statusIcons = [];
-                                 if (!game.taefeler_name || !game.taefeler_name.trim()) {
-                     statusIcons.push('⚠️ Täfeler');
-                 } else {
-                     statusIcons.push('✅ Täfeler');
-                 }
-                                 // Only show scorekeeper status if there's a scorekeeper team assigned
-                 if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
-                     if (!game.scorekeeper_name || !game.scorekeeper_name.trim()) {
-                         statusIcons.push('⚠️ Scorekeeper');
-                     } else {
-                         statusIcons.push('✅ Scorekeeper');
-                     }
-                 }
+                // Check for issues
+                const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
+                const hasScorekeeperIssue = game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && 
+                                         (!game.scorekeeper_name || !game.scorekeeper_name.trim());
 
-                return `
-                    <div class="game-card" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">
-                        <div class="game-header">
-                            <div class="game-date">${formattedDate}</div>
-                            <div class="game-time">${formattedTime}</div>
-                        </div>
-                        
-                        <div class="game-teams">
-                            <div class="team-row">
-                                <span class="team-label">Home:</span>
-                                <span class="team-name">${game.home_team || '-'}</span>
-                            </div>
-                            <div class="team-row">
-                                <span class="team-label">Away:</span>
-                                <span class="team-name">${game.away_team || '-'}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="game-location">
-                            <div class="location-label">Gym</div>
-                            <div class="location-name">${game.halle_short || '-'}</div>
-                        </div>
-                        
-                        <div class="game-roles">
-                            ${game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' ? `
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card';
+                gameCard.onclick = () => openGameModal(game);
+
+                gameCard.innerHTML = `
+                    <div class="game-header">
+                        <div class="game-date">${formattedDate}</div>
+                        <div class="game-time">${formattedTime}</div>
+                    </div>
+                    <div class="game-teams">
+                        ${game.home_team} vs ${game.away_team}
+                    </div>
+                    <div class="game-location">📍 ${game.halle_short || 'TBD'}</div>
+                    <div class="game-roles">
+                        ${game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' ? `
                             <div class="role-item">
-                                <div class="role-label">Scorekeeper</div>
-                                <div class="role-team">${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</div>
+                                <span class="role-label">📝 Scorekeeper: ${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</span>
+                                <span class="status-icon">${hasScorekeeperIssue ? '⚠️' : '✅'}</span>
                             </div>
-                            ` : ''}
-                            <div class="role-item">
-                                <div class="role-label">Täfeler</div>
-                                <div class="role-team">${game.taefeler_team_short || '-'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="status-indicators">
-                            ${statusIcons.map(icon => `<span class="status-indicator">${icon}</span>`).join('')}
+                        ` : ''}
+                        <div class="role-item">
+                            <span class="role-label">🏐 Täfeler: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</span>
+                            <span class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</span>
                         </div>
                     </div>
                 `;
-            }).join('');
+
+                gamesContainer.appendChild(gameCard);
+            });
         }
 
         // Open game modal
@@ -1206,6 +1228,12 @@
         function showSummary() {
             const summaryData = generateSummaryData();
             document.getElementById('summaryContent').innerHTML = summaryData;
+            
+            // Update modal titles based on language
+            document.querySelector('#summaryModal .modal-title').textContent = translations[currentLanguage].summary;
+            document.querySelector('#summaryModal .modal-subtitle').textContent = translations[currentLanguage].overview;
+            document.querySelector('#summaryModal .btn-secondary').textContent = translations[currentLanguage].close;
+            
             document.getElementById('summaryModal').style.display = 'block';
         }
 
@@ -1247,9 +1275,9 @@
                 const totalIssues = issues.taefeler + issues.scorekeeper;
                 summaryHTML += `
                     <div class="team-issue-item">
-                        <strong class="clickable-team" onclick="showTeamGames('${team}')">${team}</strong>: ${totalIssues} issues
-                        ${issues.taefeler > 0 ? `(${issues.taefeler} Täfeler, ` : ''}
-                        ${issues.scorekeeper > 0 ? `${issues.scorekeeper} Scorekeeper)` : ''}
+                        <strong class="clickable-team" onclick="showTeamGames('${team}')">${team}</strong>: ${totalIssues} ${translations[currentLanguage].issues}
+                        ${issues.taefeler > 0 ? `(${issues.taefeler} ${translations[currentLanguage].taefeler}, ` : ''}
+                        ${issues.scorekeeper > 0 ? `${issues.scorekeeper} ${translations[currentLanguage].scorekeeper})` : ''}
                     </div>
                 `;
             });
@@ -1267,17 +1295,14 @@
                 game.away_team === teamName
             );
 
-            document.getElementById('teamGamesTitle').textContent = `${teamName} Games`;
+            document.getElementById('teamGamesTitle').textContent = `${teamName} ${translations[currentLanguage].teamGames}`;
+            document.querySelector('#teamGamesModal .modal-subtitle').textContent = translations[currentLanguage].allGamesForTeam;
+            document.querySelector('#teamGamesModal .btn-secondary').textContent = translations[currentLanguage].close;
             
             let teamGamesHTML = `<div class="team-games-list">`;
             
             teamGames.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(game => {
-                const gameDate = new Date(game.date);
-                const formattedDate = gameDate.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                });
+                const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
                 // Check for issues
@@ -1294,16 +1319,16 @@
                             <div class="team-game-date">${formattedDate}</div>
                             <div class="team-game-time">${formattedTime}</div>
                         </div>
-                        <div class="team-game-teams">${game.home_team} vs ${game.away_team}</div>
+                        <div class="team-game-teams">${game.home_team} ${translations[currentLanguage].vs} ${game.away_team}</div>
                         <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' ? `
                                 <div class="team-role-item ${!game.scorekeeper_name || !game.scorekeeper_name.trim() ? 'has-issue' : ''}">
-                                    📝 Scorekeeper: ${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}
+                                    📝 ${translations[currentLanguage].scorekeeper}: ${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}
                                 </div>
                             ` : ''}
                             <div class="team-role-item ${!game.taefeler_name || !game.taefeler_name.trim() ? 'has-issue' : ''}">
-                                🏐 Täfeler: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}
+                                🏐 ${translations[currentLanguage].taefeler}: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}
                             </div>
                         </div>
                     </div>
