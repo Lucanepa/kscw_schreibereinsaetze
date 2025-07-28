@@ -911,7 +911,7 @@
                 issues: 'Probleme',
                 taefeler: 'Täfeler',
                 scorekeeper: 'Schreiber',
-                close: 'Schliessen',
+                close: 'Schließen',
                 teamGames: 'Spiele',
                 allGamesForTeam: 'Alle Spiele für dieses Team',
                 missingTaefeler: 'Fehlender Täfeler Name',
@@ -938,12 +938,12 @@
                 taefelerTeam: 'Täfeler Team',
                 scorekeeperTeam: 'Schreiber Team',
                 homeTeam: 'Heim Team',
-                awayTeam: 'Auswärts Team',
+                awayTeam: 'Gast Team',
                 date: 'Datum',
                 time: 'Zeit',
                 gym: 'Halle',
                 homeTeamLabel: 'Heim Team',
-                awayTeamLabel: 'Auswärts Team',
+                awayTeamLabel: 'Gast Team',
                 scorekeeperTeamLabel: 'Schreiber Team',
                 taefelerTeamLabel: 'Täfeler Team',
                 taefelerInfo: 'Täfeler Information',
@@ -957,7 +957,19 @@
                 saveChanges: 'Änderungen speichern',
                 cancel: 'Abbrechen',
                 gameDetails: 'Spieldetails',
-                matchInformation: 'Spielinformationen'
+                matchInformation: 'Spielinformationen',
+                actions: 'Aktionen',
+                filterByTaefelerTeam: 'Nach Täfeler Team filtern',
+                filterByScorekeeperTeam: 'Nach Schreiber Team filtern',
+                filterByHomeTeam: 'Nach Heim Team filtern',
+                allTaefelerTeams: 'Alle Täfeler Teams',
+                allScorekeeperTeams: 'Alle Schreiber Teams',
+                allHomeTeams: 'Alle Heim Teams',
+                allGames: 'Alle Spiele',
+                gamesWithIssues: 'Spiele mit Problemen',
+                gamesWithoutIssues: 'Spiele ohne Probleme',
+                loggedInAs: 'Angemeldet als:',
+                loadingAdminData: 'Admin-Daten werden geladen...'
             }
         };
 
@@ -1018,6 +1030,10 @@
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('adminContent').style.display = 'block';
             document.getElementById('userEmail').textContent = currentUser.email;
+            
+            // Update UI language when admin content is shown
+            updateUILanguage();
+            
             loadAdminData();
         }
 
@@ -1034,9 +1050,9 @@
 
             try {
                 await loadGames();
-                await loadTeams();
-                populateAdminFilters();
-                renderAdminTable();
+                // await loadTeams(); // This is now handled within loadGames
+                // populateAdminFilters(); // This is now handled within loadGames
+                // renderAdminTable(allGames); // This is now handled within loadGames
             } catch (error) {
                 console.error('Error loading admin data:', error);
                 document.getElementById('adminLoading').innerHTML = 'Error loading admin data. Please try again.';
@@ -1048,13 +1064,30 @@
 
         // Load games from Supabase
         async function loadGames() {
-            const { data, error } = await supabase
-                .from('matches_complete')
-                .select('*')
-                .order('date', { ascending: true });
+            try {
+                const { data, error } = await supabase
+                    .from('matches_complete')
+                    .select('*')
+                    .order('date', { ascending: true });
 
-            if (error) throw error;
-            allGames = data || [];
+                if (error) throw error;
+                allGames = data || [];
+
+                // Load teams and populate filters
+                await loadTeams();
+                populateAdminFilters();
+                
+                // Render the table
+                renderAdminTable(allGames);
+                
+                // Hide loading, show table
+                document.getElementById('adminLoading').style.display = 'none';
+                document.getElementById('adminTableContainer').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading games:', error);
+                document.getElementById('adminLoading').innerHTML = 'Error loading games. Please try again.';
+            }
         }
 
         // Load teams from teams table
@@ -1147,12 +1180,16 @@
         }
 
         // Render admin table
-        function renderAdminTable(games) {
+        function renderAdminTable(games = allGames) {
             const tableBody = document.getElementById('adminTableBody');
             tableBody.innerHTML = '';
 
+            if (!games || games.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No games found</td></tr>';
+                return;
+            }
+
             games.forEach(game => {
-                const gameDate = new Date(game.date);
                 const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
@@ -1653,14 +1690,55 @@
             // Update filter labels
             const filterLabels = document.querySelectorAll('label');
             filterLabels.forEach(label => {
-                if (label.textContent.includes('Filter by Team')) {
-                    label.textContent = translations[currentLanguage].filterByTeam;
-                } else if (label.textContent.includes('Filter by Role')) {
-                    label.textContent = translations[currentLanguage].filterByRole;
+                if (label.textContent.includes('Filter by Täfeler Team')) {
+                    label.textContent = translations[currentLanguage].filterByTaefelerTeam;
+                } else if (label.textContent.includes('Filter by Scorekeeper Team')) {
+                    label.textContent = translations[currentLanguage].filterByScorekeeperTeam;
+                } else if (label.textContent.includes('Filter by Home Team')) {
+                    label.textContent = translations[currentLanguage].filterByHomeTeam;
                 } else if (label.textContent.includes('Filter by Issues')) {
                     label.textContent = translations[currentLanguage].filterByIssues;
                 }
             });
+            
+            // Update filter options
+            const taefelerFilter = document.getElementById('adminTaefelerFilter');
+            if (taefelerFilter) {
+                const firstOption = taefelerFilter.querySelector('option[value=""]');
+                if (firstOption) {
+                    firstOption.textContent = translations[currentLanguage].allTaefelerTeams;
+                }
+            }
+            
+            const scorekeeperFilter = document.getElementById('adminScorekeeperFilter');
+            if (scorekeeperFilter) {
+                const firstOption = scorekeeperFilter.querySelector('option[value=""]');
+                if (firstOption) {
+                    firstOption.textContent = translations[currentLanguage].allScorekeeperTeams;
+                }
+            }
+            
+            const homeFilter = document.getElementById('adminHomeFilter');
+            if (homeFilter) {
+                const firstOption = homeFilter.querySelector('option[value=""]');
+                if (firstOption) {
+                    firstOption.textContent = translations[currentLanguage].allHomeTeams;
+                }
+            }
+            
+            const issuesFilter = document.getElementById('adminIssuesFilter');
+            if (issuesFilter) {
+                const options = issuesFilter.querySelectorAll('option');
+                options.forEach((option, index) => {
+                    if (index === 0) {
+                        option.textContent = translations[currentLanguage].allGames;
+                    } else if (option.value === 'issues') {
+                        option.textContent = translations[currentLanguage].gamesWithIssues;
+                    } else if (option.value === 'no-issues') {
+                        option.textContent = translations[currentLanguage].gamesWithoutIssues;
+                    }
+                });
+            }
             
             // Update table headers
             const tableHeaders = document.querySelectorAll('th');
@@ -1675,20 +1753,27 @@
                     header.textContent = translations[currentLanguage].homeTeamLabel;
                 } else if (header.textContent.includes('Away Team')) {
                     header.textContent = translations[currentLanguage].awayTeamLabel;
-                } else if (header.textContent.includes('Scorekeeper Team')) {
-                    header.textContent = translations[currentLanguage].scorekeeperTeamLabel;
-                } else if (header.textContent.includes('Scorekeeper Name')) {
-                    header.textContent = `${translations[currentLanguage].scorekeeper} ${translations[currentLanguage].name}`;
-                } else if (header.textContent.includes('Scorekeeper Phone')) {
-                    header.textContent = `${translations[currentLanguage].scorekeeper} ${translations[currentLanguage].phone}`;
-                } else if (header.textContent.includes('Täfeler Team')) {
-                    header.textContent = translations[currentLanguage].taefelerTeamLabel;
-                } else if (header.textContent.includes('Täfeler Name')) {
-                    header.textContent = `${translations[currentLanguage].taefeler} ${translations[currentLanguage].name}`;
-                } else if (header.textContent.includes('Täfeler Phone')) {
-                    header.textContent = `${translations[currentLanguage].taefeler} ${translations[currentLanguage].phone}`;
+                } else if (header.textContent.includes('Scorekeeper')) {
+                    header.textContent = translations[currentLanguage].scorekeeper;
+                } else if (header.textContent.includes('Täfeler')) {
+                    header.textContent = translations[currentLanguage].taefeler;
+                } else if (header.textContent.includes('Status')) {
+                    header.textContent = translations[currentLanguage].summary;
+                } else if (header.textContent.includes('Actions')) {
+                    header.textContent = translations[currentLanguage].actions;
                 }
             });
+            
+            // Update other text elements
+            const loggedInText = document.querySelector('strong');
+            if (loggedInText && loggedInText.textContent.includes('Logged in as:')) {
+                loggedInText.textContent = translations[currentLanguage].loggedInAs;
+            }
+            
+            const loadingText = document.getElementById('adminLoading');
+            if (loadingText && loadingText.textContent.includes('Loading admin data')) {
+                loadingText.textContent = translations[currentLanguage].loadingAdminData;
+            }
         }
 
         // Initialize page
