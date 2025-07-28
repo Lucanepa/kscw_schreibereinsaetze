@@ -34,41 +34,8 @@
         .header {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
-            padding: 40px 20px 30px 20px;
+            padding: 30px;
             text-align: center;
-            border-radius: 0 0 20px 20px;
-            margin-bottom: 30px;
-            position: relative;
-            min-height: 120px;
-        }
-
-        .language-switcher {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .lang-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .lang-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .lang-btn.active {
-            background: rgba(255, 255, 255, 0.4);
-            border-color: rgba(255, 255, 255, 0.6);
         }
 
         .header h1 {
@@ -606,11 +573,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="language-switcher">
-                <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
-                <button class="lang-btn" onclick="switchLanguage('de')">DE</button>
-            </div>
-            <h1 id="adminTitle">Schreibereinsätze Admin Panel</h1>
+            <h1>Schreibereinsätze Admin Panel</h1>
         </div>
 
                  <!-- Authentication Section -->
@@ -645,6 +608,7 @@
                     <button class="btn btn-success" onclick="downloadExcel()">📊 Download Excel</button>
                     <button class="btn btn-info" onclick="downloadPDF()">📄 Download PDF</button>
                     <button class="btn btn-danger" onclick="logout()">Logout</button>
+                    <button class="btn btn-secondary" onclick="goToMainPage()">← Back to Main Page</button>
                     <button class="btn btn-outline" onclick="goBack()">← Back</button>
                 </div>
             </div>
@@ -832,146 +796,6 @@
         let allTeams = [];
         let currentGame = null;
         let currentUser = null;
-        let currentLanguage = 'en';
-
-        // Format date with day of week
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const dayName = days[date.getDay()];
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            return `${dayName}, ${day}/${month}/${year}`;
-        }
-
-        // German translations
-        const translations = {
-            en: {
-                summary: 'Game Issues Summary',
-                overview: 'Overview of missing information',
-                issuesSummary: 'Issues Summary by Team',
-                gamesWithIssues: 'Games with Issues',
-                issues: 'issues',
-                taefeler: 'Täfeler',
-                scorekeeper: 'Scorekeeper',
-                close: 'Close',
-                teamGames: 'Games',
-                allGamesForTeam: 'All games for this team',
-                missingTaefeler: 'Missing Täfeler name',
-                missingScorekeeper: 'Missing Scorekeeper name',
-                location: 'Location',
-                vs: 'vs',
-                at: 'at',
-                adminPanel: 'Schreibereinsätze Admin Panel',
-                manageGames: 'Manage all games and contact information',
-                login: 'Login',
-                logout: 'Logout',
-                backToMain: 'Back to Main Page',
-                back: 'Back',
-                downloadExcel: 'Download Excel',
-                downloadPDF: 'Download PDF',
-                filterByTeam: 'Filter by Team',
-                filterByRole: 'Filter by Role',
-                filterByIssues: 'Filter by Issues',
-                clearFilters: 'Clear Filters',
-                noGamesFound: 'No games found',
-                allGames: 'All Games',
-                gamesWithIssues: 'Games with Issues',
-                noIssues: 'No Issues',
-                taefelerTeam: 'Täfeler Team',
-                scorekeeperTeam: 'Scorekeeper Team',
-                homeTeam: 'Home Team',
-                awayTeam: 'Away Team',
-                date: 'Date',
-                time: 'Time',
-                gym: 'Gym',
-                homeTeamLabel: 'Home Team',
-                awayTeamLabel: 'Away Team',
-                scorekeeperTeamLabel: 'Scorekeeper Team',
-                taefelerTeamLabel: 'Täfeler Team',
-                taefelerInfo: 'Täfeler Information',
-                scorekeeperInfo: 'Scorekeeper Information',
-                name: 'Name',
-                phone: 'Phone',
-                enterTaefelerName: 'Enter taefeler name',
-                enterTaefelerPhone: 'Enter taefeler phone',
-                enterScorekeeperName: 'Enter scorekeeper name',
-                enterScorekeeperPhone: 'Enter scorekeeper phone',
-                saveChanges: 'Save Changes',
-                cancel: 'Cancel',
-                gameDetails: 'Game Details',
-                matchInformation: 'Match Information'
-            },
-            de: {
-                summary: 'Spielprobleme Zusammenfassung',
-                overview: 'Übersicht fehlender Informationen',
-                issuesSummary: 'Probleme nach Team',
-                gamesWithIssues: 'Spiele mit Problemen',
-                issues: 'Probleme',
-                taefeler: 'Täfeler',
-                scorekeeper: 'Schreiber',
-                close: 'Schließen',
-                teamGames: 'Spiele',
-                allGamesForTeam: 'Alle Spiele für dieses Team',
-                missingTaefeler: 'Fehlender Täfeler Name',
-                missingScorekeeper: 'Fehlender Schreiber Name',
-                location: 'Ort',
-                vs: 'gegen',
-                at: 'in',
-                adminPanel: 'Schreibereinsätze Admin Panel',
-                manageGames: 'Alle Spiele und Kontaktinformationen verwalten',
-                login: 'Anmelden',
-                logout: 'Abmelden',
-                backToMain: 'Zurück zur Hauptseite',
-                back: 'Zurück',
-                downloadExcel: 'Excel herunterladen',
-                downloadPDF: 'PDF herunterladen',
-                filterByTeam: 'Nach Team filtern',
-                filterByRole: 'Nach Rolle filtern',
-                filterByIssues: 'Nach Problemen filtern',
-                clearFilters: 'Filter löschen',
-                noGamesFound: 'Keine Spiele gefunden',
-                allGames: 'Alle Spiele',
-                gamesWithIssues: 'Spiele mit Problemen',
-                noIssues: 'Keine Probleme',
-                taefelerTeam: 'Täfeler Team',
-                scorekeeperTeam: 'Schreiber Team',
-                homeTeam: 'Heim Team',
-                awayTeam: 'Gast Team',
-                date: 'Datum',
-                time: 'Zeit',
-                gym: 'Halle',
-                homeTeamLabel: 'Heim Team',
-                awayTeamLabel: 'Gast Team',
-                scorekeeperTeamLabel: 'Schreiber Team',
-                taefelerTeamLabel: 'Täfeler Team',
-                taefelerInfo: 'Täfeler Information',
-                scorekeeperInfo: 'Schreiber Information',
-                name: 'Name',
-                phone: 'Telefon',
-                enterTaefelerName: 'Täfeler Name eingeben',
-                enterTaefelerPhone: 'Täfeler Telefon eingeben',
-                enterScorekeeperName: 'Schreiber Name eingeben',
-                enterScorekeeperPhone: 'Schreiber Telefon eingeben',
-                saveChanges: 'Änderungen speichern',
-                cancel: 'Abbrechen',
-                gameDetails: 'Spieldetails',
-                matchInformation: 'Spielinformationen',
-                actions: 'Aktionen',
-                filterByTaefelerTeam: 'Nach Täfeler Team filtern',
-                filterByScorekeeperTeam: 'Nach Schreiber Team filtern',
-                filterByHomeTeam: 'Nach Heim Team filtern',
-                allTaefelerTeams: 'Alle Täfeler Teams',
-                allScorekeeperTeams: 'Alle Schreiber Teams',
-                allHomeTeams: 'Alle Heim Teams',
-                allGames: 'Alle Spiele',
-                gamesWithIssues: 'Spiele mit Problemen',
-                gamesWithoutIssues: 'Spiele ohne Probleme',
-                loggedInAs: 'Angemeldet als:',
-                loadingAdminData: 'Admin-Daten werden geladen...'
-            }
-        };
 
         // Initialize Supabase
         const supabase = window.supabase.createClient(
@@ -1030,10 +854,6 @@
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('adminContent').style.display = 'block';
             document.getElementById('userEmail').textContent = currentUser.email;
-            
-            // Update UI language when admin content is shown
-            updateUILanguage();
-            
             loadAdminData();
         }
 
@@ -1050,9 +870,9 @@
 
             try {
                 await loadGames();
-                // await loadTeams(); // This is now handled within loadGames
-                // populateAdminFilters(); // This is now handled within loadGames
-                // renderAdminTable(allGames); // This is now handled within loadGames
+                await loadTeams();
+                populateAdminFilters();
+                renderAdminTable();
             } catch (error) {
                 console.error('Error loading admin data:', error);
                 document.getElementById('adminLoading').innerHTML = 'Error loading admin data. Please try again.';
@@ -1064,30 +884,13 @@
 
         // Load games from Supabase
         async function loadGames() {
-            try {
-                const { data, error } = await supabase
-                    .from('matches_complete')
-                    .select('*')
-                    .order('date', { ascending: true });
+            const { data, error } = await supabase
+                .from('matches_complete')
+                .select('*')
+                .order('date', { ascending: true });
 
-                if (error) throw error;
-                allGames = data || [];
-
-                // Load teams and populate filters
-                await loadTeams();
-                populateAdminFilters();
-                
-                // Render the table
-                renderAdminTable(allGames);
-                
-                // Hide loading, show table
-                document.getElementById('adminLoading').style.display = 'none';
-                document.getElementById('adminTableContainer').style.display = 'block';
-                
-            } catch (error) {
-                console.error('Error loading games:', error);
-                document.getElementById('adminLoading').innerHTML = 'Error loading games. Please try again.';
-            }
+            if (error) throw error;
+            allGames = data || [];
         }
 
         // Load teams from teams table
@@ -1181,46 +984,49 @@
 
         // Render admin table
         function renderAdminTable(games = allGames) {
-            const tableBody = document.getElementById('adminTableBody');
-            tableBody.innerHTML = '';
+            const tbody = document.getElementById('adminTableBody');
+            
+            tbody.innerHTML = games.map(game => {
+                const gameDate = new Date(game.date);
+                const formattedDate = gameDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
 
-            if (!games || games.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No games found</td></tr>';
-                return;
-            }
-
-            games.forEach(game => {
-                const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
-                // Check for issues
-                const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
-                const hasScorekeeperIssue = game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && 
-                                         (!game.scorekeeper_name || !game.scorekeeper_name.trim());
+                const statusIcons = [];
+                                 if (!game.taefeler_name || !game.taefeler_name.trim()) {
+                     statusIcons.push('⚠️ Täfeler');
+                 } else {
+                     statusIcons.push('✅ Täfeler');
+                 }
+                                 // Only show scorekeeper status if there's a scorekeeper team assigned
+                 if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
+                     if (!game.scorekeeper_name || !game.scorekeeper_name.trim()) {
+                         statusIcons.push('⚠️ Scorekeeper');
+                     } else {
+                         statusIcons.push('✅ Scorekeeper');
+                     }
+                 }
 
-                const row = document.createElement('tr');
-                row.className = hasTaefelerIssue || hasScorekeeperIssue ? 'has-issues' : '';
-                row.onclick = () => openGameModal(game);
-
-                row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${formattedTime}</td>
-                    <td>${game.halle_short || 'TBD'}</td>
-                    <td>${game.home_team}</td>
-                    <td>${game.away_team}</td>
-                    <td>${game.scorekeeper_team_short || ''}</td>
-                    <td>${game.scorekeeper_name || ''}</td>
-                    <td>${game.scorekeeper_phone || ''}</td>
-                    <td>${game.taefeler_team_short || 'TBD'}</td>
-                    <td>${game.taefeler_name || ''}</td>
-                    <td>${game.taefeler_phone || ''}</td>
-                    <td>
-                        ${hasScorekeeperIssue ? '⚠️' : '✅'} ${hasTaefelerIssue ? '⚠️' : '✅'}
-                    </td>
+                return `
+                    <tr>
+                        <td>${formattedDate}</td>
+                        <td>${formattedTime}</td>
+                        <td>${game.home_team || '-'}</td>
+                        <td>${game.away_team || '-'}</td>
+                        <td>${game.halle_short || '-'}</td>
+                                                 <td>${game.scorekeeper_team_short || '-'}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</td>
+                         <td>${game.taefeler_team_short || '-'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</td>
+                        <td class="status-indicator">${statusIcons.join('<br>')}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">Edit</button>
+                        </td>
+                    </tr>
                 `;
-
-                tableBody.appendChild(row);
-            });
+            }).join('');
         }
 
         // Open game modal
@@ -1511,12 +1317,6 @@
         function showSummary() {
             const summaryData = generateSummaryData();
             document.getElementById('summaryContent').innerHTML = summaryData;
-            
-            // Update modal titles based on language
-            document.querySelector('#summaryModal .modal-title').textContent = translations[currentLanguage].summary;
-            document.querySelector('#summaryModal .modal-subtitle').textContent = translations[currentLanguage].overview;
-            document.querySelector('#summaryModal .btn-secondary').textContent = translations[currentLanguage].close;
-            
             document.getElementById('summaryModal').style.display = 'block';
         }
 
@@ -1558,9 +1358,9 @@
                 const totalIssues = issues.taefeler + issues.scorekeeper;
                 summaryHTML += `
                     <div class="team-issue-item">
-                        <strong class="clickable-team" onclick="showTeamGames('${team}')">${team}</strong>: ${totalIssues} ${translations[currentLanguage].issues}
-                        ${issues.taefeler > 0 ? `(${issues.taefeler} ${translations[currentLanguage].taefeler}, ` : ''}
-                        ${issues.scorekeeper > 0 ? `${issues.scorekeeper} ${translations[currentLanguage].scorekeeper})` : ''}
+                        <strong class="clickable-team" onclick="showTeamGames('${team}')">${team}</strong>: ${totalIssues} issues
+                        ${issues.taefeler > 0 ? `(${issues.taefeler} Täfeler, ` : ''}
+                        ${issues.scorekeeper > 0 ? `${issues.scorekeeper} Scorekeeper)` : ''}
                     </div>
                 `;
             });
@@ -1578,14 +1378,17 @@
                 game.away_team === teamName
             );
 
-            document.getElementById('teamGamesTitle').textContent = `${teamName} ${translations[currentLanguage].teamGames}`;
-            document.querySelector('#teamGamesModal .modal-subtitle').textContent = translations[currentLanguage].allGamesForTeam;
-            document.querySelector('#teamGamesModal .btn-secondary').textContent = translations[currentLanguage].close;
+            document.getElementById('teamGamesTitle').textContent = `${teamName} Games`;
             
             let teamGamesHTML = `<div class="team-games-list">`;
             
             teamGames.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(game => {
-                const formattedDate = formatDate(game.date);
+                const gameDate = new Date(game.date);
+                const formattedDate = gameDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
                 // Check for issues
@@ -1602,16 +1405,16 @@
                             <div class="team-game-date">${formattedDate}</div>
                             <div class="team-game-time">${formattedTime}</div>
                         </div>
-                        <div class="team-game-teams">${game.home_team} ${translations[currentLanguage].vs} ${game.away_team}</div>
+                        <div class="team-game-teams">${game.home_team} vs ${game.away_team}</div>
                         <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' ? `
                                 <div class="team-role-item ${!game.scorekeeper_name || !game.scorekeeper_name.trim() ? 'has-issue' : ''}">
-                                    📝 ${translations[currentLanguage].scorekeeper}: ${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}
+                                    📝 Scorekeeper: ${game.scorekeeper_team_short}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}
                                 </div>
                             ` : ''}
                             <div class="team-role-item ${!game.taefeler_name || !game.taefeler_name.trim() ? 'has-issue' : ''}">
-                                🏐 ${translations[currentLanguage].taefeler}: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}
+                                🏐 Täfeler: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}
                             </div>
                         </div>
                     </div>
@@ -1644,155 +1447,8 @@
             }
         }
 
-        // Language switching function
-        function switchLanguage(lang) {
-            console.log('Language switching to:', lang);
-            const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
-            const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
-            
-            console.log('EN button found:', enBtn);
-            console.log('DE button found:', deBtn);
-            
-            if (lang === 'en') {
-                enBtn.classList.add('active');
-                deBtn.classList.remove('active');
-                currentLanguage = 'en';
-            } else {
-                deBtn.classList.add('active');
-                enBtn.classList.remove('active');
-                currentLanguage = 'de';
-            }
-            
-            // Update UI elements based on language
-            updateUILanguage();
-        }
-
-        // Update UI language
-        function updateUILanguage() {
-            // Update buttons
-            const buttons = document.querySelectorAll('.btn');
-            buttons.forEach(btn => {
-                if (btn.textContent.includes('Summary')) {
-                    btn.textContent = `📊 ${translations[currentLanguage].summary}`;
-                } else if (btn.textContent.includes('Download Excel')) {
-                    btn.textContent = `📊 ${translations[currentLanguage].downloadExcel}`;
-                } else if (btn.textContent.includes('Download PDF')) {
-                    btn.textContent = `📄 ${translations[currentLanguage].downloadPDF}`;
-                } else if (btn.textContent.includes('Logout')) {
-                    btn.textContent = translations[currentLanguage].logout;
-                } else if (btn.textContent.includes('Back to Main Page')) {
-                    btn.textContent = translations[currentLanguage].backToMain;
-                } else if (btn.textContent.includes('Back')) {
-                    btn.textContent = translations[currentLanguage].back;
-                }
-            });
-            
-            // Update filter labels
-            const filterLabels = document.querySelectorAll('label');
-            filterLabels.forEach(label => {
-                if (label.textContent.includes('Filter by Täfeler Team')) {
-                    label.textContent = translations[currentLanguage].filterByTaefelerTeam;
-                } else if (label.textContent.includes('Filter by Scorekeeper Team')) {
-                    label.textContent = translations[currentLanguage].filterByScorekeeperTeam;
-                } else if (label.textContent.includes('Filter by Home Team')) {
-                    label.textContent = translations[currentLanguage].filterByHomeTeam;
-                } else if (label.textContent.includes('Filter by Issues')) {
-                    label.textContent = translations[currentLanguage].filterByIssues;
-                }
-            });
-            
-            // Update filter options
-            const taefelerFilter = document.getElementById('adminTaefelerFilter');
-            if (taefelerFilter) {
-                const firstOption = taefelerFilter.querySelector('option[value=""]');
-                if (firstOption) {
-                    firstOption.textContent = translations[currentLanguage].allTaefelerTeams;
-                }
-            }
-            
-            const scorekeeperFilter = document.getElementById('adminScorekeeperFilter');
-            if (scorekeeperFilter) {
-                const firstOption = scorekeeperFilter.querySelector('option[value=""]');
-                if (firstOption) {
-                    firstOption.textContent = translations[currentLanguage].allScorekeeperTeams;
-                }
-            }
-            
-            const homeFilter = document.getElementById('adminHomeFilter');
-            if (homeFilter) {
-                const firstOption = homeFilter.querySelector('option[value=""]');
-                if (firstOption) {
-                    firstOption.textContent = translations[currentLanguage].allHomeTeams;
-                }
-            }
-            
-            const issuesFilter = document.getElementById('adminIssuesFilter');
-            if (issuesFilter) {
-                const options = issuesFilter.querySelectorAll('option');
-                options.forEach((option, index) => {
-                    if (index === 0) {
-                        option.textContent = translations[currentLanguage].allGames;
-                    } else if (option.value === 'issues') {
-                        option.textContent = translations[currentLanguage].gamesWithIssues;
-                    } else if (option.value === 'no-issues') {
-                        option.textContent = translations[currentLanguage].gamesWithoutIssues;
-                    }
-                });
-            }
-            
-            // Update table headers
-            const tableHeaders = document.querySelectorAll('th');
-            tableHeaders.forEach(header => {
-                if (header.textContent.includes('Date')) {
-                    header.textContent = translations[currentLanguage].date;
-                } else if (header.textContent.includes('Time')) {
-                    header.textContent = translations[currentLanguage].time;
-                } else if (header.textContent.includes('Gym')) {
-                    header.textContent = translations[currentLanguage].gym;
-                } else if (header.textContent.includes('Home Team')) {
-                    header.textContent = translations[currentLanguage].homeTeamLabel;
-                } else if (header.textContent.includes('Away Team')) {
-                    header.textContent = translations[currentLanguage].awayTeamLabel;
-                } else if (header.textContent.includes('Scorekeeper')) {
-                    header.textContent = translations[currentLanguage].scorekeeper;
-                } else if (header.textContent.includes('Täfeler')) {
-                    header.textContent = translations[currentLanguage].taefeler;
-                } else if (header.textContent.includes('Status')) {
-                    header.textContent = translations[currentLanguage].summary;
-                } else if (header.textContent.includes('Actions')) {
-                    header.textContent = translations[currentLanguage].actions;
-                }
-            });
-            
-            // Update other text elements
-            const loggedInText = document.querySelector('strong');
-            if (loggedInText && loggedInText.textContent.includes('Logged in as:')) {
-                loggedInText.textContent = translations[currentLanguage].loggedInAs;
-            }
-            
-            const loadingText = document.getElementById('adminLoading');
-            if (loadingText && loadingText.textContent.includes('Loading admin data')) {
-                loadingText.textContent = translations[currentLanguage].loadingAdminData;
-            }
-        }
-
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded, checking language switcher...');
-            const languageSwitcher = document.querySelector('.language-switcher');
-            const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
-            const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
-            
-            console.log('Language switcher found:', languageSwitcher);
-            console.log('EN button found:', enBtn);
-            console.log('DE button found:', deBtn);
-            
-            if (languageSwitcher) {
-                console.log('Language switcher styles:', window.getComputedStyle(languageSwitcher));
-            }
-            
-            checkAuthStatus();
-        });
+        document.addEventListener('DOMContentLoaded', checkAuthStatus);
     </script>
 </body>
 </html> 
