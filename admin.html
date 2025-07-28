@@ -880,6 +880,10 @@
                             <div class="detail-value" id="modalAwayTeam">-</div>
                         </div>
                         <div class="detail-item">
+                            <div class="detail-label">Game Number</div>
+                            <div class="detail-value" id="modalGameNumber">-</div>
+                        </div>
+                        <div class="detail-item">
                             <div class="detail-label">Scorer Team</div>
                             <div class="detail-value" id="modalScorerTeam">-</div>
                         </div>
@@ -1348,6 +1352,7 @@
             document.getElementById('modalAwayTeam').textContent = game.away_team || '-';
             document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || '-';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
+            document.getElementById('modalGameNumber').textContent = game.gamen || '-';
 
             // Show real phone numbers in admin mode
             document.getElementById('taefelerName').value = game.taefeler_name || '';
@@ -1714,7 +1719,7 @@
                                 </div>
                             ` : ''}
                             <div class="team-role-item ${!game.taefeler_name || !game.taefeler_name.trim() ? 'has-issue' : ''}">
-                                🏐 Täfeler: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}
+                                🏐 Schreiber/Täfeler: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}
                             </div>
                         </div>
                     </div>
