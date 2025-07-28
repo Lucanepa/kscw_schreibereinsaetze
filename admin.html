@@ -435,23 +435,26 @@
             <p>Manage all games and contact information</p>
         </div>
 
-        <!-- Authentication Section -->
-        <div id="authSection" class="auth-section">
-            <div class="auth-form">
-                <h2>Admin Login</h2>
-                <div id="loginForm">
-                    <div class="form-group">
-                        <label for="adminEmail">Email</label>
-                        <input type="email" id="adminEmail" placeholder="Enter your email">
-                    </div>
-                    <div class="form-group">
-                        <label for="adminPassword">Password</label>
-                        <input type="password" id="adminPassword" placeholder="Enter your password">
-                    </div>
-                    <button class="btn btn-primary" onclick="loginAdmin()">Login</button>
-                </div>
-            </div>
-        </div>
+                 <!-- Authentication Section -->
+         <div id="authSection" class="auth-section">
+             <div class="auth-form">
+                 <div style="text-align: left; margin-bottom: 20px;">
+                     <button class="btn btn-outline" onclick="goBack()">← Back</button>
+                 </div>
+                 <h2>Admin Login</h2>
+                 <div id="loginForm">
+                     <div class="form-group">
+                         <label for="adminEmail">Email</label>
+                         <input type="email" id="adminEmail" placeholder="Enter your email">
+                     </div>
+                     <div class="form-group">
+                         <label for="adminPassword">Password</label>
+                         <input type="password" id="adminPassword" placeholder="Enter your password">
+                     </div>
+                     <button class="btn btn-primary" onclick="loginAdmin()">Login</button>
+                 </div>
+             </div>
+         </div>
 
         <!-- Admin Content -->
         <div id="adminContent" class="main-content" style="display: none;">
@@ -468,12 +471,12 @@
 
             <div class="admin-filters">
                 <div class="admin-filters-grid">
-                    <div class="filter-group">
-                        <label for="adminTaefelerFilter">Filter by Taefeler Team:</label>
-                        <select id="adminTaefelerFilter" onchange="filterAdminGames()">
-                            <option value="">All Taefeler Teams</option>
-                        </select>
-                    </div>
+                                         <div class="filter-group">
+                         <label for="adminTaefelerFilter">Filter by Täfeler Team:</label>
+                         <select id="adminTaefelerFilter" onchange="filterAdminGames()">
+                             <option value="">All Täfeler Teams</option>
+                         </select>
+                     </div>
                     <div class="filter-group">
                         <label for="adminScorekeeperFilter">Filter by Scorekeeper Team:</label>
                         <select id="adminScorekeeperFilter" onchange="filterAdminGames()">
@@ -508,7 +511,7 @@
                             <th>Away Team</th>
                             <th>Gym</th>
                             <th>Scorekeeper</th>
-                            <th>Taefeler</th>
+                            <th>Täfeler</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -559,15 +562,15 @@
                             <div class="detail-label">Scorekeeper Team</div>
                             <div class="detail-value" id="modalScorekeeperTeam">-</div>
                         </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Taefeler Team</div>
-                            <div class="detail-value" id="modalTaefelerTeam">-</div>
-                        </div>
+                                                 <div class="detail-item">
+                             <div class="detail-label">Täfeler Team</div>
+                             <div class="detail-value" id="modalTaefelerTeam">-</div>
+                         </div>
                     </div>
                 </div>
 
-                <div class="form-section">
-                    <h3>Taefeler Information</h3>
+                                 <div class="form-section">
+                     <h3>Täfeler Information</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="taefelerName">Name</label>
@@ -808,16 +811,19 @@
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
                 const statusIcons = [];
-                if (!game.taefeler_name || !game.taefeler_name.trim()) {
-                    statusIcons.push('⚠️ Taefeler');
-                } else {
-                    statusIcons.push('✅ Taefeler');
-                }
-                if (!game.scorekeeper_name || !game.scorekeeper_name.trim()) {
-                    statusIcons.push('⚠️ Scorekeeper');
-                } else {
-                    statusIcons.push('✅ Scorekeeper');
-                }
+                                 if (!game.taefeler_name || !game.taefeler_name.trim()) {
+                     statusIcons.push('⚠️ Täfeler');
+                 } else {
+                     statusIcons.push('✅ Täfeler');
+                 }
+                                 // Only show scorekeeper status if there's a scorekeeper team assigned
+                 if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
+                     if (!game.scorekeeper_name || !game.scorekeeper_name.trim()) {
+                         statusIcons.push('⚠️ Scorekeeper');
+                     } else {
+                         statusIcons.push('✅ Scorekeeper');
+                     }
+                 }
 
                 return `
                     <tr>
