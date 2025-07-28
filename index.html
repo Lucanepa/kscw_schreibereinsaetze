@@ -549,6 +549,54 @@
             color: #0056b3; /* Darker link color on hover */
         }
 
+        .info-content {
+            margin-bottom: 20px;
+        }
+
+        .info-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-section h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-section p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .info-section strong {
+            color: #d63384;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
         @media (max-width: 768px) {
             .filters-grid {
                 grid-template-columns: 1fr;
@@ -683,30 +731,12 @@
                 <button class="lang-btn" onclick="switchLanguage('en')">EN</button>
                 <button class="lang-btn active" onclick="switchLanguage('de')">DE</button>
             </div>
+            <button id="infoButton" class="btn btn-info" onclick="openInfoModal()">ℹ️ Important Info</button>
             <div class="archive-link">
                 <a href="archive.html" class="btn btn-archive">📚 Archive</a>
             </div>
 
-            <div id="en-text" style="display: none;">
-                <h2>Important Information</h2>
-                <p><strong><span class="highlight">Scorekeeper</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
-                <p><strong><span class="highlight">Täfeler</span> must be in the hall at least 20 minutes before the start of play.</strong></p>
-                <p><strong>⚠️ Late arrival or failure to appear will result in a fine (50.- CHF).</strong></p>
-                <p>Games from 4L and under only need a <span class="highlight">Scorekeeper</span>, without licence. It is indicated as the only "Täfeler" in the game details.</p>
-                <p>Your phone number can be seen by the team's coach only. It is used to contact you in case of emergency.</p>
-                <p><strong>📅 Please note you can sign up or edit your information until 2 days before the game.</strong></p>
-                <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
-            </div>
-            <div id="de-text">
-                <h2>Wichtige Informationen</h2>
-                <p><strong><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                <p><strong><span class="highlight">Täfler:in</span> muss mindestens 20 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                <p><strong>⚠️ Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</strong></p>
-                <p>Für 4L, 5L und DU23-2 Spiele wird nur ein/e <span class="highlight">Schreiber:in</span> ohne Lizenz benötigt. Es ist als einziger "Täfeler" in den Spieldetails angegeben.</p>
-                <p>Deine Telefonnummer kann nur vom Teamcoach gesehen werden. Sie wird verwendet, um du im Notfall zu kontaktieren.</p>
-                <p><strong>📅 Bitte beachte, dass du deine Informationen bis 2 Tage vor dem Spiel bearbeiten kannst.</strong></p>
-                <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
-            </div>
+
         </div>
 
         <div class="main-content">
@@ -898,6 +928,78 @@
         </div>
     </div>
 
+    <!-- Info Modal -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeInfoModal()">&times;</span>
+            <div class="modal-header">
+                <div class="modal-title">Important Information</div>
+                <div class="modal-subtitle">Please read carefully</div>
+            </div>
+            <div class="info-content">
+                <div id="info-en" style="display: none;">
+                    <h3>🏐 Volleyball Game Requirements</h3>
+                    <div class="info-section">
+                        <h4>⏰ Arrival Times</h4>
+                        <p><strong><span class="highlight">Scorekeeper</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
+                        <p><strong><span class="highlight">Täfeler</span> must be in the hall at least 20 minutes before the start of play.</strong></p>
+                    </div>
+                    <div class="info-section">
+                        <h4>⚠️ Important Warnings</h4>
+                        <p><strong>Late arrival or failure to appear will result in a fine (50.- CHF).</strong></p>
+                    </div>
+                    <div class="info-section">
+                        <h4>📋 Game Requirements</h4>
+                        <p>Games from 4L and under only need a <span class="highlight">Scorekeeper</span>, without licence. It is indicated as the only "Täfeler" in the game details.</p>
+                    </div>
+                    <div class="info-section">
+                        <h4>📞 Contact Information</h4>
+                        <p>Your phone number can be seen by the team's coach only. It is used to contact you in case of emergency.</p>
+                    </div>
+                    <div class="info-section">
+                        <h4>📅 Edit Deadlines</h4>
+                        <p><strong>Please note you can sign up or edit your information until 2 days before the game.</strong></p>
+                    </div>
+                    <div class="info-section">
+                        <h4>💡 How to Use</h4>
+                        <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
+                    </div>
+                </div>
+                <div id="info-de">
+                    <h3>🏐 Volleyball Spielanforderungen</h3>
+                    <div class="info-section">
+                        <h4>⏰ Ankunftszeiten</h4>
+                        <p><strong><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
+                        <p><strong><span class="highlight">Täfler:in</span> muss mindestens 20 Minuten vor Spielbeginn in der Halle sein.</strong></p>
+                    </div>
+                    <div class="info-section">
+                        <h4>⚠️ Wichtige Warnungen</h4>
+                        <p><strong>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</strong></p>
+                    </div>
+                    <div class="info-section">
+                        <h4>📋 Spielanforderungen</h4>
+                        <p>Für 4L, 5L und DU23-2 Spiele wird nur ein/e <span class="highlight">Schreiber:in</span> ohne Lizenz benötigt. Es ist als einziger "Täfeler" in den Spieldetails angegeben.</p>
+                    </div>
+                    <div class="info-section">
+                        <h4>📞 Kontaktinformationen</h4>
+                        <p>Deine Telefonnummer kann nur vom Teamcoach gesehen werden. Sie wird verwendet, um du im Notfall zu kontaktieren.</p>
+                    </div>
+                    <div class="info-section">
+                        <h4>📅 Bearbeitungsfristen</h4>
+                        <p><strong>Bitte beachte, dass du deine Informationen bis 2 Tage vor dem Spiel bearbeiten kannst.</strong></p>
+                    </div>
+                    <div class="info-section">
+                        <h4>💡 Verwendung</h4>
+                        <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeInfoModal()">Got it!</button>
+            </div>
+        </div>
+    </div>
+
 <script>
         let allGames = [];
         let allTeams = [];
@@ -914,17 +1016,23 @@
         function switchLanguage(lang) {
             const enText = document.getElementById('en-text');
             const deText = document.getElementById('de-text');
+            const infoEn = document.getElementById('info-en');
+            const infoDe = document.getElementById('info-de');
             const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
             const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
             
             if (lang === 'en') {
-                enText.style.display = 'block';
-                deText.style.display = 'none';
+                if (enText) enText.style.display = 'block';
+                if (deText) deText.style.display = 'none';
+                if (infoEn) infoEn.style.display = 'block';
+                if (infoDe) infoDe.style.display = 'none';
                 enBtn.classList.add('active');
                 deBtn.classList.remove('active');
             } else {
-                enText.style.display = 'none';
-                deText.style.display = 'block';
+                if (enText) enText.style.display = 'none';
+                if (deText) deText.style.display = 'block';
+                if (infoEn) infoEn.style.display = 'none';
+                if (infoDe) infoDe.style.display = 'block';
                 deBtn.classList.add('active');
                 enBtn.classList.remove('active');
             }
@@ -1622,6 +1730,7 @@
             const gameModal = document.getElementById('gameModal');
             const summaryModal = document.getElementById('summaryModal');
             const teamGamesModal = document.getElementById('teamGamesModal');
+            const infoModal = document.getElementById('infoModal');
             if (event.target === gameModal) {
                 closeModal();
             }
@@ -1631,6 +1740,18 @@
             if (event.target === teamGamesModal) {
                 closeTeamGamesModal();
             }
+            if (event.target === infoModal) {
+                closeInfoModal();
+            }
+        }
+
+        // Info modal functions
+        function openInfoModal() {
+            document.getElementById('infoModal').style.display = 'block';
+        }
+
+        function closeInfoModal() {
+            document.getElementById('infoModal').style.display = 'none';
         }
 </script>
 </body>
