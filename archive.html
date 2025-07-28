@@ -231,13 +231,15 @@
             padding: 10px;
             border-radius: 8px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         .role-label {
             font-weight: 600;
             color: #666;
             font-size: 0.8rem;
-            margin-bottom: 5px;
         }
 
         .status-icon {
@@ -503,8 +505,9 @@
             
             .role-item {
                 flex-direction: column;
-                align-items: flex-start;
+                align-items: center;
                 gap: 4px;
+                text-align: center;
             }
             
             .modal-content {
@@ -681,7 +684,9 @@
                 const { data, error } = await supabase
                     .from('matches_complete')
                     .select('*')
-                    .order('date', { ascending: false });
+                    .order('date', { ascending: true })
+                    .order('time', { ascending: true })
+                    .order('halle_short', { ascending: true });
 
                 if (error) throw error;
                 allGames = data || [];
@@ -847,13 +852,13 @@
                     <div class="game-roles">
                         ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? `
                             <div class="role-item">
-                                <span class="role-label">📝 Scorer: ${game.scorer_team_short}${game.scorer_name ? ` (${game.scorer_name})` : ''}</span>
-                                <span class="status-icon">${hasScorerIssue ? '⚠️' : '✅'}</span>
+                                <div class="role-label">📝 Scorer: ${game.scorer_team_short}${game.scorer_name ? ` (${game.scorer_name})` : ''}</div>
+                                <div class="status-icon">${hasScorerIssue ? '⚠️' : '✅'}</div>
                             </div>
                         ` : ''}
                         <div class="role-item">
-                            <span class="role-label">🏐 Täfeler: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</span>
-                            <span class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</span>
+                            <div class="role-label">🏐 Täfeler: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
+                            <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
                         </div>
                     </div>
                 `;
