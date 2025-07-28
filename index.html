@@ -656,10 +656,10 @@
     <div class="container">
         <div class="header">
             <div class="language-switcher">
-                <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
-                <button class="lang-btn" onclick="switchLanguage('de')">DE</button>
+                <button class="lang-btn" onclick="switchLanguage('en')">EN</button>
+                <button class="lang-btn active" onclick="switchLanguage('de')">DE</button>
             </div>
-            <div id="en-text">
+            <div id="en-text" style="display: none;">
                 <h2>Important Information</h2>
                 <p><span class="highlight">Scorekeeper</span> must be in the hall 30 minutes before the start of play.</p>
                 <p><span class="highlight">Täfeler</span> must be in the hall 10 minutes before the start of play.</p>
@@ -667,7 +667,7 @@
                 <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence.</p>
                 <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
             </div>
-            <div id="de-text" style="display: none;">
+            <div id="de-text">
                 <h2>Wichtige Informationen</h2>
                 <p><span class="highlight">Schreiber:in</span> muss 30 Minuten vor Spielbeginn in der Halle sein.</p>
                 <p><span class="highlight">Täfler:in</span> muss 10 Minuten vor Spielbeginn in der Halle sein.</p>
@@ -867,18 +867,18 @@
                 deText.style.display = 'none';
                 enBtn.classList.add('active');
                 deBtn.classList.remove('active');
-                currentLanguage = 'en';
             } else {
                 enText.style.display = 'none';
                 deText.style.display = 'block';
                 deBtn.classList.add('active');
                 enBtn.classList.remove('active');
-                currentLanguage = 'de';
             }
-            
-            // Update UI elements based on language
-            updateUILanguage();
         }
+
+        // Set German as default on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            switchLanguage('de');
+        });
 
         // Update UI language
         function updateUILanguage() {
