@@ -493,7 +493,6 @@
         .team-issue-item {
             background: #f8f9fa;
             padding: 10px;
-            margin-bottom: 8px;
             border-radius: 6px;
             border-left: 4px solid #ffc107;
         }
@@ -809,7 +808,6 @@
             </div>
             <div class="game-details-modal">
                 <div class="detail-section">
-                    <h3>Issues Summary by Team</h3>
                     <div class="detail-grid" id="summaryContent">
                         <!-- Summary data will be loaded here -->
                     </div>
@@ -1219,24 +1217,10 @@
         // Generate summary data
         function generateSummaryData() {
             const teamIssues = {};
-            const gamesWithIssues = [];
 
             allGames.forEach(game => {
-                const gameDate = new Date(game.date);
-                const formattedDate = gameDate.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                });
-                const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
-
-                let hasIssues = false;
-                const issues = [];
-
                 // Check Täfeler issues
                 if (!game.taefeler_name || !game.taefeler_name.trim()) {
-                    hasIssues = true;
-                    issues.push('Missing Täfeler name');
                     if (game.taefeler_team_short) {
                         if (!teamIssues[game.taefeler_team_short]) {
                             teamIssues[game.taefeler_team_short] = { taefeler: 0, scorekeeper: 0 };
@@ -1248,29 +1232,15 @@
                 // Check Scorekeeper issues
                 if (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '') {
                     if (!game.scorekeeper_name || !game.scorekeeper_name.trim()) {
-                        hasIssues = true;
-                        issues.push('Missing Scorekeeper name');
                         if (!teamIssues[game.scorekeeper_team_short]) {
                             teamIssues[game.scorekeeper_team_short] = { taefeler: 0, scorekeeper: 0 };
                         }
                         teamIssues[game.scorekeeper_team_short].scorekeeper++;
                     }
                 }
-
-                if (hasIssues) {
-                    gamesWithIssues.push({
-                        date: formattedDate,
-                        time: formattedTime,
-                        home: game.home_team,
-                        away: game.away_team,
-                        gym: game.halle_short,
-                        issues: issues.join(', ')
-                    });
-                }
             });
 
-            let summaryHTML = '<h3>Issues Summary by Team</h3>';
-            summaryHTML += '<div class="team-issues-grid">';
+            let summaryHTML = '<div class="team-issues-grid">';
             
             Object.keys(teamIssues).sort().forEach(team => {
                 const issues = teamIssues[team];
@@ -1280,19 +1250,6 @@
                         <strong class="clickable-team" onclick="showTeamGames('${team}')">${team}</strong>: ${totalIssues} issues
                         ${issues.taefeler > 0 ? `(${issues.taefeler} Täfeler, ` : ''}
                         ${issues.scorekeeper > 0 ? `${issues.scorekeeper} Scorekeeper)` : ''}
-                    </div>
-                `;
-            });
-            summaryHTML += '</div>';
-
-            summaryHTML += '<h3>Games with Issues</h3>';
-            summaryHTML += '<div class="games-list">';
-            gamesWithIssues.forEach(game => {
-                summaryHTML += `
-                    <div class="game-issue-item">
-                        <strong>${game.date} ${game.time}</strong><br>
-                        ${game.home} vs ${game.away} at ${game.gym}<br>
-                        <span class="issue-details">Issues: ${game.issues}</span>
                     </div>
                 `;
             });
