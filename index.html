@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSCW VB Schreibereinsätze</title>
+    <title>Schreibereinsätze</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
 <style>
@@ -872,11 +873,11 @@
                         <div class="game-roles">
                             <div class="role-item">
                                 <div class="role-label">Scorekeeper</div>
-                                <div class="role-team">${game.scorekeeper_team_short || '-'}</div>
+                                <div class="role-team">${game.scorekeeper_team_short || '-'}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</div>
                             </div>
                             <div class="role-item">
                                 <div class="role-label">Täfeler</div>
-                                <div class="role-team">${game.taefeler_team_short || '-'}</div>
+                                <div class="role-team">${game.taefeler_team_short || '-'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
                             </div>
                         </div>
                         
