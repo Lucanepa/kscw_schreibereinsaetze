@@ -663,7 +663,7 @@
                 <h2>Important Information</h2>
                 <p><span class="highlight">Scorekeeper</span> must be in the hall 30 minutes before the start of play.</p>
                 <p><span class="highlight">Täfeler</span> must be in the hall 10 minutes before the start of play.</p>
-                <p>Late arrival or failure to appear will result in a fine (50.- CHF).</p>
+                <p>Late arrival or failure to appear will result in a fine.</p>
                 <p>Games from 4L and under only need a <span class="highlight">Täfeler</span>, without licence.</p>
                 <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
             </div>
@@ -671,7 +671,7 @@
                 <h2>Wichtige Informationen</h2>
                 <p><span class="highlight">Schreiber:in</span> muss 30 Minuten vor Spielbeginn in der Halle sein.</p>
                 <p><span class="highlight">Täfler:in</span> muss 10 Minuten vor Spielbeginn in der Halle sein.</p>
-                <p>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</p>
+                <p>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Strafe.</p>
                 <p>Für Spiele von Liga 4L, 5L und DU23-2 wird nur ein/e <span class="highlight">Täfler:in</span> ohne Lizenz benötigt.</p>
                 <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
             </div>
@@ -875,6 +875,77 @@
                 enBtn.classList.remove('active');
                 currentLanguage = 'de';
             }
+            
+            // Update UI elements based on language
+            updateUILanguage();
+        }
+
+        // Update UI language
+        function updateUILanguage() {
+            // Update filter labels
+            const filterLabels = document.querySelectorAll('label');
+            filterLabels.forEach(label => {
+                if (label.textContent.includes('Filter by Team')) {
+                    label.textContent = translations[currentLanguage].filterByTeam;
+                } else if (label.textContent.includes('Filter by Role')) {
+                    label.textContent = translations[currentLanguage].filterByRole;
+                } else if (label.textContent.includes('Filter by Issues')) {
+                    label.textContent = translations[currentLanguage].filterByIssues;
+                }
+            });
+            
+            // Update filter options
+            const teamFilter = document.getElementById('teamFilter');
+            if (teamFilter) {
+                const firstOption = teamFilter.querySelector('option[value=""]');
+                if (firstOption) {
+                    firstOption.textContent = translations[currentLanguage].allTeams;
+                }
+            }
+            
+            const roleFilter = document.getElementById('roleFilter');
+            if (roleFilter) {
+                const options = roleFilter.querySelectorAll('option');
+                options.forEach((option, index) => {
+                    if (index === 0) {
+                        option.textContent = translations[currentLanguage].allRoles;
+                    } else if (option.value === 'scorekeeper') {
+                        option.textContent = translations[currentLanguage].scorekeeperRole;
+                    } else if (option.value === 'taefeler') {
+                        option.textContent = translations[currentLanguage].taefelerRole;
+                    }
+                });
+            }
+            
+            const attentionFilter = document.getElementById('attentionFilter');
+            if (attentionFilter) {
+                const options = attentionFilter.querySelectorAll('option');
+                options.forEach((option, index) => {
+                    if (index === 0) {
+                        option.textContent = translations[currentLanguage].allGames;
+                    } else if (option.value === 'issues') {
+                        option.textContent = translations[currentLanguage].gamesWithIssues;
+                    } else if (option.value === 'no-issues') {
+                        option.textContent = translations[currentLanguage].noIssues;
+                    }
+                });
+            }
+            
+            // Update buttons
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => {
+                if (btn.textContent.includes('Clear Filters')) {
+                    btn.textContent = translations[currentLanguage].clearFilters;
+                } else if (btn.textContent.includes('Summary')) {
+                    btn.textContent = `📊 ${translations[currentLanguage].summary}`;
+                }
+            });
+            
+            // Update loading and error messages
+            const loadingElement = document.getElementById('loading');
+            if (loadingElement && loadingElement.textContent.includes('Loading games')) {
+                loadingElement.textContent = translations[currentLanguage].loading;
+            }
         }
 
         let currentLanguage = 'en';
@@ -907,7 +978,21 @@
                 missingScorekeeper: 'Missing Scorekeeper name',
                 location: 'Location',
                 vs: 'vs',
-                at: 'at'
+                at: 'at',
+                filterByTeam: 'Filter by Team',
+                filterByRole: 'Filter by Role',
+                filterByIssues: 'Filter by Issues',
+                allTeams: 'All Teams',
+                allRoles: 'All Roles',
+                allGames: 'All Games',
+                gamesWithIssues: 'Games with Issues',
+                noIssues: 'No Issues',
+                scorekeeperRole: 'Scorekeeper',
+                taefelerRole: 'Täfeler',
+                clearFilters: 'Clear Filters',
+                noGamesFound: 'No games found',
+                loading: 'Loading games...',
+                errorLoading: 'Error loading games. Please try again.'
             },
             de: {
                 summary: 'Spielprobleme Zusammenfassung',
@@ -917,14 +1002,28 @@
                 issues: 'Probleme',
                 taefeler: 'Täfeler',
                 scorekeeper: 'Schreiber',
-                close: 'Schliessen',
+                close: 'Schließen',
                 teamGames: 'Spiele',
                 allGamesForTeam: 'Alle Spiele für dieses Team',
                 missingTaefeler: 'Fehlender Täfeler Name',
                 missingScorekeeper: 'Fehlender Schreiber Name',
                 location: 'Ort',
                 vs: 'gegen',
-                at: 'in'
+                at: 'in',
+                filterByTeam: 'Nach Team filtern',
+                filterByRole: 'Nach Rolle filtern',
+                filterByIssues: 'Nach Problemen filtern',
+                allTeams: 'Alle Teams',
+                allRoles: 'Alle Rollen',
+                allGames: 'Alle Spiele',
+                gamesWithIssues: 'Spiele mit Problemen',
+                noIssues: 'Keine Probleme',
+                scorekeeperRole: 'Schreiber',
+                taefelerRole: 'Täfeler',
+                clearFilters: 'Filter löschen',
+                noGamesFound: 'Keine Spiele gefunden',
+                loading: 'Spiele werden geladen...',
+                errorLoading: 'Fehler beim Laden der Spiele. Bitte versuchen Sie es erneut.'
             }
         };
 
@@ -975,8 +1074,12 @@
             URL.revokeObjectURL(url);
         }
 
-        // Load games when page loads
-        document.addEventListener('DOMContentLoaded', loadGames);
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGames();
+            // Update UI language when page loads
+            updateUILanguage();
+        });
 
         // Load games from matches_complete table
         async function loadGames() {
