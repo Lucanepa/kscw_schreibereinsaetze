@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Volleyball Calendar</title>
+    <title>Screibereinstätze Calendar</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <style>
@@ -662,10 +662,16 @@
 
             if (error) throw error;
             allGames = data || [];
+            console.log('Loaded games:', allGames.length, 'games');
+            if (allGames.length > 0) {
+                console.log('Sample game:', allGames[0]);
+            }
         }
 
         // Initialize calendar
         function initCalendar() {
+            // Set current date to today
+            currentDate = new Date();
             updateCalendar();
             loadGames().then(() => {
                 updateCalendar();
@@ -678,6 +684,8 @@
         function updateCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
+            
+            console.log('Updating calendar for:', year, month, 'Current date:', currentDate);
             
             // Update month display
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -693,7 +701,7 @@
             const calendarDays = document.getElementById('calendarDays');
             calendarDays.innerHTML = '';
 
-            // Generate calendar days
+            // Generate calendar days (6 weeks = 42 days)
             for (let i = 0; i < 42; i++) {
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
@@ -790,7 +798,10 @@
             const listContainer = document.getElementById('listItems');
             listContainer.innerHTML = '';
 
-            allGames.forEach(game => {
+            // Sort games by date
+            const sortedGames = [...allGames].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            sortedGames.forEach(game => {
                 const gameDate = new Date(game.date);
                 const formattedDate = gameDate.toLocaleDateString('en-US', {
                     weekday: 'long',
