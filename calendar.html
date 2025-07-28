@@ -850,11 +850,11 @@
                         </div>
                         <div class="list-item-detail">
                             <span>📝</span>
-                            <span>${game.scorekeeper_team_short || '-'}</span>
+                            <span>${game.scorekeeper_team_short || '-'}${game.scorekeeper_name ? ` (${game.scorekeeper_name})` : ''}</span>
                         </div>
                         <div class="list-item-detail">
                             <span>⚖️</span>
-                            <span>${game.taefeler_team_short || '-'}</span>
+                            <span>${game.taefeler_team_short || '-'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</span>
                         </div>
                         <div class="list-item-detail">
                             <span>${emojiText}</span>
