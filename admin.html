@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSCW Sc. En. Admin Panel</title>
+    <title>Volleyball Admin Panel</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -973,6 +973,9 @@
 
         // Download Excel
         function downloadExcel() {
+            // Get currently filtered games
+            const filteredGames = getFilteredGames();
+            
             const headers = [
                 'Date', 'Time', 'Home Team', 'Away Team', 'Gym', 
                 'Scorekeeper Team', 'Scorekeeper Name', 'Scorekeeper Phone',
@@ -981,7 +984,7 @@
             
             const csvContent = [
                 headers.join(','),
-                ...allGames.map(game => {
+                ...filteredGames.map(game => {
                     const gameDate = new Date(game.date);
                     const formattedDate = gameDate.toLocaleDateString('en-US', {
                         month: 'short',
@@ -1019,6 +1022,9 @@
 
         // Download PDF
         function downloadPDF() {
+            // Get currently filtered games
+            const filteredGames = getFilteredGames();
+            
             // Create a simple HTML table for PDF generation
             const tableHTML = `
                 <html>
@@ -1030,6 +1036,8 @@
                         th { background-color: #f2f2f2; font-weight: bold; }
                         h1 { color: #333; text-align: center; }
                         .header { text-align: center; margin-bottom: 20px; }
+                        .row-issue { background-color: #fff3cd; }
+                        .scorekeeper-disabled { background-color: #000; color: #fff; }
                     </style>
                 </head>
                 <body>
@@ -1047,12 +1055,14 @@
                                 <th>Gym</th>
                                 <th>Scorekeeper Team</th>
                                 <th>Scorekeeper Name</th>
+                                <th>Scorekeeper Phone</th>
                                 <th>Täfeler Team</th>
                                 <th>Täfeler Name</th>
+                                <th>Täfeler Phone</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${allGames.map(game => {
+                            ${filteredGames.map(game => {
                                 const gameDate = new Date(game.date);
                                 const formattedDate = gameDate.toLocaleDateString('en-US', {
                                     month: 'short',
@@ -1061,17 +1071,33 @@
                                 });
                                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
                                 
+                                // Check for issues (missing names)
+                                const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
+                                const hasScorekeeperIssue = game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && 
+                                                         (!game.scorekeeper_name || !game.scorekeeper_name.trim());
+                                const hasIssues = hasTaefelerIssue || hasScorekeeperIssue;
+                                
+                                // Check if scorekeeper team is empty
+                                const noScorekeeperTeam = !game.scorekeeper_team_short || game.scorekeeper_team_short.trim() === '';
+                                
+                                const rowClass = hasIssues ? 'row-issue' : '';
+                                const scorekeeperTeamClass = noScorekeeperTeam ? 'scorekeeper-disabled' : '';
+                                const scorekeeperNameClass = noScorekeeperTeam ? 'scorekeeper-disabled' : '';
+                                const scorekeeperPhoneClass = noScorekeeperTeam ? 'scorekeeper-disabled' : '';
+                                
                                 return `
-                                    <tr>
+                                    <tr class="${rowClass}">
                                         <td>${formattedDate}</td>
                                         <td>${formattedTime}</td>
                                         <td>${game.home_team || ''}</td>
                                         <td>${game.away_team || ''}</td>
                                         <td>${game.halle_short || ''}</td>
-                                        <td>${game.scorekeeper_team_short || ''}</td>
-                                        <td>${game.scorekeeper_name || ''}</td>
+                                        <td class="${scorekeeperTeamClass}">${game.scorekeeper_team_short || ''}</td>
+                                        <td class="${scorekeeperNameClass}">${game.scorekeeper_name || ''}</td>
+                                        <td class="${scorekeeperPhoneClass}">${game.scorekeeper_phone || ''}</td>
                                         <td>${game.taefeler_team_short || ''}</td>
                                         <td>${game.taefeler_name || ''}</td>
+                                        <td>${game.taefeler_phone || ''}</td>
                                     </tr>
                                 `;
                             }).join('')}
@@ -1081,12 +1107,53 @@
                 </html>
             `;
             
-            // Use browser's print functionality to generate PDF
+            // Open in new window for viewing/printing
             const printWindow = window.open('', '_blank');
             printWindow.document.write(tableHTML);
             printWindow.document.close();
             printWindow.focus();
-            printWindow.print();
+        }
+
+        // Get filtered games based on current admin filters
+        function getFilteredGames() {
+            const taefelerTeam = document.getElementById('adminTaefelerFilter').value;
+            const scorekeeperTeam = document.getElementById('adminScorekeeperFilter').value;
+            const homeTeam = document.getElementById('adminHomeFilter').value;
+            const issuesFilter = document.getElementById('adminIssuesFilter').value;
+
+            let filtered = allGames;
+
+            // Filter by taefeler team
+            if (taefelerTeam) {
+                filtered = filtered.filter(game => game.taefeler_team_short === taefelerTeam);
+            }
+
+            // Filter by scorekeeper team
+            if (scorekeeperTeam) {
+                filtered = filtered.filter(game => game.scorekeeper_team_short === scorekeeperTeam);
+            }
+
+            // Filter by home team
+            if (homeTeam) {
+                filtered = filtered.filter(game => game.home_team === homeTeam);
+            }
+
+            // Filter by issues
+            if (issuesFilter === 'issues') {
+                filtered = filtered.filter(game => 
+                    !game.taefeler_name || !game.taefeler_name.trim() ||
+                    (game.scorekeeper_team_short && game.scorekeeper_team_short.trim() !== '' && 
+                     (!game.scorekeeper_name || !game.scorekeeper_name.trim()))
+                );
+            } else if (issuesFilter === 'no-issues') {
+                filtered = filtered.filter(game => 
+                    game.taefeler_name && game.taefeler_name.trim() &&
+                    (!game.scorekeeper_team_short || game.scorekeeper_team_short.trim() === '' || 
+                     (game.scorekeeper_name && game.scorekeeper_name.trim()))
+                );
+            }
+
+            return filtered;
         }
 
         // Initialize page
