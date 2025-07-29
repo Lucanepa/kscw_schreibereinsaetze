@@ -528,7 +528,7 @@
             font-size: 0.8rem;
         }
 
-        .team-game-teams {
+        .team-game-scorer_teams {
             margin-bottom: 8px;
             font-size: 1.1rem;
         }
@@ -634,7 +634,7 @@
                 font-size: 14px;
             }
             
-            .mobile-game-card .game-teams {
+            .mobile-game-card .game-scorer_teams {
                 font-weight: 600;
                 color: #1e3a8a;
                 font-size: 13px;
@@ -793,19 +793,19 @@
                                          <div class="filter-group">
                          <label for="adminTaefelerFilter">Filter by Täfeler Team:</label>
                          <select id="adminTaefelerFilter" onchange="filterAdminGames()">
-                             <option value="">All Täfeler Teams</option>
+                             <option value="">All Täfeler scorer_teams</option>
                          </select>
                      </div>
                     <div class="filter-group">
                         <label for="adminScorerFilter">Filter by Scorer Team:</label>
                         <select id="adminScorerFilter" onchange="filterAdminGames()">
-                            <option value="">All Scorer Teams</option>
+                            <option value="">All Scorer scorer_teams</option>
                         </select>
                     </div>
                     <div class="filter-group">
                         <label for="adminHomeFilter">Filter by Home Team:</label>
                         <select id="adminHomeFilter" onchange="filterAdminGames()">
-                            <option value="">All Home Teams</option>
+                            <option value="">All Home scorer_teams</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -972,7 +972,7 @@
 
     <script>
         let allGames = [];
-        let allTeams = [];
+        let allscorer_teams = [];
         let teamNameMapping = {}; // New mapping for long team names
         let currentGame = null;
         let currentUser = null;
@@ -1050,7 +1050,7 @@
 
             try {
                 await loadGames();
-                await loadTeams();
+                await loadscorer_teams();
                 populateAdminFilters();
                 renderAdminTable(filterCurrentGames(allGames));
             } catch (error) {
@@ -1065,7 +1065,7 @@
         // Load games from Supabase
         async function loadGames() {
             const { data, error } = await supabase
-                .from('matches_complete')
+                .from('scorer_matches_complete')
                 .select('*')
                 .order('date', { ascending: true })
                 .order('time', { ascending: true })
@@ -1107,16 +1107,16 @@
             });
         }
 
-        // Load teams from teams table
-        async function loadTeams() {
+        // Load scorer_teams from scorer_teams table
+        async function loadscorer_teams() {
             try {
                 const { data, error } = await supabase
-                    .from('teams')
+                    .from('scorer_teams')
                     .select('team_short')
                     .order('team_short');
 
                 if (error) throw error;
-                allTeams = data.map(team => team.team_short).sort();
+                allscorer_teams = data.map(team => team.team_short).sort();
                 
                 // Create mapping from short names to long names (hardcoded)
                 teamNameMapping = {
@@ -1133,38 +1133,38 @@
                     'Legends': 'KSC Wiedikon Legends'
                 };
             } catch (error) {
-                console.error('Error loading teams:', error);
-                allTeams = [];
+                console.error('Error loading scorer_teams:', error);
+                allscorer_teams = [];
                 teamNameMapping = {};
             }
         }
 
         // Populate admin filters
         function populateAdminFilters() {
-            // Taefeler teams
+            // Taefeler scorer_teams
             const taefelerFilter = document.getElementById('adminTaefelerFilter');
-                         taefelerFilter.innerHTML = '<option value="">All Täfeler Teams</option>';
-            allTeams.forEach(team => {
+                         taefelerFilter.innerHTML = '<option value="">All Täfeler scorer_teams</option>';
+            allscorer_teams.forEach(team => {
                 const option = document.createElement('option');
                 option.value = team;
                 option.textContent = team;
                 taefelerFilter.appendChild(option);
             });
 
-            // Scorer teams
+            // Scorer scorer_teams
             const scorerFilter = document.getElementById('adminScorerFilter');
-            scorerFilter.innerHTML = '<option value="">All Scorer Teams</option>';
-            allTeams.forEach(team => {
+            scorerFilter.innerHTML = '<option value="">All Scorer scorer_teams</option>';
+            allscorer_teams.forEach(team => {
                 const option = document.createElement('option');
                 option.value = team;
                 option.textContent = team;
                 scorerFilter.appendChild(option);
             });
 
-            // Home teams
+            // Home scorer_teams
             const homeFilter = document.getElementById('adminHomeFilter');
-            homeFilter.innerHTML = '<option value="">All Home Teams</option>';
-            allTeams.forEach(team => {
+            homeFilter.innerHTML = '<option value="">All Home scorer_teams</option>';
+            allscorer_teams.forEach(team => {
                 const option = document.createElement('option');
                 option.value = team;
                 option.textContent = team;
@@ -1307,7 +1307,7 @@
                 mobileCard.innerHTML = `
                     <div class="game-header">
                         <div class="game-date-time">${formattedDate} ${formattedTime}</div>
-                        <div class="game-teams">${game.home_team || '-'} vs ${game.away_team || '-'}</div>
+                        <div class="game-scorer_teams">${game.home_team || '-'} vs ${game.away_team || '-'}</div>
                     </div>
                     <div class="game-details">
                         <div class="detail-item">
@@ -1388,10 +1388,10 @@
         async function logChange(action, fieldName, oldValue, newValue, gameInfo) {
             try {
                 const { data, error } = await supabase
-                    .from('edit_log')
+                    .from('scorer_edit_log')
                     .insert({
                         action: action, // 'CREATE', 'UPDATE', 'DELETE'
-                        table_name: 'matches_complete',
+                        table_name: 'scorer_matches_complete',
                         record_id: currentGame.match_id,
                         field_name: fieldName,
                         old_value: oldValue,
@@ -1441,7 +1441,7 @@
                 
                 // Use match_id for updates (much simpler and more reliable)
                 const { error } = await supabase
-                    .from('matches_complete')
+                    .from('scorer_matches_complete')
                     .update({
                         taefeler_name: taefelerName,
                         taefeler_phone: taefelerPhone,
@@ -1725,16 +1725,16 @@
         }
 
         // Show team games modal
-        function showTeamGames(teamShortName) {
-            const teamLongName = teamNameMapping[teamShortName];
+        function showTeamGames(scorer_teamshortName) {
+            const teamLongName = teamNameMapping[scorer_teamshortName];
             const teamGames = allGames.filter(game => 
-                game.taefeler_team_short === teamShortName || 
-                game.scorer_team_short === teamShortName ||
+                game.taefeler_team_short === scorer_teamshortName || 
+                game.scorer_team_short === scorer_teamshortName ||
                 game.home_team === teamLongName ||
                 game.away_team === teamLongName
             );
 
-            document.getElementById('teamGamesTitle').textContent = `${teamNameMapping[teamShortName] || teamShortName} Games`;
+            document.getElementById('teamGamesTitle').textContent = `${teamNameMapping[scorer_teamshortName] || scorer_teamshortName} Games`;
             
             let teamGamesHTML = `<div class="team-games-list">`;
             
@@ -1761,7 +1761,7 @@
                             <div class="team-game-date">${formattedDate}</div>
                             <div class="team-game-time">${formattedTime}</div>
                         </div>
-                        <div class="team-game-teams">${game.home_team} vs ${game.away_team}</div>
+                        <div class="team-game-scorer_teams">${game.home_team} vs ${game.away_team}</div>
                         <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? `
