@@ -682,11 +682,11 @@
              loadGames();
          });
 
-        // Load games from matches_complete table
+        // Load games from scorer_matches_complete table
         async function loadGames() {
             try {
                 const { data, error } = await supabase
-                    .from('matches_complete')
+                    .from('scorer_matches_complete')
                     .select('*')
                     .order('date', { ascending: true })
                     .order('time', { ascending: true })
@@ -727,7 +727,7 @@
         async function loadTeams() {
             try {
                 const { data, error } = await supabase
-                    .from('teams')
+                    .from('scorer_teams')
                     .select('team_short')
                     .order('team_short');
 
@@ -924,14 +924,14 @@
             return sessionId;
         }
 
-        // Log changes to edit_log table (for consistency, though archive is read-only)
+        // Log changes to scorer_edit_log table (for consistency, though archive is read-only)
         async function logChange(action, fieldName, oldValue, newValue, gameInfo) {
             try {
                 const { data, error } = await supabase
-                    .from('edit_log')
+                    .from('scorer_edit_log')
                     .insert({
                         action: action, // 'CREATE', 'UPDATE', 'DELETE'
-                        table_name: 'matches_complete',
+                        table_name: 'scorer_matches_complete',
                         record_id: currentGame.match_id,
                         field_name: fieldName,
                         old_value: oldValue,
