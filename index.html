@@ -1025,13 +1025,16 @@
                 <div class="form-section" id="formSection">
                     <h3>Täfeler Information <span id="taefelerTeamDisplay" style="font-size: 0.8em; color: #666; font-weight: normal;"></span></h3>
                     <div class="form-row">
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1;">
                             <label>Selected Täfeler</label>
                             <div id="selectedTaefelerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
                                 <span id="selectedTaefelerName">-</span><br>
                                 <span id="selectedTaefelerPhone">-</span>
                             </div>
-                            <button type="button" class="btn btn-primary" style="margin-top: 10px;" onclick="showTaefelerSelector()">Select Täfeler</button>
+                        </div>
+                        <div class="form-group" style="flex: 0 0 auto; margin-left: 15px;">
+                            <button type="button" class="btn btn-primary" onclick="showTaefelerSelector()" id="selectTaefelerBtn">Select Täfeler</button>
+                            <button type="button" class="btn btn-success" onclick="confirmTaefeler()" id="confirmTaefelerBtn" style="display: none;">Confirm Täfeler</button>
                             <button type="button" id="addTaefelerBtn" class="btn btn-info" style="margin-top: 10px;" onclick="showAddTaefelerModal()">Add New Person</button>
                         </div>
                     </div>
@@ -1040,13 +1043,16 @@
                 <div class="form-section" id="scorerSection" style="display: none;">
                     <h3>Scorer Information <span id="scorerTeamDisplay" style="font-size: 0.8em; color: #666; font-weight: normal;"></span></h3>
                     <div class="form-row">
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1;">
                             <label>Selected Scorer</label>
                             <div id="selectedScorerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
                                 <span id="selectedScorerName">-</span><br>
                                 <span id="selectedScorerPhone">-</span>
                             </div>
-                            <button type="button" class="btn btn-primary" style="margin-top: 10px;" onclick="showScorerSelector()">Select Scorer</button>
+                        </div>
+                        <div class="form-group" style="flex: 0 0 auto; margin-left: 15px;">
+                            <button type="button" class="btn btn-primary" onclick="showScorerSelector()" id="selectScorerBtn">Select Scorer</button>
+                            <button type="button" class="btn btn-success" onclick="confirmScorer()" id="confirmScorerBtn" style="display: none;">Confirm Scorer</button>
                         </div>
                     </div>
                 </div>
@@ -1148,13 +1154,6 @@
                         <div class="form-group">
                             <label for="newPersonPhone">Phone</label>
                             <input type="tel" id="newPersonPhone" placeholder="Enter phone number" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newPersonLicence">Scorer Licence</label>
-                            <select id="newPersonLicence">
-                                <option value="false">No</option>
-                                <option value="true">Yes</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -1758,10 +1757,23 @@
                 document.getElementById('selectedTaefelerName').textContent = selectedName;
                 document.getElementById('selectedTaefelerPhone').textContent = selectedPhone || '-';
                 
+                // Show confirm button and hide select button
+                document.getElementById('confirmTaefelerBtn').style.display = 'inline-block';
+                document.getElementById('selectTaefelerBtn').style.display = 'none';
+                
                 closeTaefelerSelector();
             } else {
                 alert('Please select a valid täfeler');
             }
+        }
+
+        // Confirm täfeler (final confirmation)
+        function confirmTaefeler() {
+            document.getElementById('confirmTaefelerBtn').style.display = 'none';
+            document.getElementById('selectTaefelerBtn').style.display = 'inline-block';
+            document.getElementById('selectTaefelerBtn').disabled = true;
+            document.getElementById('selectTaefelerBtn').textContent = 'Täfeler Confirmed';
+            alert('Täfeler confirmed and locked!');
         }
 
         // Confirm scorer selection
@@ -1776,10 +1788,23 @@
                 document.getElementById('selectedScorerName').textContent = selectedName;
                 document.getElementById('selectedScorerPhone').textContent = selectedPhone || '-';
                 
+                // Show confirm button and hide select button
+                document.getElementById('confirmScorerBtn').style.display = 'inline-block';
+                document.getElementById('selectScorerBtn').style.display = 'none';
+                
                 closeScorerSelector();
             } else {
                 alert('Please select a valid scorer');
             }
+        }
+
+        // Confirm scorer (final confirmation)
+        function confirmScorer() {
+            document.getElementById('confirmScorerBtn').style.display = 'none';
+            document.getElementById('selectScorerBtn').style.display = 'inline-block';
+            document.getElementById('selectScorerBtn').disabled = true;
+            document.getElementById('selectScorerBtn').textContent = 'Scorer Confirmed';
+            alert('Scorer confirmed and locked!');
         }
 
         // Show add new person modal
@@ -1794,7 +1819,6 @@
             document.getElementById('newPersonFname').value = '';
             document.getElementById('newPersonLname').value = '';
             document.getElementById('newPersonPhone').value = '';
-            document.getElementById('newPersonLicence').value = 'false';
         }
 
         // Set current selections when opening modal
@@ -1832,7 +1856,6 @@
             const fname = document.getElementById('newPersonFname').value.trim();
             const lname = document.getElementById('newPersonLname').value.trim();
             const phone = document.getElementById('newPersonPhone').value.trim();
-            const licence = document.getElementById('newPersonLicence').value === 'true';
 
             if (!fname || !lname || !phone) {
                 alert('Please fill in all required fields');
@@ -1846,7 +1869,7 @@
                         fname: fname,
                         lname: lname,
                         phone: phone,
-                        scorer_licence: licence
+                        scorer_licence: false
                     })
                     .select();
 
