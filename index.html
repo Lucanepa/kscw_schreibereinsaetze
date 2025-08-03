@@ -1142,7 +1142,6 @@
                     </div>
                     <div class="selection-controls">
                         <button class="btn btn-primary" onclick="showTaefelerSelector()">Select Täfeler</button>
-                        <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
                     </div>
                 </div>
 
@@ -1366,10 +1365,10 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
-                <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
-                <button class="btn btn-primary" id="confirmTaefelerBtn" onclick="confirmTaefelerSelection()" style="display: none;">Confirm</button>
+            <div class="modal-actions" style="padding: 10px 0;">
+                <button class="btn btn-secondary" onclick="closeTaefelerSelector()" style="padding: 8px 16px; margin: 0 5px;">Cancel</button>
+                <button class="btn btn-info" onclick="showAddTaefelerModal()" style="padding: 8px 16px; margin: 0 5px;">Add New Person</button>
+                <button class="btn btn-primary" id="confirmTaefelerBtn" onclick="confirmTaefelerSelection()" style="display: none; padding: 8px 16px; margin: 0 5px;">Confirm</button>
             </div>
         </div>
     </div>
@@ -1394,9 +1393,9 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeScorerSelector()">Cancel</button>
-                <button class="btn btn-primary" id="confirmScorerBtn" onclick="confirmScorerSelection()" style="display: none;">Confirm</button>
+            <div class="modal-actions" style="padding: 10px 0;">
+                <button class="btn btn-secondary" onclick="closeScorerSelector()" style="padding: 8px 16px; margin: 0 5px;">Cancel</button>
+                <button class="btn btn-primary" id="confirmScorerBtn" onclick="confirmScorerSelection()" style="display: none; padding: 8px 16px; margin: 0 5px;">Confirm</button>
             </div>
         </div>
     </div>
@@ -1471,7 +1470,7 @@
             </div>
         </div>
         <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="modal">
+    <div id="confirmationModal" class="modal" style="z-index: 3000;">
         <div class="modal-content" style="max-width: 500px;">
             <span class="close" onclick="closeConfirmationModal()">&times;</span>
             <div class="modal-header">
@@ -2040,10 +2039,14 @@
 
         // Show confirmation modal
         function showConfirmationModal(type) {
+            console.log('showConfirmationModal called with type:', type);
             const isGerman = currentLanguage === 'de';
             const roleName = type === 'taefeler' ? (isGerman ? 'Täfeler' : 'Täfeler') : (isGerman ? 'Schreiber' : 'Scorer');
             const selectedPerson = type === 'taefeler' ? window.selectedTaefeler : window.selectedScorer;
             const fullName = `${selectedPerson.fname} ${selectedPerson.lname}`;
+            
+            console.log('Selected person:', selectedPerson);
+            console.log('Full name:', fullName);
             
             document.getElementById('confirmationTitle').textContent = isGerman ? 'Auswahl bestätigen' : 'Confirm Selection';
             document.getElementById('confirmationSubtitle').textContent = isGerman ? 'Wichtiger Hinweis' : 'Important Notice';
@@ -2057,7 +2060,10 @@
             // Store the type for final confirmation
             window.confirmationType = type;
             
-            document.getElementById('confirmationModal').style.display = 'block';
+            const modal = document.getElementById('confirmationModal');
+            console.log('Confirmation modal element:', modal);
+            modal.style.display = 'block';
+            console.log('Modal display set to block');
         }
 
         // Close confirmation modal
