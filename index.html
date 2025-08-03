@@ -2734,6 +2734,20 @@
                 // 2. Either there's no scorer team required OR scorer is also confirmed
                 const scorerTeamRequired = game.scorer_team_short && game.scorer_team_short.trim() !== '';
                 const bothRolesConfirmed = hasTaefelerConfirmed && (!scorerTeamRequired || hasScorerConfirmed);
+                
+                // Debug logging for the specific game
+                if (game.home_team && game.away_team) {
+                    console.log(`Game: ${game.home_team} vs ${game.away_team}`);
+                    console.log(`  taefeler_name: "${game.taefeler_name}"`);
+                    console.log(`  scorer_name: "${game.scorer_name}"`);
+                    console.log(`  scorer_team_short: "${game.scorer_team_short}"`);
+                    console.log(`  hasTaefelerIssue: ${hasTaefelerIssue}`);
+                    console.log(`  hasScorerIssue: ${hasScorerIssue}`);
+                    console.log(`  hasTaefelerConfirmed: ${hasTaefelerConfirmed}`);
+                    console.log(`  hasScorerConfirmed: ${hasScorerConfirmed}`);
+                    console.log(`  scorerTeamRequired: ${scorerTeamRequired}`);
+                    console.log(`  bothRolesConfirmed: ${bothRolesConfirmed}`);
+                }
 
                 const gameCard = document.createElement('div');
                 gameCard.className = 'game-card';
