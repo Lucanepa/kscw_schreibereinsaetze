@@ -1174,7 +1174,7 @@
                     </div>
                     <div class="form-group">
                         <label>Available Täfelers</label>
-                        <div id="taefelerResults" style="height: 180px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <div id="taefelerResults" style="height: 80px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
                             <!-- Results will be populated here -->
                         </div>
                     </div>
@@ -1202,7 +1202,7 @@
                     </div>
                     <div class="form-group">
                         <label>Available Scorers</label>
-                        <div id="scorerResults" style="height: 180px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <div id="scorerResults" style="height: 80px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
                             <!-- Results will be populated here -->
                         </div>
                     </div>
@@ -1964,15 +1964,27 @@
 
         // Confirm täfeler selection
         function confirmTaefelerSelection() {
+            console.log('confirmTaefelerSelection called');
+            console.log('window.selectedTaefeler:', window.selectedTaefeler);
             if (window.selectedTaefeler) {
+                console.log('Showing confirmation modal for täfeler');
                 showConfirmationModal('taefeler');
+            } else {
+                console.log('No täfeler selected');
+                alert('Please select a täfeler first');
             }
         }
 
         // Confirm scorer selection
         function confirmScorerSelection() {
+            console.log('confirmScorerSelection called');
+            console.log('window.selectedScorer:', window.selectedScorer);
             if (window.selectedScorer) {
+                console.log('Showing confirmation modal for scorer');
                 showConfirmationModal('scorer');
+            } else {
+                console.log('No scorer selected');
+                alert('Please select a scorer first');
             }
         }
 
