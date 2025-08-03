@@ -933,7 +933,7 @@
         .focused-game-header {
             display: flex;
             align-items: center;
-            gap: 20px;
+            justify-content: space-between;
             margin-bottom: 30px;
             border-bottom: 2px solid #f0f0f0;
             padding-bottom: 20px;
@@ -943,6 +943,12 @@
             margin: 0;
             color: #333;
             font-size: 1.8rem;
+            flex: 1;
+            text-align: center;
+        }
+
+        .focused-game-header .btn {
+            flex-shrink: 0;
         }
 
         .focused-game-info {
@@ -1135,6 +1141,7 @@
             <div class="focused-game-header">
                 <button class="btn btn-outline" onclick="backToMainView()">← Back to Games</button>
                 <h2 id="focusedGameTitle">Game Details</h2>
+                <button class="btn btn-primary" onclick="saveGameDetails()">Save Changes</button>
             </div>
             
             <div class="focused-game-info">
@@ -1401,35 +1408,38 @@
                 
                 <div class="action-buttons">
                     <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
+                    <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
                     <button class="btn btn-primary" id="confirmTaefelerBtn" onclick="confirmTaefelerSelection()" style="display: none;">Confirm Selection</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scorer Selector Modal -->
-    <div id="scorerSelectorModal" class="modal">
-        <div class="modal-content" style="max-height: 60vh; height: 450px;">
-            <div class="modal-header">
-                <div class="modal-title">Select Scorer</div>
+    <!-- Scorer Selector Focused View -->
+    <div id="scorerSelectorView" class="focused-game-view" style="display: none;">
+        <div class="focused-game-container">
+            <div class="focused-game-header">
+                <button class="btn btn-outline" onclick="closeScorerSelector()">← Back to Game</button>
+                <h2>Select Scorer</h2>
             </div>
-            <div class="game-details-modal" style="height: calc(100% - 120px); overflow: hidden;">
-                <div class="form-section">
-                    <div class="form-group">
-                        <label for="scorerSearch">Search Scorers</label>
-                        <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-                    </div>
-                    <div class="form-group">
-                        <label>Available Scorers</label>
-                        <div id="scorerResults" style="height: 80px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                            <!-- Results will be populated here -->
-                        </div>
+            
+            <div class="selector-content">
+                <div class="search-section">
+                    <label for="scorerSearch">Search Scorers</label>
+                    <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                
+                <div class="results-section">
+                    <label>Available Scorers</label>
+                    <div id="scorerResults" style="height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white; margin-bottom: 20px;">
+                        <!-- Results will be populated here -->
                     </div>
                 </div>
-            </div>
-            <div class="modal-actions" style="padding: 10px 0;">
-                <button class="btn btn-secondary" onclick="closeScorerSelector()" style="padding: 8px 16px; margin: 0 5px;">Cancel</button>
-                <button class="btn btn-primary" id="confirmScorerBtn" onclick="confirmScorerSelection()" style="display: none; padding: 8px 16px; margin: 0 5px;">Confirm</button>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="closeScorerSelector()">Cancel</button>
+                    <button class="btn btn-primary" id="confirmScorerBtn" onclick="confirmScorerSelection()" style="display: none;">Confirm Selection</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1503,27 +1513,6 @@
                 <button class="btn btn-primary" onclick="closeInfoModal()">Got it!</button>
             </div>
         </div>
-        <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="modal" style="z-index: 3000;">
-        <div class="modal-content" style="max-width: 500px;">
-            <span class="close" onclick="closeConfirmationModal()">&times;</span>
-            <div class="modal-header">
-                <div class="modal-title" id="confirmationTitle">Confirm Selection</div>
-                <div class="modal-subtitle" id="confirmationSubtitle">Important Notice</div>
-            </div>
-            <div class="game-details-modal">
-                <div class="detail-section">
-                    <div id="confirmationMessage">
-                        <!-- Message will be populated here -->
-                    </div>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeConfirmationModal()">Go Back</button>
-                <button class="btn btn-primary" id="finalConfirmBtn" onclick="finalConfirmSelection()">Confirm</button>
-            </div>
-        </div>
-    </div>
 
     <script>
         let allGames = [];
@@ -2048,10 +2037,11 @@
             document.getElementById('taefelerSelectorView').style.display = 'block';
         }
 
-        // Show scorer selector modal
+        // Show scorer selector focused view
         function showScorerSelector() {
             populateScorerResults();
-            document.getElementById('scorerSelectorModal').style.display = 'block';
+            document.getElementById('focusedGameView').style.display = 'none';
+            document.getElementById('scorerSelectorView').style.display = 'block';
         }
 
         // Close täfeler selector focused view
@@ -2064,18 +2054,19 @@
             filterTaefelers(); // Reset filter
         }
 
-        // Close scorer selector modal
+        // Close scorer selector focused view
         function closeScorerSelector() {
-            document.getElementById('scorerSelectorModal').style.display = 'none';
+            document.getElementById('scorerSelectorView').style.display = 'none';
+            document.getElementById('focusedGameView').style.display = 'block';
             document.getElementById('scorerSearch').value = '';
             document.getElementById('confirmScorerBtn').style.display = 'none';
             window.selectedScorer = null; // Clear selection
             filterScorers(); // Reset filter
         }
 
-        // Show confirmation modal
-        function showConfirmationModal(type) {
-            console.log('showConfirmationModal called with type:', type);
+        // Show confirmation in focused view
+        function showConfirmationInView(type) {
+            console.log('showConfirmationInView called with type:', type);
             const isGerman = currentLanguage === 'de';
             const roleName = type === 'taefeler' ? (isGerman ? 'Täfeler' : 'Täfeler') : (isGerman ? 'Schreiber' : 'Scorer');
             const selectedPerson = type === 'taefeler' ? window.selectedTaefeler : window.selectedScorer;
@@ -2084,50 +2075,49 @@
             console.log('Selected person:', selectedPerson);
             console.log('Full name:', fullName);
             
-            document.getElementById('confirmationTitle').textContent = isGerman ? 'Auswahl bestätigen' : 'Confirm Selection';
-            document.getElementById('confirmationSubtitle').textContent = isGerman ? 'Wichtiger Hinweis' : 'Important Notice';
-            
-            const message = isGerman 
-                ? `Wenn Sie bestätigen, können Sie Ihre Entscheidung später nicht mehr ändern. Im Notfall oder bei dringendem Bedarf, den Namen zu ändern, kontaktieren Sie bitte Luca oder Thamy.<br><br><strong>Ausgewählte Person:</strong> ${fullName}`
-                : `If you confirm, you will not be able to change your decision later. In case of emergency or dire need to change the name, please contact Luca or Thamy.<br><br><strong>Selected Person:</strong> ${fullName}`;
-            
-            document.getElementById('confirmationMessage').innerHTML = message;
-            
             // Store the type for final confirmation
             window.confirmationType = type;
             
-            const modal = document.getElementById('confirmationModal');
-            console.log('Confirmation modal element:', modal);
+            // Show confirmation message in the current view
+            const confirmMessage = isGerman 
+                ? `Wenn Sie bestätigen, können Sie Ihre Entscheidung später nicht mehr ändern. Im Notfall oder bei dringendem Bedarf, den Namen zu ändern, kontaktieren Sie bitte Luca oder Thamy.<br><br><strong>Ausgewählte Person:</strong> ${fullName}`
+                : `If you confirm, you will not be able to change your decision later. In case of emergency or dire need to change the name, please contact Luca or Thamy.<br><br><strong>Selected Person:</strong> ${fullName}`;
             
-            // Force modal to be visible with important styles
-            modal.style.cssText = `
-                display: block !important;
-                position: fixed !important;
-                z-index: 9999 !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
-                background-color: rgba(0,0,0,0.5) !important;
-            `;
-            
-            // Temporarily hide focused views to test modal visibility
-            const focusedViews = document.querySelectorAll('.focused-game-view');
-            focusedViews.forEach(view => {
-                if (view.style.display !== 'none') {
-                    console.log('Hiding focused view:', view.id);
-                    view.style.display = 'none';
-                }
-            });
-            
-            console.log('Modal display set to block with forced styles');
-            console.log('Modal computed styles:', window.getComputedStyle(modal));
+            // Update the action buttons to show confirm/cancel
+            const actionButtons = document.querySelector('.action-buttons');
+            if (actionButtons) {
+                actionButtons.innerHTML = `
+                    <button class="btn btn-secondary" onclick="cancelConfirmation()">Cancel</button>
+                    <button class="btn btn-primary" onclick="finalConfirmSelection()">Confirm Selection</button>
+                    <div style="margin-top: 15px; padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; color: #856404;">
+                        ${confirmMessage}
+                    </div>
+                `;
+            }
         }
 
-        // Close confirmation modal
-        function closeConfirmationModal() {
-            document.getElementById('confirmationModal').style.display = 'none';
+        // Cancel confirmation and go back to normal view
+        function cancelConfirmation() {
             window.confirmationType = null;
+            
+            // Restore normal action buttons
+            const actionButtons = document.querySelector('.action-buttons');
+            if (actionButtons) {
+                if (document.getElementById('taefelerSelectorView').style.display !== 'none') {
+                    // We're in täfeler selector
+                    actionButtons.innerHTML = `
+                        <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
+                        <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
+                        <button class="btn btn-primary" id="confirmTaefelerBtn" onclick="confirmTaefelerSelection()" style="display: none;">Confirm Selection</button>
+                    `;
+                } else if (document.getElementById('scorerSelectorView').style.display !== 'none') {
+                    // We're in scorer selector
+                    actionButtons.innerHTML = `
+                        <button class="btn btn-secondary" onclick="closeScorerSelector()">Cancel</button>
+                        <button class="btn btn-primary" id="confirmScorerBtn" onclick="confirmScorerSelection()" style="display: none;">Confirm Selection</button>
+                    `;
+                }
+            }
         }
 
         // Final confirmation
@@ -2145,7 +2135,6 @@
                 }
                 
                 closeTaefelerSelector();
-                closeConfirmationModal();
                 saveGameDetails();
                 window.selectedTaefeler = null;
                 window.confirmationType = null;
@@ -2162,7 +2151,6 @@
                 }
                 
                 closeScorerSelector();
-                closeConfirmationModal();
                 saveGameDetails();
                 window.selectedScorer = null;
                 window.confirmationType = null;
@@ -2221,8 +2209,8 @@
             console.log('confirmTaefelerSelection called');
             console.log('window.selectedTaefeler:', window.selectedTaefeler);
             if (window.selectedTaefeler) {
-                console.log('Showing confirmation modal for täfeler');
-                showConfirmationModal('taefeler');
+                console.log('Showing confirmation in view for täfeler');
+                showConfirmationInView('taefeler');
             } else {
                 console.log('No täfeler selected');
                 alert('Please select a täfeler first');
@@ -2234,8 +2222,8 @@
             console.log('confirmScorerSelection called');
             console.log('window.selectedScorer:', window.selectedScorer);
             if (window.selectedScorer) {
-                console.log('Showing confirmation modal for scorer');
-                showConfirmationModal('scorer');
+                console.log('Showing confirmation in view for scorer');
+                showConfirmationInView('scorer');
             } else {
                 console.log('No scorer selected');
                 alert('Please select a scorer first');
@@ -2288,7 +2276,7 @@
             document.getElementById('focusedGameGym').textContent = game.halle_short || 'TBD';
             document.getElementById('focusedGameHomeTeam').textContent = game.home_team || 'TBD';
             document.getElementById('focusedGameAwayTeam').textContent = game.away_team || 'TBD';
-            document.getElementById('focusedGameNumber').textContent = game.match_id || 'TBD';
+            document.getElementById('focusedGameNumber').textContent = `${game.home_team} vs ${game.away_team}`;
             
             // Set team displays
             document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team_short ? `(${game.taefeler_team_short})` : '';
@@ -2568,6 +2556,8 @@
                 const gameCard = document.createElement('div');
                 gameCard.className = 'game-card';
                 gameCard.onclick = () => openGameModal(game);
+                gameCard.setAttribute('data-match-id', game.match_id);
+                gameCard.setAttribute('data-match-name', `${game.home_team} vs ${game.away_team}`);
 
                 gameCard.innerHTML = `
                     <div class="game-header">
@@ -2670,10 +2660,24 @@
                 return;
             }
 
-            const taefelerName = document.getElementById('selectedTaefelerName').textContent;
-            const scorerName = document.getElementById('selectedScorerName').textContent;
-
-
+            // Get names from focused view or modal
+            let taefelerName = document.getElementById('currentTaefelerName').textContent;
+            let scorerName = document.getElementById('currentScorerName').textContent;
+            
+            // Fallback to modal values if focused view values are not available
+            if (taefelerName === '-' || !taefelerName) {
+                const selectedTaefelerName = document.getElementById('selectedTaefelerName');
+                if (selectedTaefelerName) {
+                    taefelerName = selectedTaefelerName.textContent;
+                }
+            }
+            
+            if (scorerName === '-' || !scorerName) {
+                const selectedScorerName = document.getElementById('selectedScorerName');
+                if (selectedScorerName) {
+                    scorerName = selectedScorerName.textContent;
+                }
+            }
 
             try {
                 console.log('Saving game details for:', currentGame);
@@ -2707,7 +2711,8 @@
                     allGames[gameIndex].scorer_name = scorerName;
                 }
                 
-                closeModal();
+                // Go back to main view
+                backToMainView();
                 renderGames();
                 alert('Game details saved successfully!');
             } catch (error) {
