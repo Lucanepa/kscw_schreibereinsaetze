@@ -940,22 +940,12 @@
                     <h3>Täfeler Information</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="taefelerDropdown">Select Täfeler</label>
-                            <div class="dropdown-container">
-                                <input type="text" id="taefelerSearch" placeholder="Search täfelers..." oninput="filterTaefelers()">
-                                <select id="taefelerDropdown" size="5" style="width: 100%; margin-top: 5px;">
-                                    <option value="">-- Select Täfeler --</option>
-                                </select>
-                            </div>
-                            <button type="button" id="confirmTaefelerBtn" class="btn btn-success" style="margin-top: 10px; display: none;" onclick="confirmTaefeler()">Confirm Täfeler</button>
-                            <button type="button" id="addTaefelerBtn" class="btn btn-info" style="margin-top: 10px;" onclick="showAddTaefelerModal()">Add New Person</button>
+                            <label for="taefelerName">Name</label>
+                            <input type="text" id="taefelerName" placeholder="Enter Täfeler name">
                         </div>
                         <div class="form-group">
-                            <label>Selected Täfeler</label>
-                            <div id="selectedTaefelerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
-                                <span id="selectedTaefelerName">-</span><br>
-                                <span id="selectedTaefelerPhone">-</span>
-                            </div>
+                            <label for="taefelerPhone">Phone</label>
+                            <input type="tel" id="taefelerPhone" placeholder="Enter Täfeler phone">
                         </div>
                     </div>
                 </div>
@@ -964,21 +954,12 @@
                     <h3>Scorer Information</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="scorerDropdown">Select Scorer</label>
-                            <div class="dropdown-container">
-                                <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()">
-                                <select id="scorerDropdown" size="5" style="width: 100%; margin-top: 5px;">
-                                    <option value="">-- Select Scorer --</option>
-                                </select>
-                            </div>
-                            <button type="button" id="confirmScorerBtn" class="btn btn-success" style="margin-top: 10px; display: none;" onclick="confirmScorer()">Confirm Scorer</button>
+                            <label for="scorerName">Name</label>
+                            <input type="text" id="scorerName" placeholder="Enter Scorer name">
                         </div>
                         <div class="form-group">
-                            <label>Selected Scorer</label>
-                            <div id="selectedScorerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
-                                <span id="selectedScorerName">-</span><br>
-                                <span id="selectedScorerPhone">-</span>
-                            </div>
+                            <label for="scorerPhone">Phone</label>
+                            <input type="tel" id="scorerPhone" placeholder="Enter Scorer phone">
                         </div>
                     </div>
                 </div>
@@ -1484,12 +1465,13 @@
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
             document.getElementById('modalGameNumber').textContent = game.gamen || '-';
 
-            // Populate dropdowns
-            populateTaefelerDropdown();
-            populateScorerDropdown();
-
-            // Set current selections
-            setCurrentSelections(game);
+            // Show real phone numbers in admin mode
+            document.getElementById('taefelerName').value = game.taefeler_name || '';
+            document.getElementById('taefelerPhone').value = game.taefeler_phone || '';
+            document.getElementById('taefelerPhone').type = 'text';
+            document.getElementById('scorerName').value = game.scorer_name || '';
+            document.getElementById('scorerPhone').value = game.scorer_phone || '';
+            document.getElementById('scorerPhone').type = 'text';
 
             const scorerSection = document.getElementById('scorerSection');
             if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
@@ -1814,22 +1796,24 @@
         async function saveGameDetails() {
             if (!currentGame) return;
 
-            const taefelerName = document.getElementById('selectedTaefelerName').textContent;
-            const scorerName = document.getElementById('selectedScorerName').textContent;
-
-            // Check if selections are valid (not the default '-')
-            if (taefelerName === '-' || scorerName === '-') {
-                alert('Please select both a täfeler and a scorer before saving.');
-                return;
-            }
+            const taefelerName = document.getElementById('taefelerName').value;
+            const taefelerPhone = document.getElementById('taefelerPhone').value;
+            const scorerName = document.getElementById('scorerName').value;
+            const scorerPhone = document.getElementById('scorerPhone').value;
 
             try {
                 // Log changes for each field that was modified
                 if (currentGame.taefeler_name !== taefelerName) {
                     await logChange('UPDATE', 'taefeler_name', currentGame.taefeler_name, taefelerName);
                 }
+                if (currentGame.taefeler_phone !== taefelerPhone) {
+                    await logChange('UPDATE', 'taefeler_phone', currentGame.taefeler_phone, taefelerPhone);
+                }
                 if (currentGame.scorer_name !== scorerName) {
                     await logChange('UPDATE', 'scorer_name', currentGame.scorer_name, scorerName);
+                }
+                if (currentGame.scorer_phone !== scorerPhone) {
+                    await logChange('UPDATE', 'scorer_phone', currentGame.scorer_phone, scorerPhone);
                 }
                 
                 // Use match_id for updates (much simpler and more reliable)
@@ -1837,7 +1821,9 @@
                     .from('scorer_matches')
                     .update({
                         taefeler_name: taefelerName,
-                        scorer_name: scorerName
+                        taefeler_phone: taefelerPhone,
+                        scorer_name: scorerName,
+                        scorer_phone: scorerPhone
                     })
                     .eq('match_id', currentGame.match_id);
 
@@ -1850,7 +1836,9 @@
                 const gameIndex = allGames.findIndex(g => g.match_id === currentGame.match_id);
                 if (gameIndex !== -1) {
                     allGames[gameIndex].taefeler_name = taefelerName;
+                    allGames[gameIndex].taefeler_phone = taefelerPhone;
                     allGames[gameIndex].scorer_name = scorerName;
+                    allGames[gameIndex].scorer_phone = scorerPhone;
                 }
 
                 closeModal();
