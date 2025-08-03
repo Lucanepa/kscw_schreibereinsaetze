@@ -1587,6 +1587,7 @@
                 }
                 
                 console.log('✅ Database connection test successful, matches table accessible');
+                console.log('🔍 Test data from scorer_matches:', testData);
                 
                 // Now check if we can get any data from the scorer_scorers table
                 const { data: allData, error: allError } = await supabase
@@ -1595,11 +1596,23 @@
                 
                 if (allError) {
                     console.error('❌ Error loading all data from scorer_scorers:', allError);
+                    console.error('❌ Error details:', allError.message, allError.details, allError.hint);
                     throw allError;
                 }
                 
                 console.log('📊 All data in scorer_scorers table:', allData);
                 console.log('📊 Number of records in scorer_scorers:', allData ? allData.length : 0);
+                
+                // Try a simple count query
+                const { count, error: countError } = await supabase
+                    .from('scorer_scorers')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (countError) {
+                    console.error('❌ Error counting records:', countError);
+                } else {
+                    console.log('🔢 Total count of records in scorer_scorers:', count);
+                }
                 
                 // Now try the filtered query
                 const { data, error } = await supabase
