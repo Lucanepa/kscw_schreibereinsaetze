@@ -1840,6 +1840,19 @@
                     });
                     const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
                     
+                    // Look up phone numbers from scorers table
+                    let scorerPhone = '';
+                    if (game.scorer_name) {
+                        const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                        scorerPhone = scorer ? scorer.phone || 'no phone found' : 'no phone found';
+                    }
+                    
+                    let taefelerPhone = '';
+                    if (game.taefeler_name) {
+                        const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                        taefelerPhone = taefeler ? taefeler.phone || 'no phone found' : 'no phone found';
+                    }
+                    
                     return [
                         formattedDate,
                         formattedTime,
@@ -1848,10 +1861,10 @@
                         game.halle_short || '',
                         game.scorer_team_short || '',
                         game.scorer_name || '',
-                        game.scorer_phone || '',
+                        scorerPhone,
                         game.taefeler_team_short || '',
                         game.taefeler_name || '',
-                        game.taefeler_phone || ''
+                        taefelerPhone
                     ].map(field => `"${field}"`).join(',');
                 })
             ].join('\n');
@@ -2179,16 +2192,26 @@
             document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || 'TBD';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || 'TBD';
             
-            // Populate täfeler information (read-only)
+            // Populate täfeler information (read-only) with phone lookup from scorers table
             document.getElementById('taefelerNameDisplay').textContent = game.taefeler_name || '-';
-            document.getElementById('taefelerPhoneDisplay').textContent = game.taefeler_phone || '-';
+            if (game.taefeler_name) {
+                const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                document.getElementById('taefelerPhoneDisplay').textContent = taefeler ? taefeler.phone || 'no phone found' : 'no phone found';
+            } else {
+                document.getElementById('taefelerPhoneDisplay').textContent = '-';
+            }
             
             // Show/hide scorer section based on whether scorer team is assigned
             const scorerSection = document.getElementById('scorerSection');
             if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
                 scorerSection.style.display = 'block';
                 document.getElementById('scorerNameDisplay').textContent = game.scorer_name || '-';
-                document.getElementById('scorerPhoneDisplay').textContent = game.scorer_phone || '-';
+                if (game.scorer_name) {
+                    const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                    document.getElementById('scorerPhoneDisplay').textContent = scorer ? scorer.phone || 'no phone found' : 'no phone found';
+                } else {
+                    document.getElementById('scorerPhoneDisplay').textContent = '-';
+                }
             } else {
                 scorerSection.style.display = 'none';
             }
