@@ -68,6 +68,33 @@
             text-decoration: none;
         }
 
+        .dropdown-container {
+            position: relative;
+        }
+
+        .dropdown-container input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .dropdown-container select {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .dropdown-container select option {
+            padding: 8px 12px;
+        }
+
+        .dropdown-container select option:hover {
+            background-color: #f0f0f0;
+        }
+
         .header p {
             opacity: 0.9;
             font-size: 1.1rem;
@@ -892,16 +919,26 @@
                     </div>
                 </div>
 
-                                 <div class="form-section">
-                     <h3>Täfeler Information</h3>
+                <div class="form-section">
+                    <h3>Täfeler Information</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="taefelerName">Name</label>
-                            <input type="text" id="taefelerName" placeholder="Enter Täfeler name">
+                            <label for="taefelerDropdown">Select Täfeler</label>
+                            <div class="dropdown-container">
+                                <input type="text" id="taefelerSearch" placeholder="Search täfelers..." oninput="filterTaefelers()">
+                                <select id="taefelerDropdown" size="5" style="width: 100%; margin-top: 5px;">
+                                    <option value="">-- Select Täfeler --</option>
+                                </select>
+                            </div>
+                            <button type="button" id="confirmTaefelerBtn" class="btn btn-success" style="margin-top: 10px; display: none;" onclick="confirmTaefeler()">Confirm Täfeler</button>
+                            <button type="button" id="addTaefelerBtn" class="btn btn-info" style="margin-top: 10px;" onclick="showAddTaefelerModal()">Add New Person</button>
                         </div>
                         <div class="form-group">
-                            <label for="taefelerPhone">Phone</label>
-                            <input type="tel" id="taefelerPhone" placeholder="Enter Täfeler phone">
+                            <label>Selected Täfeler</label>
+                            <div id="selectedTaefelerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
+                                <span id="selectedTaefelerName">-</span><br>
+                                <span id="selectedTaefelerPhone">-</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -910,12 +947,21 @@
                     <h3>Scorer Information</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="scorerName">Name</label>
-                            <input type="text" id="scorerName" placeholder="Enter Scorer name">
+                            <label for="scorerDropdown">Select Scorer</label>
+                            <div class="dropdown-container">
+                                <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()">
+                                <select id="scorerDropdown" size="5" style="width: 100%; margin-top: 5px;">
+                                    <option value="">-- Select Scorer --</option>
+                                </select>
+                            </div>
+                            <button type="button" id="confirmScorerBtn" class="btn btn-success" style="margin-top: 10px; display: none;" onclick="confirmScorer()">Confirm Scorer</button>
                         </div>
                         <div class="form-group">
-                            <label for="scorerPhone">Phone</label>
-                            <input type="tel" id="scorerPhone" placeholder="Enter Scorer phone">
+                            <label>Selected Scorer</label>
+                            <div id="selectedScorerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
+                                <span id="selectedScorerName">-</span><br>
+                                <span id="selectedScorerPhone">-</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -970,12 +1016,56 @@
         </div>
     </div>
 
+    <!-- Add New Person Modal -->
+    <div id="addPersonModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddPersonModal()">&times;</span>
+            <div class="modal-header">
+                <div class="modal-title">Add New Person</div>
+                <div class="modal-subtitle">Add a new täfeler to the database</div>
+            </div>
+            <div class="game-details-modal">
+                <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newPersonFname">First Name</label>
+                            <input type="text" id="newPersonFname" placeholder="Enter first name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPersonLname">Last Name</label>
+                            <input type="text" id="newPersonLname" placeholder="Enter last name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newPersonPhone">Phone</label>
+                            <input type="tel" id="newPersonPhone" placeholder="Enter phone number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPersonLicence">Scorer Licence</label>
+                            <select id="newPersonLicence">
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeAddPersonModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewPerson()">Add Person</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let allGames = [];
         let allteams = [];
         let teamNameMapping = {}; // New mapping for long team names
         let currentGame = null;
         let currentUser = null;
+        let allScorers = []; // All scorers from scorer_scorers table
+        let allTaefelers = []; // All täfelers from scorer_scorers table
 
         // Initialize Supabase
         const supabase = window.supabase.createClient(
@@ -1050,6 +1140,8 @@
 
             try {
                 await loadGames();
+                await loadScorers();
+                await loadTaefelers();
                 await loadteams();
                 populateAdminFilters();
                 renderAdminTable(filterCurrentGames(allGames));
@@ -1065,7 +1157,7 @@
         // Load games from Supabase
         async function loadGames() {
             const { data, error } = await supabase
-                .from('scorer_matches_complete')
+                .from('scorer_matches')
                 .select('*')
                 .order('date', { ascending: true })
                 .order('time', { ascending: true })
@@ -1073,6 +1165,31 @@
 
             if (error) throw error;
             allGames = data || [];
+        }
+
+        // Load scorers from scorer_scorers table
+        async function loadScorers() {
+            const { data, error } = await supabase
+                .from('scorer_scorers')
+                .select('*')
+                .eq('scorer_licence', true)
+                .order('lname', { ascending: true })
+                .order('fname', { ascending: true });
+
+            if (error) throw error;
+            allScorers = data || [];
+        }
+
+        // Load all täfelers from scorer_scorers table
+        async function loadTaefelers() {
+            const { data, error } = await supabase
+                .from('scorer_scorers')
+                .select('*')
+                .order('lname', { ascending: true })
+                .order('fname', { ascending: true });
+
+            if (error) throw error;
+            allTaefelers = data || [];
         }
 
         // Filter out past games (games older than the day after their scheduled date)
@@ -1350,13 +1467,12 @@
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
             document.getElementById('modalGameNumber').textContent = game.gamen || '-';
 
-            // Show real phone numbers in admin mode
-            document.getElementById('taefelerName').value = game.taefeler_name || '';
-            document.getElementById('taefelerPhone').value = game.taefeler_phone || '';
-            document.getElementById('taefelerPhone').type = 'text';
-            document.getElementById('scorerName').value = game.scorer_name || '';
-            document.getElementById('scorerPhone').value = game.scorer_phone || '';
-            document.getElementById('scorerPhone').type = 'text';
+            // Populate dropdowns
+            populateTaefelerDropdown();
+            populateScorerDropdown();
+
+            // Set current selections
+            setCurrentSelections(game);
 
             const scorerSection = document.getElementById('scorerSection');
             if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
@@ -1372,6 +1488,14 @@
         function closeModal() {
             document.getElementById('gameModal').style.display = 'none';
             currentGame = null;
+            
+            // Reset dropdowns and selections
+            document.getElementById('taefelerDropdown').disabled = false;
+            document.getElementById('taefelerSearch').disabled = false;
+            document.getElementById('scorerDropdown').disabled = false;
+            document.getElementById('scorerSearch').disabled = false;
+            document.getElementById('confirmTaefelerBtn').style.display = 'none';
+            document.getElementById('confirmScorerBtn').style.display = 'none';
         }
 
         // Generate a session ID that persists during the session
@@ -1391,7 +1515,7 @@
                     .from('scorer_edit_log')
                     .insert({
                         action: action, // 'CREATE', 'UPDATE', 'DELETE'
-                        table_name: 'scorer_matches_complete',
+                        table_name: 'scorer_matches',
                         record_id: currentGame.match_id,
                         field_name: fieldName,
                         old_value: oldValue,
@@ -1415,38 +1539,230 @@
             }
         }
 
+        // Populate täfeler dropdown
+        function populateTaefelerDropdown() {
+            const dropdown = document.getElementById('taefelerDropdown');
+            dropdown.innerHTML = '<option value="">-- Select Täfeler --</option>';
+            
+            allTaefelers.forEach(person => {
+                const option = document.createElement('option');
+                option.value = person.id;
+                option.textContent = `${person.fname} ${person.lname}`;
+                option.dataset.phone = person.phone;
+                dropdown.appendChild(option);
+            });
+
+            // Add event listener for selection
+            dropdown.addEventListener('change', function() {
+                if (this.value) {
+                    document.getElementById('confirmTaefelerBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('confirmTaefelerBtn').style.display = 'none';
+                }
+            });
+        }
+
+        // Populate scorer dropdown
+        function populateScorerDropdown() {
+            const dropdown = document.getElementById('scorerDropdown');
+            dropdown.innerHTML = '<option value="">-- Select Scorer --</option>';
+            
+            allScorers.forEach(person => {
+                const option = document.createElement('option');
+                option.value = person.id;
+                option.textContent = `${person.fname} ${person.lname}`;
+                option.dataset.phone = person.phone;
+                dropdown.appendChild(option);
+            });
+
+            // Add event listener for selection
+            dropdown.addEventListener('change', function() {
+                if (this.value) {
+                    document.getElementById('confirmScorerBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('confirmScorerBtn').style.display = 'none';
+                }
+            });
+        }
+
+        // Filter täfelers based on search input
+        function filterTaefelers() {
+            const searchTerm = document.getElementById('taefelerSearch').value.toLowerCase();
+            const dropdown = document.getElementById('taefelerDropdown');
+            const options = dropdown.querySelectorAll('option');
+            
+            options.forEach(option => {
+                if (option.value === '') return; // Skip the placeholder option
+                const text = option.textContent.toLowerCase();
+                option.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        // Filter scorers based on search input
+        function filterScorers() {
+            const searchTerm = document.getElementById('scorerSearch').value.toLowerCase();
+            const dropdown = document.getElementById('scorerDropdown');
+            const options = dropdown.querySelectorAll('option');
+            
+            options.forEach(option => {
+                if (option.value === '') return; // Skip the placeholder option
+                const text = option.textContent.toLowerCase();
+                option.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        // Set current selections when opening modal
+        function setCurrentSelections(game) {
+            // Reset selections
+            document.getElementById('selectedTaefelerName').textContent = '-';
+            document.getElementById('selectedTaefelerPhone').textContent = '-';
+            document.getElementById('selectedScorerName').textContent = '-';
+            document.getElementById('selectedScorerPhone').textContent = '-';
+            
+            // Hide confirm buttons
+            document.getElementById('confirmTaefelerBtn').style.display = 'none';
+            document.getElementById('confirmScorerBtn').style.display = 'none';
+
+            // If game has existing selections, show them
+            if (game.taefeler_name) {
+                const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                if (taefeler) {
+                    document.getElementById('selectedTaefelerName').textContent = game.taefeler_name;
+                    document.getElementById('selectedTaefelerPhone').textContent = taefeler.phone || '-';
+                }
+            }
+            
+            if (game.scorer_name) {
+                const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                if (scorer) {
+                    document.getElementById('selectedScorerName').textContent = game.scorer_name;
+                    document.getElementById('selectedScorerPhone').textContent = scorer.phone || '-';
+                }
+            }
+        }
+
+        // Handle täfeler selection
+        function confirmTaefeler() {
+            const dropdown = document.getElementById('taefelerDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (selectedOption && selectedOption.value) {
+                const selectedName = selectedOption.textContent;
+                const selectedPhone = selectedOption.dataset.phone;
+                
+                document.getElementById('selectedTaefelerName').textContent = selectedName;
+                document.getElementById('selectedTaefelerPhone').textContent = selectedPhone || '-';
+                document.getElementById('confirmTaefelerBtn').style.display = 'none';
+                
+                // Disable dropdown after confirmation
+                dropdown.disabled = true;
+                document.getElementById('taefelerSearch').disabled = true;
+            }
+        }
+
+        // Handle scorer selection
+        function confirmScorer() {
+            const dropdown = document.getElementById('scorerDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (selectedOption && selectedOption.value) {
+                const selectedName = selectedOption.textContent;
+                const selectedPhone = selectedOption.dataset.phone;
+                
+                document.getElementById('selectedScorerName').textContent = selectedName;
+                document.getElementById('selectedScorerPhone').textContent = selectedPhone || '-';
+                document.getElementById('confirmScorerBtn').style.display = 'none';
+                
+                // Disable dropdown after confirmation
+                dropdown.disabled = true;
+                document.getElementById('scorerSearch').disabled = true;
+            }
+        }
+
+        // Show add new person modal
+        function showAddTaefelerModal() {
+            document.getElementById('addPersonModal').style.display = 'block';
+        }
+
+        // Close add person modal
+        function closeAddPersonModal() {
+            document.getElementById('addPersonModal').style.display = 'none';
+            // Clear form
+            document.getElementById('newPersonFname').value = '';
+            document.getElementById('newPersonLname').value = '';
+            document.getElementById('newPersonPhone').value = '';
+            document.getElementById('newPersonLicence').value = 'false';
+        }
+
+        // Save new person to database
+        async function saveNewPerson() {
+            const fname = document.getElementById('newPersonFname').value.trim();
+            const lname = document.getElementById('newPersonLname').value.trim();
+            const phone = document.getElementById('newPersonPhone').value.trim();
+            const licence = document.getElementById('newPersonLicence').value === 'true';
+
+            if (!fname || !lname || !phone) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_scorers')
+                    .insert({
+                        fname: fname,
+                        lname: lname,
+                        phone: phone,
+                        scorer_licence: licence
+                    })
+                    .select();
+
+                if (error) throw error;
+
+                // Reload täfelers and scorers
+                await loadTaefelers();
+                await loadScorers();
+                
+                // Update dropdowns
+                populateTaefelerDropdown();
+                populateScorerDropdown();
+
+                closeAddPersonModal();
+                alert('Person added successfully!');
+            } catch (error) {
+                console.error('Error adding person:', error);
+                alert('Error adding person. Please try again.');
+            }
+        }
+
         // Save game details
         async function saveGameDetails() {
             if (!currentGame) return;
 
-            const taefelerName = document.getElementById('taefelerName').value;
-            const taefelerPhone = document.getElementById('taefelerPhone').value;
-            const scorerName = document.getElementById('scorerName').value;
-            const scorerPhone = document.getElementById('scorerPhone').value;
+            const taefelerName = document.getElementById('selectedTaefelerName').textContent;
+            const scorerName = document.getElementById('selectedScorerName').textContent;
+
+            // Check if selections are valid (not the default '-')
+            if (taefelerName === '-' || scorerName === '-') {
+                alert('Please select both a täfeler and a scorer before saving.');
+                return;
+            }
 
             try {
                 // Log changes for each field that was modified
                 if (currentGame.taefeler_name !== taefelerName) {
                     await logChange('UPDATE', 'taefeler_name', currentGame.taefeler_name, taefelerName);
                 }
-                if (currentGame.taefeler_phone !== taefelerPhone) {
-                    await logChange('UPDATE', 'taefeler_phone', currentGame.taefeler_phone, taefelerPhone);
-                }
                 if (currentGame.scorer_name !== scorerName) {
                     await logChange('UPDATE', 'scorer_name', currentGame.scorer_name, scorerName);
-                }
-                if (currentGame.scorer_phone !== scorerPhone) {
-                    await logChange('UPDATE', 'scorer_phone', currentGame.scorer_phone, scorerPhone);
                 }
                 
                 // Use match_id for updates (much simpler and more reliable)
                 const { error } = await supabase
-                    .from('scorer_matches_complete')
+                    .from('scorer_matches')
                     .update({
                         taefeler_name: taefelerName,
-                        taefeler_phone: taefelerPhone,
-                        scorer_name: scorerName,
-                        scorer_phone: scorerPhone
+                        scorer_name: scorerName
                     })
                     .eq('match_id', currentGame.match_id);
 
@@ -1459,9 +1775,7 @@
                 const gameIndex = allGames.findIndex(g => g.match_id === currentGame.match_id);
                 if (gameIndex !== -1) {
                     allGames[gameIndex].taefeler_name = taefelerName;
-                    allGames[gameIndex].taefeler_phone = taefelerPhone;
                     allGames[gameIndex].scorer_name = scorerName;
-                    allGames[gameIndex].scorer_phone = scorerPhone;
                 }
 
                 closeModal();

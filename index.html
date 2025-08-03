@@ -1155,6 +1155,8 @@
         let allTeams = [];
         let teamNameMapping = {}; // New mapping for long team names
         let currentGame = null;
+        let allScorers = []; // All scorers from scorer_scorers table
+        let allTaefelers = []; // All täfelers from scorer_scorers table
 
         // Initialize Supabase
         const supabase = window.supabase.createClient(
@@ -1417,8 +1419,8 @@
         // Load games from matches_complete table
         async function loadGames() {
             try {
-                const { data, error } = await supabase
-                    .from('scorer_matches_complete')
+                            const { data, error } = await supabase
+                .from('scorer_matches')
                     .select('*')
                     .order('date', { ascending: true })
                     .order('time', { ascending: true })
@@ -1428,6 +1430,8 @@
                 allGames = data || [];
 
                 await loadTeams();
+                await loadScorers();
+                await loadTaefelers();
                 renderGames(filterCurrentGames(allGames));
                 populateTeamFilter();
             } catch (error) {
@@ -1436,6 +1440,41 @@
             } finally {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('gamesGrid').style.display = 'grid';
+            }
+        }
+
+        // Load scorers from scorer_scorers table
+        async function loadScorers() {
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_scorers')
+                    .select('*')
+                    .eq('scorer_licence', true)
+                    .order('lname', { ascending: true })
+                    .order('fname', { ascending: true });
+
+                if (error) throw error;
+                allScorers = data || [];
+            } catch (error) {
+                console.error('Error loading scorers:', error);
+                allScorers = [];
+            }
+        }
+
+        // Load all täfelers from scorer_scorers table
+        async function loadTaefelers() {
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_scorers')
+                    .select('*')
+                    .order('lname', { ascending: true })
+                    .order('fname', { ascending: true });
+
+                if (error) throw error;
+                allTaefelers = data || [];
+            } catch (error) {
+                console.error('Error loading täfelers:', error);
+                allTaefelers = [];
             }
         }
 
@@ -1679,14 +1718,26 @@
                 document.getElementById('readOnlySection').style.display = 'none';
                 document.getElementById('saveButton').style.display = 'inline-block';
             } else {
-                // Show read-only contact information (only Täfeler for disabled games)
-                document.getElementById('modalTaefelerName').textContent = game.taefeler_name || '-';
-                document.getElementById('modalTaefelerPhone').textContent = game.taefeler_phone || '-';
+                // Show read-only contact information from scorer_scorers table
+                if (game.taefeler_name) {
+                    const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                    document.getElementById('modalTaefelerName').textContent = game.taefeler_name;
+                    document.getElementById('modalTaefelerPhone').textContent = taefeler ? taefeler.phone || '-' : '-';
+                } else {
+                    document.getElementById('modalTaefelerName').textContent = '-';
+                    document.getElementById('modalTaefelerPhone').textContent = '-';
+                }
                 
                 // Only show scorer info if game is editable
                 if (isEditable) {
-                    document.getElementById('modalScorerName').textContent = game.scorer_name || '-';
-                    document.getElementById('modalScorerPhone').textContent = game.scorer_phone || '-';
+                    if (game.scorer_name) {
+                        const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                        document.getElementById('modalScorerName').textContent = game.scorer_name;
+                        document.getElementById('modalScorerPhone').textContent = scorer ? scorer.phone || '-' : '-';
+                    } else {
+                        document.getElementById('modalScorerName').textContent = '-';
+                        document.getElementById('modalScorerPhone').textContent = '-';
+                    }
                 } else {
                     document.getElementById('modalScorerName').textContent = '-';
                     document.getElementById('modalScorerPhone').textContent = '-';
@@ -1732,7 +1783,7 @@
                     .from('scorer_edit_log')
                     .insert({
                         action: action, // 'CREATE', 'UPDATE', 'DELETE'
-                        table_name: 'scorer_matches_complete',
+                        table_name: 'scorer_matches',
                         record_id: currentGame.match_id,
                         field_name: fieldName,
                         old_value: oldValue,
@@ -1756,74 +1807,10 @@
             }
         }
 
-        // Save game details
+        // Save game details (disabled for public view)
         async function saveGameDetails() {
-            if (!currentGame) return;
-
-            // Check if game is still editable
-            if (!isGameEditable(currentGame)) {
-                alert('This game can no longer be edited (less than 2 days before start time).');
-                return;
-            }
-
-            const taefelerName = document.getElementById('taefelerName').value;
-            const taefelerPhone = document.getElementById('taefelerPhone').value;
-            const scorerName = document.getElementById('scorerName').value;
-            const scorerPhone = document.getElementById('scorerPhone').value;
-
-            try {
-                console.log('Saving game details for:', currentGame);
-                
-                // Log changes for each field that was modified
-                if (currentGame.taefeler_name !== taefelerName) {
-                    await logChange('UPDATE', 'taefeler_name', currentGame.taefeler_name, taefelerName);
-                }
-                if (currentGame.taefeler_phone !== taefelerPhone) {
-                    await logChange('UPDATE', 'taefeler_phone', currentGame.taefeler_phone, taefelerPhone);
-                }
-                if (currentGame.scorer_name !== scorerName) {
-                    await logChange('UPDATE', 'scorer_name', currentGame.scorer_name, scorerName);
-                }
-                if (currentGame.scorer_phone !== scorerPhone) {
-                    await logChange('UPDATE', 'scorer_phone', currentGame.scorer_phone, scorerPhone);
-                }
-                
-                // Use match_id for updates (much simpler and more reliable)
-                const { error } = await supabase
-                    .from('scorer_matches_complete')
-                    .update({
-                        taefeler_name: taefelerName,
-                        taefeler_phone: taefelerPhone,
-                        scorer_name: scorerName,
-                        scorer_phone: scorerPhone
-                    })
-                    .eq('match_id', currentGame.match_id);
-
-                if (error) {
-                    console.error('Database update error:', error);
-                    throw error;
-                }
-
-                // Update the game in our local array
-                const gameIndex = allGames.findIndex(g => g.match_id === currentGame.match_id);
-                if (gameIndex !== -1) {
-                    allGames[gameIndex].taefeler_name = taefelerName;
-                    allGames[gameIndex].taefeler_phone = taefelerPhone;
-                    allGames[gameIndex].scorer_name = scorerName;
-                    allGames[gameIndex].scorer_phone = scorerPhone;
-                }
-
-                // Hide phone numbers again after saving
-                document.getElementById('taefelerPhone').type = taefelerPhone ? 'password' : 'text';
-                document.getElementById('scorerPhone').type = scorerPhone ? 'password' : 'text';
-                
-                closeModal();
-                renderGames();
-                alert('Game details saved successfully!');
-            } catch (error) {
-                console.error('Error saving game details:', error);
-                alert('Error saving game details. Please try again.');
-            }
+            alert('Editing is only available in the admin panel. Please contact an administrator.');
+            return;
         }
 
         // Close modal when clicking outside
