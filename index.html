@@ -2537,15 +2537,24 @@
             document.getElementById('focusedGameAwayTeam').textContent = game.away_team || 'TBD';
             document.getElementById('focusedGameNumber').textContent = game.gamen || 'TBD';
             
-            // Set team displays
-            document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team_short ? `(${game.taefeler_team_short})` : '';
-            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team_short ? `(${game.scorer_team_short})` : '';
+            // Set team displays and update labels based on scorer team assignment
+            const hasScorerTeam = game.scorer_team_short && game.scorer_team_short.trim() !== '';
             
-            // Add filtering indicator
-            if (game.taefeler_team_short) {
-                const taefelerTeamDisplay = document.getElementById('taefelerTeamDisplay');
-                taefelerTeamDisplay.innerHTML = `(${game.taefeler_team_short}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
+            // Update täfeler section title and label
+            const taefelerSection = document.getElementById('taefelerRoleSection');
+            const taefelerTitle = taefelerSection.querySelector('h3');
+            const taefelerLabel = taefelerSection.querySelector('label');
+            
+            if (hasScorerTeam) {
+                taefelerTitle.innerHTML = `Täfeler Assignment <span id="taefelerTeamDisplay">(${game.taefeler_team_short}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span></span>`;
+                taefelerLabel.textContent = 'Current Täfeler:';
+            } else {
+                taefelerTitle.innerHTML = `Schreiber/Täfeler Assignment <span id="taefelerTeamDisplay">(${game.taefeler_team_short || 'TBD'})</span>`;
+                taefelerLabel.textContent = 'Current Schreiber/Täfeler:';
             }
+            
+            // Set scorer team display
+            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team_short ? `(${game.scorer_team_short})` : '';
             if (game.scorer_team_short) {
                 const scorerTeamDisplay = document.getElementById('scorerTeamDisplay');
                 scorerTeamDisplay.innerHTML = `(${game.scorer_team_short}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
@@ -2569,6 +2578,21 @@
                 }
             }
             document.getElementById('currentScorerName').textContent = scorerName;
+            
+            // Add warning message if no scorer is assigned (for Schreiber/Täfeler games)
+            const taefelerSectionForWarning = document.getElementById('taefelerRoleSection');
+            let warningMessage = taefelerSectionForWarning.querySelector('.warning-message');
+            if (!hasScorerTeam && !game.scorer_id) {
+                if (!warningMessage) {
+                    warningMessage = document.createElement('div');
+                    warningMessage.className = 'warning-message';
+                    warningMessage.style.cssText = 'color: #dc3545; font-size: 0.9em; margin-top: 10px; padding: 8px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px;';
+                    warningMessage.innerHTML = '⚠️ Please note: You need to be in the gym at least 30 minutes before start time';
+                    taefelerSectionForWarning.appendChild(warningMessage);
+                }
+            } else if (warningMessage) {
+                warningMessage.remove();
+            }
             
             // Show/hide scorer section based on whether scorer team is assigned
             const scorerSection = document.getElementById('scorerRoleSection');
