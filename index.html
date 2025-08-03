@@ -2046,22 +2046,34 @@
 
         // Close täfeler selector focused view
         function closeTaefelerSelector() {
-            document.getElementById('taefelerSelectorView').style.display = 'none';
-            document.getElementById('focusedGameView').style.display = 'block';
-            document.getElementById('taefelerSearch').value = '';
-            document.getElementById('confirmTaefelerBtn').style.display = 'none';
+            const taefelerSelectorView = document.getElementById('taefelerSelectorView');
+            const focusedGameView = document.getElementById('focusedGameView');
+            const taefelerSearch = document.getElementById('taefelerSearch');
+            const confirmTaefelerBtn = document.getElementById('confirmTaefelerBtn');
+            
+            if (taefelerSelectorView) taefelerSelectorView.style.display = 'none';
+            if (focusedGameView) focusedGameView.style.display = 'block';
+            if (taefelerSearch) taefelerSearch.value = '';
+            if (confirmTaefelerBtn) confirmTaefelerBtn.style.display = 'none';
+            
             window.selectedTaefeler = null; // Clear selection
-            filterTaefelers(); // Reset filter
+            if (typeof filterTaefelers === 'function') filterTaefelers(); // Reset filter
         }
 
         // Close scorer selector focused view
         function closeScorerSelector() {
-            document.getElementById('scorerSelectorView').style.display = 'none';
-            document.getElementById('focusedGameView').style.display = 'block';
-            document.getElementById('scorerSearch').value = '';
-            document.getElementById('confirmScorerBtn').style.display = 'none';
+            const scorerSelectorView = document.getElementById('scorerSelectorView');
+            const focusedGameView = document.getElementById('focusedGameView');
+            const scorerSearch = document.getElementById('scorerSearch');
+            const confirmScorerBtn = document.getElementById('confirmScorerBtn');
+            
+            if (scorerSelectorView) scorerSelectorView.style.display = 'none';
+            if (focusedGameView) focusedGameView.style.display = 'block';
+            if (scorerSearch) scorerSearch.value = '';
+            if (confirmScorerBtn) confirmScorerBtn.style.display = 'none';
+            
             window.selectedScorer = null; // Clear selection
-            filterScorers(); // Reset filter
+            if (typeof filterScorers === 'function') filterScorers(); // Reset filter
         }
 
         // Show confirmation in focused view
@@ -2103,14 +2115,17 @@
             // Restore normal action buttons
             const actionButtons = document.querySelector('.action-buttons');
             if (actionButtons) {
-                if (document.getElementById('taefelerSelectorView').style.display !== 'none') {
+                const taefelerSelectorView = document.getElementById('taefelerSelectorView');
+                const scorerSelectorView = document.getElementById('scorerSelectorView');
+                
+                if (taefelerSelectorView && taefelerSelectorView.style.display !== 'none') {
                     // We're in täfeler selector
                     actionButtons.innerHTML = `
                         <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
                         <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
                         <button class="btn btn-primary" id="confirmTaefelerBtn" onclick="confirmTaefelerSelection()" style="display: none;">Confirm Selection</button>
                     `;
-                } else if (document.getElementById('scorerSelectorView').style.display !== 'none') {
+                } else if (scorerSelectorView && scorerSelectorView.style.display !== 'none') {
                     // We're in scorer selector
                     actionButtons.innerHTML = `
                         <button class="btn btn-secondary" onclick="closeScorerSelector()">Cancel</button>
@@ -2126,7 +2141,10 @@
                 const fullName = `${window.selectedTaefeler.fname} ${window.selectedTaefeler.lname}`;
                 
                 // Update focused view
-                document.getElementById('currentTaefelerName').textContent = fullName;
+                const currentTaefelerName = document.getElementById('currentTaefelerName');
+                if (currentTaefelerName) {
+                    currentTaefelerName.textContent = fullName;
+                }
                 
                 // Update main modal if it exists
                 const selectedTaefelerName = document.getElementById('selectedTaefelerName');
@@ -2142,7 +2160,10 @@
                 const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
                 
                 // Update focused view
-                document.getElementById('currentScorerName').textContent = fullName;
+                const currentScorerName = document.getElementById('currentScorerName');
+                if (currentScorerName) {
+                    currentScorerName.textContent = fullName;
+                }
                 
                 // Update main modal if it exists
                 const selectedScorerName = document.getElementById('selectedScorerName');
@@ -2172,16 +2193,24 @@
             window.selectedTaefeler = person;
             
             // Change button text to "Confirm"
-            document.getElementById('confirmTaefelerBtn').textContent = 'Confirm';
-            document.getElementById('confirmTaefelerBtn').style.display = 'inline-block';
+            const confirmTaefelerBtn = document.getElementById('confirmTaefelerBtn');
+            if (confirmTaefelerBtn) {
+                confirmTaefelerBtn.textContent = 'Confirm';
+                confirmTaefelerBtn.style.display = 'inline-block';
+            }
         }
 
         // Confirm täfeler (final confirmation)
         function confirmTaefeler() {
-            document.getElementById('confirmTaefelerBtn').style.display = 'none';
-            document.getElementById('selectTaefelerBtn').style.display = 'inline-block';
-            document.getElementById('selectTaefelerBtn').disabled = true;
-            document.getElementById('selectTaefelerBtn').textContent = 'Täfeler Confirmed';
+            const confirmTaefelerBtn = document.getElementById('confirmTaefelerBtn');
+            const selectTaefelerBtn = document.getElementById('selectTaefelerBtn');
+            
+            if (confirmTaefelerBtn) confirmTaefelerBtn.style.display = 'none';
+            if (selectTaefelerBtn) {
+                selectTaefelerBtn.style.display = 'inline-block';
+                selectTaefelerBtn.disabled = true;
+                selectTaefelerBtn.textContent = 'Täfeler Confirmed';
+            }
             alert('Täfeler confirmed and locked!');
         }
 
@@ -2200,8 +2229,11 @@
             window.selectedScorer = person;
             
             // Change button text to "Confirm"
-            document.getElementById('confirmScorerBtn').textContent = 'Confirm';
-            document.getElementById('confirmScorerBtn').style.display = 'inline-block';
+            const confirmScorerBtn = document.getElementById('confirmScorerBtn');
+            if (confirmScorerBtn) {
+                confirmScorerBtn.textContent = 'Confirm';
+                confirmScorerBtn.style.display = 'inline-block';
+            }
         }
 
         // Confirm täfeler selection
@@ -2232,16 +2264,27 @@
 
         // Show add new person modal
         function showAddTaefelerModal() {
-            document.getElementById('addPersonModal').style.display = 'block';
+            const addPersonModal = document.getElementById('addPersonModal');
+            if (addPersonModal) {
+                addPersonModal.style.display = 'block';
+            }
         }
 
         // Close add person modal
         function closeAddPersonModal() {
-            document.getElementById('addPersonModal').style.display = 'none';
+            const addPersonModal = document.getElementById('addPersonModal');
+            const newPersonFname = document.getElementById('newPersonFname');
+            const newPersonLname = document.getElementById('newPersonLname');
+            const newPersonPhone = document.getElementById('newPersonPhone');
+            
+            if (addPersonModal) {
+                addPersonModal.style.display = 'none';
+            }
+            
             // Clear form
-            document.getElementById('newPersonFname').value = '';
-            document.getElementById('newPersonLname').value = '';
-            document.getElementById('newPersonPhone').value = '';
+            if (newPersonFname) newPersonFname.value = '';
+            if (newPersonLname) newPersonLname.value = '';
+            if (newPersonPhone) newPersonPhone.value = '';
         }
 
         // Open game modal
