@@ -2550,9 +2550,24 @@
                 scorerTeamDisplay.innerHTML = `(${game.scorer_team_short}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
             }
             
-            // Set current selections
-            document.getElementById('currentTaefelerName').textContent = game.taefeler_name || '-';
-            document.getElementById('currentScorerName').textContent = game.scorer_name || '-';
+            // Set current selections - lookup names from IDs
+            let taefelerName = '-';
+            if (game.taefeler_id) {
+                const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                if (taefeler) {
+                    taefelerName = `${taefeler.fname} ${taefeler.lname}`;
+                }
+            }
+            document.getElementById('currentTaefelerName').textContent = taefelerName;
+            
+            let scorerName = '-';
+            if (game.scorer_id) {
+                const scorer = allScorers.find(s => s.id === game.scorer_id);
+                if (scorer) {
+                    scorerName = `${scorer.fname} ${scorer.lname}`;
+                }
+            }
+            document.getElementById('currentScorerName').textContent = scorerName;
             
             // Show/hide scorer section based on whether scorer team is assigned
             const scorerSection = document.getElementById('scorerRoleSection');
@@ -2566,13 +2581,13 @@
             const taefelerSelectionControls = document.getElementById('taefelerSelectionControls');
             const scorerSelectionControls = document.getElementById('scorerSelectionControls');
             
-            if (game.taefeler_name && game.taefeler_name.trim() !== '' && game.taefeler_name !== '-') {
+            if (game.taefeler_id) {
                 taefelerSelectionControls.style.display = 'none';
             } else {
                 taefelerSelectionControls.style.display = 'block';
             }
             
-            if (game.scorer_name && game.scorer_name.trim() !== '' && game.scorer_name !== '-') {
+            if (game.scorer_id) {
                 scorerSelectionControls.style.display = 'none';
             } else {
                 scorerSelectionControls.style.display = 'block';
@@ -2638,13 +2653,19 @@
                 scorerTeamDisplay.innerHTML = `(${game.scorer_team_short}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
             }
 
-            // If game has existing selections, show them
-            if (game.taefeler_name) {
-                document.getElementById('selectedTaefelerName').textContent = game.taefeler_name;
+            // If game has existing selections, show them (lookup from IDs)
+            if (game.taefeler_id) {
+                const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                if (taefeler) {
+                    document.getElementById('selectedTaefelerName').textContent = `${taefeler.fname} ${taefeler.lname}`;
+                }
             }
             
-            if (game.scorer_name) {
-                document.getElementById('selectedScorerName').textContent = game.scorer_name;
+            if (game.scorer_id) {
+                const scorer = allScorers.find(s => s.id === game.scorer_id);
+                if (scorer) {
+                    document.getElementById('selectedScorerName').textContent = `${scorer.fname} ${scorer.lname}`;
+                }
             }
         }
 
