@@ -2718,7 +2718,11 @@
                 // Only show green check if both roles are confirmed (no issues)
                 const hasTaefelerConfirmed = !hasTaefelerIssue;
                 const hasScorerConfirmed = !hasScorerIssue;
-                const bothRolesConfirmed = hasTaefelerConfirmed && (game.scorer_team_short && game.scorer_team_short.trim() !== '' ? hasScorerConfirmed : true);
+                // Only consider game fully confirmed if:
+                // 1. Täfeler is confirmed AND
+                // 2. Either there's no scorer team required OR scorer is also confirmed
+                const scorerTeamRequired = game.scorer_team_short && game.scorer_team_short.trim() !== '';
+                const bothRolesConfirmed = hasTaefelerConfirmed && (!scorerTeamRequired || hasScorerConfirmed);
 
                 const gameCard = document.createElement('div');
                 gameCard.className = 'game-card';
