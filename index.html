@@ -2044,6 +2044,30 @@
             document.getElementById('scorerSelectorView').style.display = 'block';
         }
 
+        // Global confirmation state tracking
+        window.taefelerConfirmed = false;
+        window.scorerConfirmed = false;
+
+        // Reset confirmation states
+        function resetConfirmationStates() {
+            window.taefelerConfirmed = false;
+            window.scorerConfirmed = false;
+            window.selectedTaefeler = null;
+            window.selectedScorer = null;
+            window.confirmationType = null;
+        }
+
+        // Debug function to check current state
+        function debugConfirmationState() {
+            console.log('=== Confirmation State Debug ===');
+            console.log('taefelerConfirmed:', window.taefelerConfirmed);
+            console.log('scorerConfirmed:', window.scorerConfirmed);
+            console.log('selectedTaefeler:', window.selectedTaefeler);
+            console.log('selectedScorer:', window.selectedScorer);
+            console.log('confirmationType:', window.confirmationType);
+            console.log('==============================');
+        }
+
         // Close täfeler selector focused view
         function closeTaefelerSelector() {
             const taefelerSelectorView = document.getElementById('taefelerSelectorView');
@@ -2056,7 +2080,10 @@
             if (taefelerSearch) taefelerSearch.value = '';
             if (confirmTaefelerBtn) confirmTaefelerBtn.style.display = 'none';
             
-            window.selectedTaefeler = null; // Clear selection
+            // Only clear selection if not confirmed
+            if (!window.taefelerConfirmed) {
+                window.selectedTaefeler = null;
+            }
             if (typeof filterTaefelers === 'function') filterTaefelers(); // Reset filter
         }
 
@@ -2072,16 +2099,35 @@
             if (scorerSearch) scorerSearch.value = '';
             if (confirmScorerBtn) confirmScorerBtn.style.display = 'none';
             
-            window.selectedScorer = null; // Clear selection
+            // Only clear selection if not confirmed
+            if (!window.scorerConfirmed) {
+                window.selectedScorer = null;
+            }
             if (typeof filterScorers === 'function') filterScorers(); // Reset filter
         }
 
         // Show confirmation in focused view
         function showConfirmationInView(type) {
             console.log('showConfirmationInView called with type:', type);
+            
+            // Validate input
+            if (!type || (type !== 'taefeler' && type !== 'scorer')) {
+                console.error('Invalid type provided to showConfirmationInView:', type);
+                alert('Error: Invalid confirmation type');
+                return;
+            }
+            
             const isGerman = currentLanguage === 'de';
             const roleName = type === 'taefeler' ? (isGerman ? 'Täfeler' : 'Täfeler') : (isGerman ? 'Schreiber' : 'Scorer');
             const selectedPerson = type === 'taefeler' ? window.selectedTaefeler : window.selectedScorer;
+            
+            // Validate selected person
+            if (!selectedPerson) {
+                console.error('No person selected for type:', type);
+                alert('Error: No person selected');
+                return;
+            }
+            
             const fullName = `${selectedPerson.fname} ${selectedPerson.lname}`;
             
             console.log('Selected person:', selectedPerson);
@@ -2105,6 +2151,9 @@
                         ${confirmMessage}
                     </div>
                 `;
+            } else {
+                console.error('Could not find action-buttons element');
+                alert('Error: Could not find action buttons');
             }
         }
 
@@ -2125,12 +2174,28 @@
                         <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
                         <button class="btn btn-primary" id="confirmTaefelerBtn" onclick="confirmTaefelerSelection()" style="display: none;">Confirm Selection</button>
                     `;
+                    
+                    // Show confirm button if täfeler is selected and not confirmed
+                    if (window.selectedTaefeler && !window.taefelerConfirmed) {
+                        const confirmTaefelerBtn = document.getElementById('confirmTaefelerBtn');
+                        if (confirmTaefelerBtn) {
+                            confirmTaefelerBtn.style.display = 'inline-block';
+                        }
+                    }
                 } else if (scorerSelectorView && scorerSelectorView.style.display !== 'none') {
                     // We're in scorer selector
                     actionButtons.innerHTML = `
                         <button class="btn btn-secondary" onclick="closeScorerSelector()">Cancel</button>
                         <button class="btn btn-primary" id="confirmScorerBtn" onclick="confirmScorerSelection()" style="display: none;">Confirm Selection</button>
                     `;
+                    
+                    // Show confirm button if scorer is selected and not confirmed
+                    if (window.selectedScorer && !window.scorerConfirmed) {
+                        const confirmScorerBtn = document.getElementById('confirmScorerBtn');
+                        if (confirmScorerBtn) {
+                            confirmScorerBtn.style.display = 'inline-block';
+                        }
+                    }
                 }
             }
         }
@@ -2152,10 +2217,15 @@
                     selectedTaefelerName.textContent = fullName;
                 }
                 
+                // Set confirmation state
+                window.taefelerConfirmed = true;
+                
                 closeTaefelerSelector();
                 saveGameDetails();
-                window.selectedTaefeler = null;
                 window.confirmationType = null;
+                
+                // Show success message
+                alert('Täfeler confirmed and locked!');
             } else if (window.confirmationType === 'scorer' && window.selectedScorer) {
                 const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
                 
@@ -2171,15 +2241,26 @@
                     selectedScorerName.textContent = fullName;
                 }
                 
+                // Set confirmation state
+                window.scorerConfirmed = true;
+                
                 closeScorerSelector();
                 saveGameDetails();
-                window.selectedScorer = null;
                 window.confirmationType = null;
+                
+                // Show success message
+                alert('Scorer confirmed and locked!');
             }
         }
 
         // Select täfeler from results
         function selectTaefeler(person) {
+            // Don't allow selection if already confirmed
+            if (window.taefelerConfirmed) {
+                alert('Täfeler has already been confirmed and cannot be changed.');
+                return;
+            }
+            
             // Highlight the selected item
             const resultItems = document.querySelectorAll('#taefelerResults .result-item');
             resultItems.forEach(item => {
@@ -2200,22 +2281,16 @@
             }
         }
 
-        // Confirm täfeler (final confirmation)
-        function confirmTaefeler() {
-            const confirmTaefelerBtn = document.getElementById('confirmTaefelerBtn');
-            const selectTaefelerBtn = document.getElementById('selectTaefelerBtn');
-            
-            if (confirmTaefelerBtn) confirmTaefelerBtn.style.display = 'none';
-            if (selectTaefelerBtn) {
-                selectTaefelerBtn.style.display = 'inline-block';
-                selectTaefelerBtn.disabled = true;
-                selectTaefelerBtn.textContent = 'Täfeler Confirmed';
-            }
-            alert('Täfeler confirmed and locked!');
-        }
+
 
         // Select scorer from results
         function selectScorer(person) {
+            // Don't allow selection if already confirmed
+            if (window.scorerConfirmed) {
+                alert('Scorer has already been confirmed and cannot be changed.');
+                return;
+            }
+            
             // Highlight the selected item
             const resultItems = document.querySelectorAll('#scorerResults .result-item');
             resultItems.forEach(item => {
@@ -2240,6 +2315,14 @@
         function confirmTaefelerSelection() {
             console.log('confirmTaefelerSelection called');
             console.log('window.selectedTaefeler:', window.selectedTaefeler);
+            console.log('window.taefelerConfirmed:', window.taefelerConfirmed);
+            
+            // Check if already confirmed
+            if (window.taefelerConfirmed) {
+                alert('Täfeler has already been confirmed and cannot be changed.');
+                return;
+            }
+            
             if (window.selectedTaefeler) {
                 console.log('Showing confirmation in view for täfeler');
                 showConfirmationInView('taefeler');
@@ -2253,6 +2336,14 @@
         function confirmScorerSelection() {
             console.log('confirmScorerSelection called');
             console.log('window.selectedScorer:', window.selectedScorer);
+            console.log('window.scorerConfirmed:', window.scorerConfirmed);
+            
+            // Check if already confirmed
+            if (window.scorerConfirmed) {
+                alert('Scorer has already been confirmed and cannot be changed.');
+                return;
+            }
+            
             if (window.selectedScorer) {
                 console.log('Showing confirmation in view for scorer');
                 showConfirmationInView('scorer');
@@ -2343,6 +2434,8 @@
             document.getElementById('focusedGameView').style.display = 'none';
             document.querySelector('.main-content').style.display = 'block';
             currentGame = null;
+            // Reset confirmation states when going back to main view
+            resetConfirmationStates();
         }
 
         // Prevent modal closing when clicking outside
@@ -2383,6 +2476,8 @@
         function closeModal() {
             document.getElementById('gameModal').style.display = 'none';
             currentGame = null;
+            // Reset confirmation states when closing modal
+            resetConfirmationStates();
         }
 
         // Set current selections when opening modal
