@@ -1026,21 +1026,13 @@
                     <h3>Täfeler Information <span id="taefelerTeamDisplay" style="font-size: 0.8em; color: #666; font-weight: normal;"></span></h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="taefelerDropdown">Select Täfeler</label>
-                            <div class="dropdown-container">
-                                <select id="taefelerDropdown" style="width: 100%; height: 35px; padding: 8px 12px;">
-                                    <option value="">-- Select Täfeler --</option>
-                                </select>
-                                <input type="text" id="taefelerSearch" placeholder="Search täfelers..." oninput="filterTaefelers()" style="display: none;">
-                            </div>
-                            <button type="button" id="addTaefelerBtn" class="btn btn-info" style="margin-top: 10px;" onclick="showAddTaefelerModal()">Add New Person</button>
-                        </div>
-                        <div class="form-group">
                             <label>Selected Täfeler</label>
                             <div id="selectedTaefelerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
                                 <span id="selectedTaefelerName">-</span><br>
                                 <span id="selectedTaefelerPhone">-</span>
                             </div>
+                            <button type="button" class="btn btn-primary" style="margin-top: 10px;" onclick="showTaefelerSelector()">Select Täfeler</button>
+                            <button type="button" id="addTaefelerBtn" class="btn btn-info" style="margin-top: 10px;" onclick="showAddTaefelerModal()">Add New Person</button>
                         </div>
                     </div>
                 </div>
@@ -1049,20 +1041,12 @@
                     <h3>Scorer Information <span id="scorerTeamDisplay" style="font-size: 0.8em; color: #666; font-weight: normal;"></span></h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="scorerDropdown">Select Scorer</label>
-                            <div class="dropdown-container">
-                                <select id="scorerDropdown" style="width: 100%; height: 35px; padding: 8px 12px;">
-                                    <option value="">-- Select Scorer --</option>
-                                </select>
-                                <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()" style="display: none;">
-                            </div>
-                        </div>
-                        <div class="form-group">
                             <label>Selected Scorer</label>
                             <div id="selectedScorerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
                                 <span id="selectedScorerName">-</span><br>
                                 <span id="selectedScorerPhone">-</span>
                             </div>
+                            <button type="button" class="btn btn-primary" style="margin-top: 10px;" onclick="showScorerSelector()">Select Scorer</button>
                         </div>
                     </div>
                 </div>
@@ -1178,6 +1162,64 @@
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeAddPersonModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveNewPerson()">Add Person</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Täfeler Selector Modal -->
+    <div id="taefelerSelectorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTaefelerSelector()">&times;</span>
+            <div class="modal-header">
+                <div class="modal-title">Select Täfeler</div>
+                <div class="modal-subtitle">Choose a täfeler for this game</div>
+            </div>
+            <div class="game-details-modal">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="taefelerSearch">Search Täfelers</label>
+                        <input type="text" id="taefelerSearch" placeholder="Search täfelers..." oninput="filterTaefelers()" style="width: 100%; margin-bottom: 15px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="taefelerDropdown">Available Täfelers</label>
+                        <select id="taefelerDropdown" size="8" style="width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+                            <option value="">-- Select Täfeler --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmTaefelerSelection()">Select</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scorer Selector Modal -->
+    <div id="scorerSelectorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeScorerSelector()">&times;</span>
+            <div class="modal-header">
+                <div class="modal-title">Select Scorer</div>
+                <div class="modal-subtitle">Choose a scorer for this game</div>
+            </div>
+            <div class="game-details-modal">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="scorerSearch">Search Scorers</label>
+                        <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()" style="width: 100%; margin-bottom: 15px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="scorerDropdown">Available Scorers</label>
+                        <select id="scorerDropdown" size="8" style="width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+                            <option value="">-- Select Scorer --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeScorerSelector()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmScorerSelection()">Select</button>
             </div>
         </div>
     </div>
@@ -1593,27 +1635,6 @@
                 option.dataset.phone = person.phone;
                 dropdown.appendChild(option);
             });
-
-            // Add event listener for selection
-            dropdown.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption && selectedOption.value) {
-                    const selectedName = selectedOption.textContent;
-                    const selectedPhone = selectedOption.dataset.phone;
-                    
-                    document.getElementById('selectedTaefelerName').textContent = selectedName;
-                    document.getElementById('selectedTaefelerPhone').textContent = selectedPhone || '-';
-                } else {
-                    document.getElementById('selectedTaefelerName').textContent = '-';
-                    document.getElementById('selectedTaefelerPhone').textContent = '-';
-                }
-            });
-
-            // Add focus event to show search
-            dropdown.addEventListener('focus', function() {
-                document.getElementById('taefelerSearch').style.display = 'block';
-                document.getElementById('taefelerSearch').focus();
-            });
         }
 
         // Populate scorer dropdown
@@ -1627,27 +1648,6 @@
                 option.textContent = `${person.fname} ${person.lname}`;
                 option.dataset.phone = person.phone;
                 dropdown.appendChild(option);
-            });
-
-            // Add event listener for selection
-            dropdown.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption && selectedOption.value) {
-                    const selectedName = selectedOption.textContent;
-                    const selectedPhone = selectedOption.dataset.phone;
-                    
-                    document.getElementById('selectedScorerName').textContent = selectedName;
-                    document.getElementById('selectedScorerPhone').textContent = selectedPhone || '-';
-                } else {
-                    document.getElementById('selectedScorerName').textContent = '-';
-                    document.getElementById('selectedScorerPhone').textContent = '-';
-                }
-            });
-
-            // Add focus event to show search
-            dropdown.addEventListener('focus', function() {
-                document.getElementById('scorerSearch').style.display = 'block';
-                document.getElementById('scorerSearch').focus();
             });
         }
 
@@ -1684,11 +1684,6 @@
                     noResultsOption.remove();
                 }
             }
-
-            // Hide search when clicking outside
-            if (searchTerm === '') {
-                document.getElementById('taefelerSearch').style.display = 'none';
-            }
         }
 
         // Filter scorers based on search input
@@ -1724,10 +1719,67 @@
                     noResultsOption.remove();
                 }
             }
+        }
 
-            // Hide search when clicking outside
-            if (searchTerm === '') {
-                document.getElementById('scorerSearch').style.display = 'none';
+        // Show täfeler selector modal
+        function showTaefelerSelector() {
+            populateTaefelerDropdown();
+            document.getElementById('taefelerSelectorModal').style.display = 'block';
+        }
+
+        // Show scorer selector modal
+        function showScorerSelector() {
+            populateScorerDropdown();
+            document.getElementById('scorerSelectorModal').style.display = 'block';
+        }
+
+        // Close täfeler selector modal
+        function closeTaefelerSelector() {
+            document.getElementById('taefelerSelectorModal').style.display = 'none';
+            document.getElementById('taefelerSearch').value = '';
+            filterTaefelers(); // Reset filter
+        }
+
+        // Close scorer selector modal
+        function closeScorerSelector() {
+            document.getElementById('scorerSelectorModal').style.display = 'none';
+            document.getElementById('scorerSearch').value = '';
+            filterScorers(); // Reset filter
+        }
+
+        // Confirm täfeler selection
+        function confirmTaefelerSelection() {
+            const dropdown = document.getElementById('taefelerDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (selectedOption && selectedOption.value && selectedOption.value !== 'no-results') {
+                const selectedName = selectedOption.textContent;
+                const selectedPhone = selectedOption.dataset.phone;
+                
+                document.getElementById('selectedTaefelerName').textContent = selectedName;
+                document.getElementById('selectedTaefelerPhone').textContent = selectedPhone || '-';
+                
+                closeTaefelerSelector();
+            } else {
+                alert('Please select a valid täfeler');
+            }
+        }
+
+        // Confirm scorer selection
+        function confirmScorerSelection() {
+            const dropdown = document.getElementById('scorerDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (selectedOption && selectedOption.value && selectedOption.value !== 'no-results') {
+                const selectedName = selectedOption.textContent;
+                const selectedPhone = selectedOption.dataset.phone;
+                
+                document.getElementById('selectedScorerName').textContent = selectedName;
+                document.getElementById('selectedScorerPhone').textContent = selectedPhone || '-';
+                
+                closeScorerSelector();
+            } else {
+                alert('Please select a valid scorer');
             }
         }
 
