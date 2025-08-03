@@ -1023,15 +1023,15 @@
                 </div>
 
                 <div class="form-section" id="formSection">
-                    <h3>Täfeler Information</h3>
+                    <h3>Täfeler Information <span id="taefelerTeamDisplay" style="font-size: 0.8em; color: #666; font-weight: normal;"></span></h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="taefelerDropdown">Select Täfeler</label>
                             <div class="dropdown-container">
-                                <input type="text" id="taefelerSearch" placeholder="Search täfelers..." oninput="filterTaefelers()">
-                                <select id="taefelerDropdown" size="5" style="width: 100%; margin-top: 5px;">
+                                <select id="taefelerDropdown" style="width: 100%; height: 35px; padding: 8px 12px;">
                                     <option value="">-- Select Täfeler --</option>
                                 </select>
+                                <input type="text" id="taefelerSearch" placeholder="Search täfelers..." oninput="filterTaefelers()" style="display: none;">
                             </div>
                             <button type="button" id="addTaefelerBtn" class="btn btn-info" style="margin-top: 10px;" onclick="showAddTaefelerModal()">Add New Person</button>
                         </div>
@@ -1046,15 +1046,15 @@
                 </div>
 
                 <div class="form-section" id="scorerSection" style="display: none;">
-                    <h3>Scorer Information</h3>
+                    <h3>Scorer Information <span id="scorerTeamDisplay" style="font-size: 0.8em; color: #666; font-weight: normal;"></span></h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="scorerDropdown">Select Scorer</label>
                             <div class="dropdown-container">
-                                <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()">
-                                <select id="scorerDropdown" size="5" style="width: 100%; margin-top: 5px;">
+                                <select id="scorerDropdown" style="width: 100%; height: 35px; padding: 8px 12px;">
                                     <option value="">-- Select Scorer --</option>
                                 </select>
+                                <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()" style="display: none;">
                             </div>
                         </div>
                         <div class="form-group">
@@ -1608,6 +1608,12 @@
                     document.getElementById('selectedTaefelerPhone').textContent = '-';
                 }
             });
+
+            // Add focus event to show search
+            dropdown.addEventListener('focus', function() {
+                document.getElementById('taefelerSearch').style.display = 'block';
+                document.getElementById('taefelerSearch').focus();
+            });
         }
 
         // Populate scorer dropdown
@@ -1636,6 +1642,12 @@
                     document.getElementById('selectedScorerName').textContent = '-';
                     document.getElementById('selectedScorerPhone').textContent = '-';
                 }
+            });
+
+            // Add focus event to show search
+            dropdown.addEventListener('focus', function() {
+                document.getElementById('scorerSearch').style.display = 'block';
+                document.getElementById('scorerSearch').focus();
             });
         }
 
@@ -1672,6 +1684,11 @@
                     noResultsOption.remove();
                 }
             }
+
+            // Hide search when clicking outside
+            if (searchTerm === '') {
+                document.getElementById('taefelerSearch').style.display = 'none';
+            }
         }
 
         // Filter scorers based on search input
@@ -1707,6 +1724,11 @@
                     noResultsOption.remove();
                 }
             }
+
+            // Hide search when clicking outside
+            if (searchTerm === '') {
+                document.getElementById('scorerSearch').style.display = 'none';
+            }
         }
 
         // Show add new person modal
@@ -1731,6 +1753,10 @@
             document.getElementById('selectedTaefelerPhone').textContent = '-';
             document.getElementById('selectedScorerName').textContent = '-';
             document.getElementById('selectedScorerPhone').textContent = '-';
+
+            // Set team displays
+            document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team_short ? `(${game.taefeler_team_short})` : '';
+            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team_short ? `(${game.scorer_team_short})` : '';
 
             // If game has existing selections, show them
             if (game.taefeler_name) {
