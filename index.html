@@ -1575,17 +1575,31 @@
             try {
                 console.log('Loading scorers from database...');
                 
-                // First, let's check if we can get any data from the table
+                // First, test database connection with a known table
+                const { data: testData, error: testError } = await supabase
+                    .from('scorer_matches')
+                    .select('*')
+                    .limit(1);
+                
+                if (testError) {
+                    console.error('❌ Database connection test failed:', testError);
+                    throw testError;
+                }
+                
+                console.log('✅ Database connection test successful, matches table accessible');
+                
+                // Now check if we can get any data from the scorer_scorers table
                 const { data: allData, error: allError } = await supabase
                     .from('scorer_scorers')
                     .select('*');
                 
                 if (allError) {
-                    console.error('Error loading all data from scorer_scorers:', allError);
+                    console.error('❌ Error loading all data from scorer_scorers:', allError);
                     throw allError;
                 }
                 
-                console.log('All data in scorer_scorers table:', allData);
+                console.log('📊 All data in scorer_scorers table:', allData);
+                console.log('📊 Number of records in scorer_scorers:', allData ? allData.length : 0);
                 
                 // Now try the filtered query
                 const { data, error } = await supabase
@@ -1597,9 +1611,10 @@
 
                 if (error) throw error;
                 allScorers = data || [];
-                console.log('Loaded scorers with licence=true:', allScorers);
+                console.log('🎯 Loaded scorers with licence=true:', allScorers);
+                console.log('🎯 Number of licensed scorers:', allScorers.length);
             } catch (error) {
-                console.error('Error loading scorers:', error);
+                console.error('❌ Error loading scorers:', error);
                 allScorers = [];
             }
         }
@@ -1616,9 +1631,10 @@
 
                 if (error) throw error;
                 allTaefelers = data || [];
-                console.log('Loaded all täfelers:', allTaefelers);
+                console.log('📊 Loaded all täfelers:', allTaefelers);
+                console.log('📊 Number of täfelers:', allTaefelers.length);
             } catch (error) {
-                console.error('Error loading täfelers:', error);
+                console.error('❌ Error loading täfelers:', error);
                 allTaefelers = [];
             }
         }
