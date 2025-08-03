@@ -913,6 +913,128 @@
             font-size: 1.2rem;
             grid-column: 1 / -1;
         }
+
+        /* Focused Game View Styles */
+        .focused-game-view {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.12);
+            overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .focused-game-container {
+            padding: 30px;
+        }
+
+        .focused-game-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+
+        .focused-game-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.8rem;
+        }
+
+        .focused-game-info {
+            margin-bottom: 30px;
+        }
+
+        .game-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-item label {
+            font-weight: 600;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .info-item span {
+            color: #333;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .role-selection-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .role-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .role-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .current-selection {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .current-selection label {
+            font-weight: 600;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .current-selection span {
+            color: #333;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .selection-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .role-selection-section {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .game-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 </style>
 </head>
 <body>
@@ -970,6 +1092,70 @@
             <div id="loading" class="loading">Loading games...</div>
             <div id="gamesGrid" class="games-grid" style="display: none;">
                 <!-- Games will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Focused Game View -->
+    <div id="focusedGameView" class="focused-game-view" style="display: none;">
+        <div class="focused-game-container">
+            <div class="focused-game-header">
+                <button class="btn btn-outline" onclick="backToMainView()">← Back to Games</button>
+                <h2 id="focusedGameTitle">Game Details</h2>
+            </div>
+            
+            <div class="focused-game-info">
+                <div class="game-info-grid">
+                    <div class="info-item">
+                        <label>Date:</label>
+                        <span id="focusedGameDate">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Time:</label>
+                        <span id="focusedGameTime">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Gym:</label>
+                        <span id="focusedGameGym">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Home Team:</label>
+                        <span id="focusedGameHomeTeam">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Away Team:</label>
+                        <span id="focusedGameAwayTeam">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Game Number:</label>
+                        <span id="focusedGameNumber">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="role-selection-section">
+                <div class="role-section" id="taefelerRoleSection">
+                    <h3>Täfeler Assignment <span id="taefelerTeamDisplay">()</span></h3>
+                    <div class="current-selection">
+                        <label>Current Täfeler:</label>
+                        <span id="currentTaefelerName">-</span>
+                    </div>
+                    <div class="selection-controls">
+                        <button class="btn btn-primary" onclick="showTaefelerSelector()">Select Täfeler</button>
+                        <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
+                    </div>
+                </div>
+
+                <div class="role-section" id="scorerRoleSection" style="display: none;">
+                    <h3>Scorer Assignment <span id="scorerTeamDisplay">()</span></h3>
+                    <div class="current-selection">
+                        <label>Current Scorer:</label>
+                        <span id="currentScorerName">-</span>
+                    </div>
+                    <div class="selection-controls">
+                        <button class="btn btn-primary" onclick="showScorerSelector()">Select Scorer</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1884,13 +2070,15 @@
         function finalConfirmSelection() {
             if (window.confirmationType === 'taefeler' && window.selectedTaefeler) {
                 const fullName = `${window.selectedTaefeler.fname} ${window.selectedTaefeler.lname}`;
-                document.getElementById('selectedTaefelerName').textContent = fullName;
                 
-                // Disable the select button
-                const selectBtn = document.getElementById('selectTaefelerBtn');
-                selectBtn.disabled = true;
-                selectBtn.textContent = 'Täfeler Confirmed';
-                selectBtn.style.backgroundColor = '#6c757d';
+                // Update focused view
+                document.getElementById('currentTaefelerName').textContent = fullName;
+                
+                // Update main modal if it exists
+                const selectedTaefelerName = document.getElementById('selectedTaefelerName');
+                if (selectedTaefelerName) {
+                    selectedTaefelerName.textContent = fullName;
+                }
                 
                 closeTaefelerSelector();
                 closeConfirmationModal();
@@ -1899,13 +2087,15 @@
                 window.confirmationType = null;
             } else if (window.confirmationType === 'scorer' && window.selectedScorer) {
                 const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
-                document.getElementById('selectedScorerName').textContent = fullName;
                 
-                // Disable the select button
-                const selectBtn = document.getElementById('selectScorerBtn');
-                selectBtn.disabled = true;
-                selectBtn.textContent = 'Scorer Confirmed';
-                selectBtn.style.backgroundColor = '#6c757d';
+                // Update focused view
+                document.getElementById('currentScorerName').textContent = fullName;
+                
+                // Update main modal if it exists
+                const selectedScorerName = document.getElementById('selectedScorerName');
+                if (selectedScorerName) {
+                    selectedScorerName.textContent = fullName;
+                }
                 
                 closeScorerSelector();
                 closeConfirmationModal();
@@ -2005,11 +2195,19 @@
         // Open game modal
         function openGameModal(game) {
             currentGame = game;
-            setCurrentSelections(game);
             
-            // Populate modal with game details
-            document.getElementById('modalTitle').textContent = 'Game Details';
-            document.getElementById('modalSubtitle').textContent = 'Match Information';
+            // Hide main content and show focused game view
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('focusedGameView').style.display = 'block';
+            
+            // Populate focused game view
+            populateFocusedGameView(game);
+        }
+
+        // Populate focused game view
+        function populateFocusedGameView(game) {
+            // Set game title
+            document.getElementById('focusedGameTitle').textContent = `${game.home_team} vs ${game.away_team}`;
             
             // Format date
             const gameDate = new Date(game.date);
@@ -2020,25 +2218,36 @@
                 day: 'numeric'
             });
             
-            // Populate match information
-            document.getElementById('modalDate').textContent = formattedDate;
-            document.getElementById('modalTime').textContent = game.time ? game.time.substring(0, 5) : 'TBD';
-            document.getElementById('modalGym').textContent = game.halle_short || 'TBD';
-            document.getElementById('modalHomeTeam').textContent = game.home_team || 'TBD';
-            document.getElementById('modalAwayTeam').textContent = game.away_team || 'TBD';
-            document.getElementById('modalGameNumber').textContent = game.match_id || 'TBD';
-            document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || 'TBD';
-            document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || 'TBD';
+            // Populate game information
+            document.getElementById('focusedGameDate').textContent = formattedDate;
+            document.getElementById('focusedGameTime').textContent = game.time ? game.time.substring(0, 5) : 'TBD';
+            document.getElementById('focusedGameGym').textContent = game.halle_short || 'TBD';
+            document.getElementById('focusedGameHomeTeam').textContent = game.home_team || 'TBD';
+            document.getElementById('focusedGameAwayTeam').textContent = game.away_team || 'TBD';
+            document.getElementById('focusedGameNumber').textContent = game.match_id || 'TBD';
+            
+            // Set team displays
+            document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team_short ? `(${game.taefeler_team_short})` : '';
+            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team_short ? `(${game.scorer_team_short})` : '';
+            
+            // Set current selections
+            document.getElementById('currentTaefelerName').textContent = game.taefeler_name || '-';
+            document.getElementById('currentScorerName').textContent = game.scorer_name || '-';
             
             // Show/hide scorer section based on whether scorer team is assigned
-            const scorerSection = document.getElementById('scorerSection');
+            const scorerSection = document.getElementById('scorerRoleSection');
             if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
                 scorerSection.style.display = 'block';
             } else {
                 scorerSection.style.display = 'none';
             }
-            
-            document.getElementById('gameModal').style.display = 'block';
+        }
+
+        // Back to main view
+        function backToMainView() {
+            document.getElementById('focusedGameView').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            currentGame = null;
         }
 
         // Prevent modal closing when clicking outside
