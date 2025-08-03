@@ -1542,23 +1542,6 @@
             loadGames();
             // Update UI language when page loads
             updateUILanguage();
-            
-            // Add event listeners for phone number fields
-            document.getElementById('taefelerPhone').addEventListener('focus', function() {
-                this.type = 'text';
-                // Clear the field for privacy when focused
-                if (this.value && this.value.trim() !== '') {
-                    this.value = '';
-                }
-            });
-            
-            document.getElementById('scorerPhone').addEventListener('focus', function() {
-                this.type = 'text';
-                // Clear the field for privacy when focused
-                if (this.value && this.value.trim() !== '') {
-                    this.value = '';
-                }
-            });
         });
 
         // Load games from matches_complete table
@@ -1591,6 +1574,7 @@
         // Load scorers from scorer_scorers table
         async function loadScorers() {
             try {
+                console.log('Loading scorers from database...');
                 const { data, error } = await supabase
                     .from('scorer_scorers')
                     .select('*')
@@ -1600,6 +1584,7 @@
 
                 if (error) throw error;
                 allScorers = data || [];
+                console.log('Loaded scorers:', allScorers);
             } catch (error) {
                 console.error('Error loading scorers:', error);
                 allScorers = [];
@@ -1609,6 +1594,7 @@
         // Load all täfelers from scorer_scorers table
         async function loadTaefelers() {
             try {
+                console.log('Loading täfelers from database...');
                 const { data, error } = await supabase
                     .from('scorer_scorers')
                     .select('*')
@@ -1617,6 +1603,7 @@
 
                 if (error) throw error;
                 allTaefelers = data || [];
+                console.log('Loaded täfelers:', allTaefelers);
             } catch (error) {
                 console.error('Error loading täfelers:', error);
                 allTaefelers = [];
@@ -1625,30 +1612,42 @@
 
         // Populate täfeler dropdown
         function populateTaefelerDropdown() {
+            console.log('Populating täfeler dropdown, allTaefelers:', allTaefelers);
             const dropdown = document.getElementById('taefelerDropdown');
             dropdown.innerHTML = '<option value="">-- Select Täfeler --</option>';
             
-            allTaefelers.forEach(person => {
-                const option = document.createElement('option');
-                option.value = person.id;
-                option.textContent = `${person.fname} ${person.lname}`;
-                option.dataset.phone = person.phone;
-                dropdown.appendChild(option);
-            });
+            if (allTaefelers && allTaefelers.length > 0) {
+                allTaefelers.forEach(person => {
+                    const option = document.createElement('option');
+                    option.value = person.id;
+                    option.textContent = `${person.fname} ${person.lname}`;
+                    option.dataset.phone = person.phone;
+                    dropdown.appendChild(option);
+                });
+                console.log(`Added ${allTaefelers.length} täfelers to dropdown`);
+            } else {
+                console.log('No täfelers found in allTaefelers array');
+            }
         }
 
         // Populate scorer dropdown
         function populateScorerDropdown() {
+            console.log('Populating scorer dropdown, allScorers:', allScorers);
             const dropdown = document.getElementById('scorerDropdown');
             dropdown.innerHTML = '<option value="">-- Select Scorer --</option>';
             
-            allScorers.forEach(person => {
-                const option = document.createElement('option');
-                option.value = person.id;
-                option.textContent = `${person.fname} ${person.lname}`;
-                option.dataset.phone = person.phone;
-                dropdown.appendChild(option);
-            });
+            if (allScorers && allScorers.length > 0) {
+                allScorers.forEach(person => {
+                    const option = document.createElement('option');
+                    option.value = person.id;
+                    option.textContent = `${person.fname} ${person.lname}`;
+                    option.dataset.phone = person.phone;
+                    dropdown.appendChild(option);
+                });
+                console.log(`Added ${allScorers.length} scorers to dropdown`);
+            } else {
+                console.log('No scorers found in allScorers array');
+            }
         }
 
         // Filter täfelers based on search input
