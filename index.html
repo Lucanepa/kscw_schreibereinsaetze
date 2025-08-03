@@ -619,6 +619,31 @@
             border-left: 4px solid #ffc107;
         }
 
+        .team-issue-card {
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .team-issue-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+
+        .team-issue-card .game-date {
+            color: #d63384;
+            font-weight: 700;
+        }
+
+        .team-issue-card .game-time {
+            background: #dc3545;
+            color: white;
+        }
+
+        .team-issue-card .game-time:empty::before {
+            content: "0 Issues";
+            background: #28a745;
+        }
+
         .games-list {
             max-height: 300px;
             overflow-y: auto;
@@ -1137,7 +1162,6 @@
             <div class="focused-game-header">
                 <button class="btn btn-outline" onclick="backToMainView()">← Back to Games</button>
                 <h2 id="focusedGameTitle">Game Details</h2>
-                <button class="btn btn-primary" onclick="saveGameDetails()">Save Changes</button>
             </div>
             
             <div class="focused-game-info">
@@ -2273,9 +2297,10 @@
                     selectedTaefelerName.textContent = fullName;
                 }
                 
-                // Update currentGame object with new täfeler information
+                // Update currentGame object with new täfeler information (store both name and ID)
                 if (currentGame) {
                     currentGame.taefeler_name = fullName;
+                    currentGame.taefeler_id = window.selectedTaefeler.id;
                 }
                 
                 // Set confirmation state
@@ -2307,9 +2332,10 @@
                     selectedScorerName.textContent = fullName;
                 }
                 
-                // Update currentGame object with new scorer information
+                // Update currentGame object with new scorer information (store both name and ID)
                 if (currentGame) {
                     currentGame.scorer_name = fullName;
+                    currentGame.scorer_id = window.selectedScorer.id;
                 }
                 
                 // Close scorer selector and save
@@ -2813,7 +2839,7 @@
                             <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
                         </div>
                     </div>
-                    ${bothRolesConfirmed ? '<div style="text-align: center; margin-top: 10px; color: #28a745; font-weight: bold;">✅ Game Details Confirmed</div>' : ''}
+                    ${bothRolesConfirmed ? '<div style="text-align: center; margin-top: 10px; color: #28a745; font-weight: bold;">✅ Game ready</div>' : ''}
                 `;
 
                 gamesContainer.appendChild(gameCard);
@@ -2925,12 +2951,22 @@
                 }
                 
                 // Use match_id for updates (much simpler and more reliable)
+                const updateData = {
+                    taefeler_name: taefelerName,
+                    scorer_name: scorerName
+                };
+                
+                // Add ID fields if they exist in currentGame
+                if (currentGame.taefeler_id) {
+                    updateData.taefeler_id = currentGame.taefeler_id;
+                }
+                if (currentGame.scorer_id) {
+                    updateData.scorer_id = currentGame.scorer_id;
+                }
+                
                 const { error } = await supabase
                     .from('scorer_matches')
-                    .update({
-                        taefeler_name: taefelerName,
-                        scorer_name: scorerName
-                    })
+                    .update(updateData)
                     .eq('match_id', currentGame.match_id);
 
                 if (error) {
@@ -2943,6 +2979,13 @@
                 if (gameIndex !== -1) {
                     allGames[gameIndex].taefeler_name = taefelerName;
                     allGames[gameIndex].scorer_name = scorerName;
+                    // Also update ID fields if they exist
+                    if (currentGame.taefeler_id) {
+                        allGames[gameIndex].taefeler_id = currentGame.taefeler_id;
+                    }
+                    if (currentGame.scorer_id) {
+                        allGames[gameIndex].scorer_id = currentGame.scorer_id;
+                    }
                 }
                 
                 // Go back to main view
@@ -3006,16 +3049,44 @@
                 }
             });
 
-            let summaryHTML = '<div class="team-issues-grid">';
+            let summaryHTML = '<div class="games-grid">';
             
             Object.keys(teamIssues).sort().forEach(team => {
                 const issues = teamIssues[team];
                 const totalIssues = issues.taefeler + issues.scorer;
+                const teamLongName = teamNameMapping[team] || team;
+                
                 summaryHTML += `
-                    <div class="team-issue-item">
-                        <strong class="clickable-team" onclick="showTeamGames('${team}')">${teamNameMapping[team] || team}</strong>: ${totalIssues} ${translations[currentLanguage].issues}
-                        ${issues.taefeler > 0 ? `(${issues.taefeler} ${translations[currentLanguage].taefeler}, ` : ''}
-                        ${issues.scorer > 0 ? `${issues.scorer} ${translations[currentLanguage].scorer})` : ''}
+                    <div class="game-card team-issue-card" onclick="showTeamGames('${team}')">
+                        <div class="game-header">
+                            <div class="game-date">${teamLongName}</div>
+                            <div class="game-time">${totalIssues} Issues</div>
+                        </div>
+                        <div class="game-teams">
+                            Team Issues Summary
+                        </div>
+                        <div class="game-location">📍 ${team}</div>
+                        <div class="game-roles">
+                            ${issues.taefeler > 0 ? `
+                                <div class="role-item">
+                                    <div class="role-label">🏐 ${translations[currentLanguage].taefeler}: ${issues.taefeler} missing</div>
+                                    <div class="status-icon">⚠️</div>
+                                </div>
+                            ` : ''}
+                            ${issues.scorer > 0 ? `
+                                <div class="role-item">
+                                    <div class="role-label">📝 ${translations[currentLanguage].scorer}: ${issues.scorer} missing</div>
+                                    <div class="status-icon">⚠️</div>
+                                </div>
+                            ` : ''}
+                            ${totalIssues === 0 ? `
+                                <div class="role-item">
+                                    <div class="role-label">✅ All roles assigned</div>
+                                    <div class="status-icon">✅</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        ${totalIssues > 0 ? '<div style="text-align: center; margin-top: 10px; color: #dc3545; font-weight: bold;">⚠️ Needs attention</div>' : '<div style="text-align: center; margin-top: 10px; color: #28a745; font-weight: bold;">✅ Team ready</div>'}
                     </div>
                 `;
             });

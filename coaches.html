@@ -504,6 +504,31 @@
             border-left: 4px solid #ffc107;
         }
 
+        .team-issue-card {
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .team-issue-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+
+        .team-issue-card .game-date {
+            color: #d63384;
+            font-weight: 700;
+        }
+
+        .team-issue-card .game-time {
+            background: #dc3545;
+            color: white;
+        }
+
+        .team-issue-card .game-time:empty::before {
+            content: "0 Issues";
+            background: #28a745;
+        }
+
         .games-list {
             max-height: 300px;
             overflow-y: auto;
@@ -1015,13 +1040,6 @@
                         <div class="form-group">
                             <label for="newPersonPhone">Phone</label>
                             <input type="tel" id="newPersonPhone" placeholder="Enter phone number" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newPersonLicence">Scorer Licence</label>
-                            <select id="newPersonLicence">
-                                <option value="false">No</option>
-                                <option value="true">Yes</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -1645,7 +1663,14 @@
 
             // If game has existing selections, show them
             if (game.taefeler_name) {
-                const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                // Try to find by ID first, then fall back to name matching
+                let taefeler = null;
+                if (game.taefeler_id) {
+                    taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                }
+                if (!taefeler) {
+                    taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                }
                 if (taefeler) {
                     document.getElementById('selectedTaefelerName').textContent = game.taefeler_name;
                     document.getElementById('selectedTaefelerPhone').textContent = taefeler.phone || '-';
@@ -1653,7 +1678,14 @@
             }
             
             if (game.scorer_name) {
-                const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                // Try to find by ID first, then fall back to name matching
+                let scorer = null;
+                if (game.scorer_id) {
+                    scorer = allScorers.find(s => s.id === game.scorer_id);
+                }
+                if (!scorer) {
+                    scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                }
                 if (scorer) {
                     document.getElementById('selectedScorerName').textContent = game.scorer_name;
                     document.getElementById('selectedScorerPhone').textContent = scorer.phone || '-';
@@ -1669,10 +1701,16 @@
             if (selectedOption && selectedOption.value) {
                 const selectedName = selectedOption.textContent;
                 const selectedPhone = selectedOption.dataset.phone;
+                const selectedId = selectedOption.value;
                 
                 document.getElementById('selectedTaefelerName').textContent = selectedName;
                 document.getElementById('selectedTaefelerPhone').textContent = selectedPhone || '-';
                 document.getElementById('confirmTaefelerBtn').style.display = 'none';
+                
+                // Store the ID in currentGame
+                if (currentGame) {
+                    currentGame.taefeler_id = selectedId;
+                }
                 
                 // Disable dropdown after confirmation
                 dropdown.disabled = true;
@@ -1688,10 +1726,16 @@
             if (selectedOption && selectedOption.value) {
                 const selectedName = selectedOption.textContent;
                 const selectedPhone = selectedOption.dataset.phone;
+                const selectedId = selectedOption.value;
                 
                 document.getElementById('selectedScorerName').textContent = selectedName;
                 document.getElementById('selectedScorerPhone').textContent = selectedPhone || '-';
                 document.getElementById('confirmScorerBtn').style.display = 'none';
+                
+                // Store the ID in currentGame
+                if (currentGame) {
+                    currentGame.scorer_id = selectedId;
+                }
                 
                 // Disable dropdown after confirmation
                 dropdown.disabled = true;
@@ -1711,7 +1755,6 @@
             document.getElementById('newPersonFname').value = '';
             document.getElementById('newPersonLname').value = '';
             document.getElementById('newPersonPhone').value = '';
-            document.getElementById('newPersonLicence').value = 'false';
         }
 
         // Save new person to database
@@ -1719,7 +1762,6 @@
             const fname = document.getElementById('newPersonFname').value.trim();
             const lname = document.getElementById('newPersonLname').value.trim();
             const phone = document.getElementById('newPersonPhone').value.trim();
-            const licence = document.getElementById('newPersonLicence').value === 'true';
 
             if (!fname || !lname || !phone) {
                 alert('Please fill in all required fields');
@@ -1733,7 +1775,7 @@
                         fname: fname,
                         lname: lname,
                         phone: phone,
-                        scorer_licence: licence
+                        scorer_licence: false
                     })
                     .select();
 
@@ -1780,14 +1822,24 @@
                 }
                 
                 // Use match_id for updates (much simpler and more reliable)
+                const updateData = {
+                    taefeler_name: taefelerName,
+                    taefeler_phone: taefelerPhone,
+                    scorer_name: scorerName,
+                    scorer_phone: scorerPhone
+                };
+                
+                // Add ID fields if they exist in currentGame
+                if (currentGame.taefeler_id) {
+                    updateData.taefeler_id = currentGame.taefeler_id;
+                }
+                if (currentGame.scorer_id) {
+                    updateData.scorer_id = currentGame.scorer_id;
+                }
+                
                 const { error } = await supabase
                     .from('scorer_matches')
-                    .update({
-                        taefeler_name: taefelerName,
-                        taefeler_phone: taefelerPhone,
-                        scorer_name: scorerName,
-                        scorer_phone: scorerPhone
-                    })
+                    .update(updateData)
                     .eq('match_id', currentGame.match_id);
 
                 if (error) {
@@ -1802,6 +1854,13 @@
                     allGames[gameIndex].taefeler_phone = taefelerPhone;
                     allGames[gameIndex].scorer_name = scorerName;
                     allGames[gameIndex].scorer_phone = scorerPhone;
+                    // Also update ID fields if they exist
+                    if (currentGame.taefeler_id) {
+                        allGames[gameIndex].taefeler_id = currentGame.taefeler_id;
+                    }
+                    if (currentGame.scorer_id) {
+                        allGames[gameIndex].scorer_id = currentGame.scorer_id;
+                    }
                 }
 
                 closeModal();
@@ -1843,13 +1902,27 @@
                     // Look up phone numbers from scorers table
                     let scorerPhone = '';
                     if (game.scorer_name) {
-                        const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                        // Try to find by ID first, then fall back to name matching
+                        let scorer = null;
+                        if (game.scorer_id) {
+                            scorer = allScorers.find(s => s.id === game.scorer_id);
+                        }
+                        if (!scorer) {
+                            scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                        }
                         scorerPhone = scorer ? scorer.phone || 'no phone found' : 'no phone found';
                     }
                     
                     let taefelerPhone = '';
                     if (game.taefeler_name) {
-                        const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                        // Try to find by ID first, then fall back to name matching
+                        let taefeler = null;
+                        if (game.taefeler_id) {
+                            taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                        }
+                        if (!taefeler) {
+                            taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                        }
                         taefelerPhone = taefeler ? taefeler.phone || 'no phone found' : 'no phone found';
                     }
                     
@@ -1948,13 +2021,27 @@
                                 // Look up phone numbers from scorers table
                                 let scorerPhone = '';
                                 if (game.scorer_name) {
-                                    const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                                    // Try to find by ID first, then fall back to name matching
+                                    let scorer = null;
+                                    if (game.scorer_id) {
+                                        scorer = allScorers.find(s => s.id === game.scorer_id);
+                                    }
+                                    if (!scorer) {
+                                        scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                                    }
                                     scorerPhone = scorer ? scorer.phone || 'no phone found' : 'no phone found';
                                 }
                                 
                                 let taefelerPhone = '';
                                 if (game.taefeler_name) {
-                                    const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                                    // Try to find by ID first, then fall back to name matching
+                                    let taefeler = null;
+                                    if (game.taefeler_id) {
+                                        taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                                    }
+                                    if (!taefeler) {
+                                        taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                                    }
                                     taefelerPhone = taefeler ? taefeler.phone || 'no phone found' : 'no phone found';
                                 }
                                 
@@ -2068,16 +2155,44 @@
                 }
             });
 
-            let summaryHTML = '<div class="team-issues-grid">';
+            let summaryHTML = '<div class="games-grid">';
             
             Object.keys(teamIssues).sort().forEach(team => {
                 const issues = teamIssues[team];
                 const totalIssues = issues.taefeler + issues.scorer;
+                const teamLongName = teamNameMapping[team] || team;
+                
                 summaryHTML += `
-                    <div class="team-issue-item">
-                        <strong class="clickable-team" onclick="showTeamGames('${team}')">${teamNameMapping[team] || team}</strong>: ${totalIssues} issues
-                        ${issues.taefeler > 0 ? `(${issues.taefeler} Täfeler, ` : ''}
-                        ${issues.scorer > 0 ? `${issues.scorer} Scorer)` : ''}
+                    <div class="game-card team-issue-card" onclick="showTeamGames('${team}')">
+                        <div class="game-header">
+                            <div class="game-date">${teamLongName}</div>
+                            <div class="game-time">${totalIssues} Issues</div>
+                        </div>
+                        <div class="game-teams">
+                            Team Issues Summary
+                        </div>
+                        <div class="game-location">📍 ${team}</div>
+                        <div class="game-roles">
+                            ${issues.taefeler > 0 ? `
+                                <div class="role-item">
+                                    <div class="role-label">🏐 Täfeler: ${issues.taefeler} missing</div>
+                                    <div class="status-icon">⚠️</div>
+                                </div>
+                            ` : ''}
+                            ${issues.scorer > 0 ? `
+                                <div class="role-item">
+                                    <div class="role-label">📝 Scorer: ${issues.scorer} missing</div>
+                                    <div class="status-icon">⚠️</div>
+                                </div>
+                            ` : ''}
+                            ${totalIssues === 0 ? `
+                                <div class="role-item">
+                                    <div class="role-label">✅ All roles assigned</div>
+                                    <div class="status-icon">✅</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        ${totalIssues > 0 ? '<div style="text-align: center; margin-top: 10px; color: #dc3545; font-weight: bold;">⚠️ Needs attention</div>' : '<div style="text-align: center; margin-top: 10px; color: #28a745; font-weight: bold;">✅ Team ready</div>'}
                     </div>
                 `;
             });
