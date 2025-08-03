@@ -1574,6 +1574,20 @@
         async function loadScorers() {
             try {
                 console.log('Loading scorers from database...');
+                
+                // First, let's check if we can get any data from the table
+                const { data: allData, error: allError } = await supabase
+                    .from('scorer_scorers')
+                    .select('*');
+                
+                if (allError) {
+                    console.error('Error loading all data from scorer_scorers:', allError);
+                    throw allError;
+                }
+                
+                console.log('All data in scorer_scorers table:', allData);
+                
+                // Now try the filtered query
                 const { data, error } = await supabase
                     .from('scorer_scorers')
                     .select('*')
@@ -1583,7 +1597,7 @@
 
                 if (error) throw error;
                 allScorers = data || [];
-                console.log('Loaded scorers:', allScorers);
+                console.log('Loaded scorers with licence=true:', allScorers);
             } catch (error) {
                 console.error('Error loading scorers:', error);
                 allScorers = [];
@@ -1602,7 +1616,7 @@
 
                 if (error) throw error;
                 allTaefelers = data || [];
-                console.log('Loaded täfelers:', allTaefelers);
+                console.log('Loaded all täfelers:', allTaefelers);
             } catch (error) {
                 console.error('Error loading täfelers:', error);
                 allTaefelers = [];
