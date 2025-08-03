@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schreibereinsätze Admin Panel</title>
+    <title>Schreibereinsätze Coaches Panel</title>
     <link rel="icon" type="image/x-icon" href="https://kscw.ch/clubdesk/fileservlet?type=file&id=1000716&s=djEt3z7ABYLi8hd4sWeb8Qisb2m20xnaKr4H9W6HvJnKgDU=">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -802,7 +802,7 @@
                  <div style="text-align: left; margin-bottom: 20px;">
                      <button class="btn btn-outline" onclick="goBack()">← Back</button>
                  </div>
-                 <h2>Admin Login</h2>
+                 <h2>Coaches Login</h2>
                  <div id="loginForm">
                      <div class="form-group">
                          <label for="adminEmail">Email</label>
@@ -817,7 +817,7 @@
              </div>
          </div>
 
-        <!-- Admin Content -->
+        <!-- Coaches Content -->
         <div id="adminContent" class="main-content" style="display: none;">
             <div class="user-info">
                 <div>
@@ -940,12 +940,12 @@
                     <h3>Täfeler Information</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="taefelerName">Name</label>
-                            <input type="text" id="taefelerName" placeholder="Enter Täfeler name">
+                            <label>Name</label>
+                            <div class="detail-value" id="taefelerNameDisplay">-</div>
                         </div>
                         <div class="form-group">
-                            <label for="taefelerPhone">Phone</label>
-                            <input type="tel" id="taefelerPhone" placeholder="Enter Täfeler phone">
+                            <label>Phone</label>
+                            <div class="detail-value" id="taefelerPhoneDisplay">-</div>
                         </div>
                     </div>
                 </div>
@@ -954,20 +954,19 @@
                     <h3>Scorer Information</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="scorerName">Name</label>
-                            <input type="text" id="scorerName" placeholder="Enter Scorer name">
+                            <label>Name</label>
+                            <div class="detail-value" id="scorerNameDisplay">-</div>
                         </div>
                         <div class="form-group">
-                            <label for="scorerPhone">Phone</label>
-                            <input type="tel" id="scorerPhone" placeholder="Enter Scorer phone">
+                            <label>Phone</label>
+                            <div class="detail-value" id="scorerPhoneDisplay">-</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveGameDetails()">Save Changes</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
@@ -1078,13 +1077,6 @@
 
             if (!email || !password) {
                 alert('Please enter both email and password');
-                return;
-            }
-
-            // Check if user is authorized admin
-            const authorizedEmails = ['luca.canepa@gmail.com', 'thammy@kscw.ch'];
-            if (!authorizedEmails.includes(email.toLowerCase())) {
-                alert('Access denied. Only authorized administrators can access this panel.');
                 return;
             }
 
@@ -1442,14 +1434,14 @@
                             <div class="detail-value status-indicator">${statusIcons.join(' ')}</div>
                         </div>
                     </div>
-                    <button class="btn btn-warning action-button" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">Edit Game</button>
+                    <button class="btn btn-info action-button" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">View Game</button>
                 `;
                 
                 container.appendChild(mobileCard);
             });
         }
 
-        // Open game modal (editable for admins)
+        // Open game modal (read-only for coaches)
         function openGameModal(game) {
             currentGame = game;
             
@@ -1476,18 +1468,16 @@
             document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || 'TBD';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || 'TBD';
             
-            // Populate täfeler information (editable)
-            document.getElementById('taefelerName').value = game.taefeler_name || '';
-            document.getElementById('taefelerPhone').value = game.taefeler_phone || '';
-            document.getElementById('taefelerPhone').type = 'text';
+            // Populate täfeler information (read-only)
+            document.getElementById('taefelerNameDisplay').textContent = game.taefeler_name || '-';
+            document.getElementById('taefelerPhoneDisplay').textContent = game.taefeler_phone || '-';
             
             // Show/hide scorer section based on whether scorer team is assigned
             const scorerSection = document.getElementById('scorerSection');
             if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
                 scorerSection.style.display = 'block';
-                document.getElementById('scorerName').value = game.scorer_name || '';
-                document.getElementById('scorerPhone').value = game.scorer_phone || '';
-                document.getElementById('scorerPhone').type = 'text';
+                document.getElementById('scorerNameDisplay').textContent = game.scorer_name || '-';
+                document.getElementById('scorerPhoneDisplay').textContent = game.scorer_phone || '-';
             } else {
                 scorerSection.style.display = 'none';
             }
