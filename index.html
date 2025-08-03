@@ -1822,6 +1822,8 @@
         function closeTaefelerSelector() {
             document.getElementById('taefelerSelectorModal').style.display = 'none';
             document.getElementById('taefelerSearch').value = '';
+            document.getElementById('confirmTaefelerBtn').style.display = 'none';
+            window.selectedTaefeler = null; // Clear selection
             filterTaefelers(); // Reset filter
         }
 
@@ -1829,6 +1831,8 @@
         function closeScorerSelector() {
             document.getElementById('scorerSelectorModal').style.display = 'none';
             document.getElementById('scorerSearch').value = '';
+            document.getElementById('confirmScorerBtn').style.display = 'none';
+            window.selectedScorer = null; // Clear selection
             filterScorers(); // Reset filter
         }
 
@@ -1842,6 +1846,9 @@
             });
             event.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
             event.target.closest('.result-item').style.border = '2px solid #2196f3';
+            
+            // Store the selected person
+            window.selectedTaefeler = person;
             
             // Change button text to "Confirm"
             document.getElementById('confirmTaefelerBtn').textContent = 'Confirm';
@@ -1868,6 +1875,9 @@
             event.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
             event.target.closest('.result-item').style.border = '2px solid #2196f3';
             
+            // Store the selected person
+            window.selectedScorer = person;
+            
             // Change button text to "Confirm"
             document.getElementById('confirmScorerBtn').textContent = 'Confirm';
             document.getElementById('confirmScorerBtn').style.display = 'inline-block';
@@ -1875,25 +1885,23 @@
 
         // Confirm täfeler selection
         function confirmTaefelerSelection() {
-            const selectedItem = document.querySelector('#taefelerResults .result-item[style*="border: 2px solid #2196f3"]');
-            if (selectedItem) {
-                const nameElement = selectedItem.querySelector('div');
-                const fullName = nameElement.textContent;
+            if (window.selectedTaefeler) {
+                const fullName = `${window.selectedTaefeler.fname} ${window.selectedTaefeler.lname}`;
                 document.getElementById('selectedTaefelerName').textContent = fullName;
                 closeTaefelerSelector();
                 saveGameDetails();
+                window.selectedTaefeler = null; // Clear selection
             }
         }
 
         // Confirm scorer selection
         function confirmScorerSelection() {
-            const selectedItem = document.querySelector('#scorerResults .result-item[style*="border: 2px solid #2196f3"]');
-            if (selectedItem) {
-                const nameElement = selectedItem.querySelector('div');
-                const fullName = nameElement.textContent;
+            if (window.selectedScorer) {
+                const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
                 document.getElementById('selectedScorerName').textContent = fullName;
                 closeScorerSelector();
                 saveGameDetails();
+                window.selectedScorer = null; // Clear selection
             }
         }
 
