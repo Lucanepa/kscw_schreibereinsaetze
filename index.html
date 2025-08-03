@@ -2451,13 +2451,13 @@
             const taefelerSelectionControls = document.getElementById('taefelerSelectionControls');
             const scorerSelectionControls = document.getElementById('scorerSelectionControls');
             
-            if (game.taefeler_name && game.taefeler_name.trim() !== '') {
+            if (game.taefeler_name && game.taefeler_name.trim() !== '' && game.taefeler_name !== '-') {
                 taefelerSelectionControls.style.display = 'none';
             } else {
                 taefelerSelectionControls.style.display = 'block';
             }
             
-            if (game.scorer_name && game.scorer_name.trim() !== '') {
+            if (game.scorer_name && game.scorer_name.trim() !== '' && game.scorer_name !== '-') {
                 scorerSelectionControls.style.display = 'none';
             } else {
                 scorerSelectionControls.style.display = 'block';
