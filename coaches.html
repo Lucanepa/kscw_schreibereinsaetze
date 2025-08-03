@@ -1277,7 +1277,7 @@
 
             // Home scorer_teams
             const homeFilter = document.getElementById('adminHomeFilter');
-            homeFilter.innerHTML = '<option value="">All Home scorer_teams</option>';
+            homeFilter.innerHTML = '<option value="">All Home teams</option>';
             allteams.forEach(team => {
                 const option = document.createElement('option');
                 option.value = team;
@@ -1484,6 +1484,21 @@
             
             document.getElementById('gameModal').style.display = 'block';
         }
+
+        // Prevent modal closing when clicking outside
+        function preventModalClose(event) {
+            if (event.target.classList.contains('modal')) {
+                event.stopPropagation();
+            }
+        }
+
+        // Add event listeners to prevent modal closing on outside click
+        document.addEventListener('DOMContentLoaded', function() {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                modal.addEventListener('click', preventModalClose);
+            });
+        });
 
         // Close modal
         function closeModal() {
