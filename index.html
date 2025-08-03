@@ -2153,7 +2153,9 @@
             
             // Update the action buttons to show confirm/cancel
             const actionButtons = document.querySelector('.action-buttons');
+            console.log('Looking for action-buttons element:', actionButtons);
             if (actionButtons) {
+                console.log('Found action-buttons, updating HTML');
                 actionButtons.innerHTML = `
                     <button class="btn btn-secondary" onclick="cancelConfirmation()">Cancel</button>
                     <button class="btn btn-primary" onclick="finalConfirmSelection()">Confirm Selection</button>
@@ -2161,6 +2163,7 @@
                         ${confirmMessage}
                     </div>
                 `;
+                console.log('Action buttons updated successfully');
             } else {
                 console.error('Could not find action-buttons element');
                 alert('Error: Could not find action buttons');
@@ -2212,6 +2215,10 @@
 
         // Final confirmation
         function finalConfirmSelection() {
+            console.log('finalConfirmSelection called');
+            console.log('window.confirmationType:', window.confirmationType);
+            console.log('window.selectedScorer:', window.selectedScorer);
+            
             if (window.confirmationType === 'taefeler' && window.selectedTaefeler) {
                 const fullName = `${window.selectedTaefeler.fname} ${window.selectedTaefeler.lname}`;
                 
@@ -2241,10 +2248,13 @@
                 
                 // Return focus to game details (no alert)
             } else if (window.confirmationType === 'scorer' && window.selectedScorer) {
+                console.log('Processing scorer confirmation');
                 const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
+                console.log('Full name:', fullName);
                 
                 // Set confirmation state first
                 window.scorerConfirmed = true;
+                console.log('Set window.scorerConfirmed to true');
                 
                 // Update focused view
                 const currentScorerName = document.getElementById('currentScorerName');
