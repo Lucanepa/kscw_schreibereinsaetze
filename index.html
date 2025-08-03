@@ -1176,7 +1176,7 @@
                     </div>
                     <div class="form-group">
                         <label>Available Täfelers</label>
-                        <div id="taefelerResults" style="height: 250px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <div id="taefelerResults" style="height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
                             <!-- Results will be populated here -->
                         </div>
                     </div>
@@ -1206,7 +1206,7 @@
                     </div>
                     <div class="form-group">
                         <label>Available Scorers</label>
-                        <div id="scorerResults" style="height: 250px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <div id="scorerResults" style="height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
                             <!-- Results will be populated here -->
                         </div>
                     </div>
@@ -1288,9 +1288,29 @@
                 <button class="btn btn-primary" onclick="closeInfoModal()">Got it!</button>
             </div>
         </div>
+        <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close" onclick="closeConfirmationModal()">&times;</span>
+            <div class="modal-header">
+                <div class="modal-title" id="confirmationTitle">Confirm Selection</div>
+                <div class="modal-subtitle" id="confirmationSubtitle">Important Notice</div>
+            </div>
+            <div class="game-details-modal">
+                <div class="detail-section">
+                    <div id="confirmationMessage">
+                        <!-- Message will be populated here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeConfirmationModal()">Go Back</button>
+                <button class="btn btn-primary" id="finalConfirmBtn" onclick="finalConfirmSelection()">Confirm</button>
+            </div>
+        </div>
     </div>
 
-<script>
+    <script>
         let allGames = [];
         let allTeams = [];
         let teamNameMapping = {}; // New mapping for long team names
@@ -1836,6 +1856,69 @@
             filterScorers(); // Reset filter
         }
 
+        // Show confirmation modal
+        function showConfirmationModal(type) {
+            const isGerman = currentLanguage === 'de';
+            const roleName = type === 'taefeler' ? (isGerman ? 'Täfeler' : 'Täfeler') : (isGerman ? 'Schreiber' : 'Scorer');
+            const selectedPerson = type === 'taefeler' ? window.selectedTaefeler : window.selectedScorer;
+            const fullName = `${selectedPerson.fname} ${selectedPerson.lname}`;
+            
+            document.getElementById('confirmationTitle').textContent = isGerman ? 'Auswahl bestätigen' : 'Confirm Selection';
+            document.getElementById('confirmationSubtitle').textContent = isGerman ? 'Wichtiger Hinweis' : 'Important Notice';
+            
+            const message = isGerman 
+                ? `Wenn Sie bestätigen, können Sie Ihre Entscheidung später nicht mehr ändern. Im Notfall oder bei dringendem Bedarf, den Namen zu ändern, kontaktieren Sie bitte Luca oder Thamy.<br><br><strong>Ausgewählte Person:</strong> ${fullName}`
+                : `If you confirm, you will not be able to change your decision later. In case of emergency or dire need to change the name, please contact Luca or Thamy.<br><br><strong>Selected Person:</strong> ${fullName}`;
+            
+            document.getElementById('confirmationMessage').innerHTML = message;
+            
+            // Store the type for final confirmation
+            window.confirmationType = type;
+            
+            document.getElementById('confirmationModal').style.display = 'block';
+        }
+
+        // Close confirmation modal
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            window.confirmationType = null;
+        }
+
+        // Final confirmation
+        function finalConfirmSelection() {
+            if (window.confirmationType === 'taefeler' && window.selectedTaefeler) {
+                const fullName = `${window.selectedTaefeler.fname} ${window.selectedTaefeler.lname}`;
+                document.getElementById('selectedTaefelerName').textContent = fullName;
+                
+                // Disable the select button
+                const selectBtn = document.getElementById('selectTaefelerBtn');
+                selectBtn.disabled = true;
+                selectBtn.textContent = 'Täfeler Confirmed';
+                selectBtn.style.backgroundColor = '#6c757d';
+                
+                closeTaefelerSelector();
+                closeConfirmationModal();
+                saveGameDetails();
+                window.selectedTaefeler = null;
+                window.confirmationType = null;
+            } else if (window.confirmationType === 'scorer' && window.selectedScorer) {
+                const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
+                document.getElementById('selectedScorerName').textContent = fullName;
+                
+                // Disable the select button
+                const selectBtn = document.getElementById('selectScorerBtn');
+                selectBtn.disabled = true;
+                selectBtn.textContent = 'Scorer Confirmed';
+                selectBtn.style.backgroundColor = '#6c757d';
+                
+                closeScorerSelector();
+                closeConfirmationModal();
+                saveGameDetails();
+                window.selectedScorer = null;
+                window.confirmationType = null;
+            }
+        }
+
         // Select täfeler from results
         function selectTaefeler(person) {
             // Highlight the selected item
@@ -1886,22 +1969,14 @@
         // Confirm täfeler selection
         function confirmTaefelerSelection() {
             if (window.selectedTaefeler) {
-                const fullName = `${window.selectedTaefeler.fname} ${window.selectedTaefeler.lname}`;
-                document.getElementById('selectedTaefelerName').textContent = fullName;
-                closeTaefelerSelector();
-                saveGameDetails();
-                window.selectedTaefeler = null; // Clear selection
+                showConfirmationModal('taefeler');
             }
         }
 
         // Confirm scorer selection
         function confirmScorerSelection() {
             if (window.selectedScorer) {
-                const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
-                document.getElementById('selectedScorerName').textContent = fullName;
-                closeScorerSelector();
-                saveGameDetails();
-                window.selectedScorer = null; // Clear selection
+                showConfirmationModal('scorer');
             }
         }
 
@@ -2317,11 +2392,7 @@
             const taefelerName = document.getElementById('selectedTaefelerName').textContent;
             const scorerName = document.getElementById('selectedScorerName').textContent;
 
-            // Check if selections are valid (not the default '-')
-            if (taefelerName === '-' || scorerName === '-') {
-                alert('Please select both a täfeler and a scorer before saving.');
-                return;
-            }
+
 
             try {
                 console.log('Saving game details for:', currentGame);
