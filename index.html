@@ -1028,13 +1028,11 @@
                         <div class="form-group" style="flex: 1;">
                             <label>Selected Täfeler</label>
                             <div id="selectedTaefelerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
-                                <span id="selectedTaefelerName">-</span><br>
-                                <span id="selectedTaefelerPhone">-</span>
+                                <span id="selectedTaefelerName">-</span>
                             </div>
                         </div>
                         <div class="form-group" style="flex: 0 0 auto; margin-left: 15px;">
                             <button type="button" class="btn btn-primary" onclick="showTaefelerSelector()" id="selectTaefelerBtn">Select Täfeler</button>
-                            <button type="button" class="btn btn-success" onclick="confirmTaefeler()" id="confirmTaefelerBtn" style="display: none;">Confirm Täfeler</button>
                             <button type="button" id="addTaefelerBtn" class="btn btn-info" style="margin-top: 10px;" onclick="showAddTaefelerModal()">Add New Person</button>
                         </div>
                     </div>
@@ -1046,13 +1044,11 @@
                         <div class="form-group" style="flex: 1;">
                             <label>Selected Scorer</label>
                             <div id="selectedScorerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
-                                <span id="selectedScorerName">-</span><br>
-                                <span id="selectedScorerPhone">-</span>
+                                <span id="selectedScorerName">-</span>
                             </div>
                         </div>
                         <div class="form-group" style="flex: 0 0 auto; margin-left: 15px;">
                             <button type="button" class="btn btn-primary" onclick="showScorerSelector()" id="selectScorerBtn">Select Scorer</button>
-                            <button type="button" class="btn btn-success" onclick="confirmScorer()" id="confirmScorerBtn" style="display: none;">Confirm Scorer</button>
                         </div>
                     </div>
                 </div>
@@ -1082,8 +1078,7 @@
 
             <div class="modal-actions">
                 <button class="btn btn-success" onclick="downloadICS()">📅 Download ICS</button>
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" id="saveButton" onclick="saveGameDetails()">Save Changes</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
@@ -1167,58 +1162,57 @@
 
     <!-- Täfeler Selector Modal -->
     <div id="taefelerSelectorModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-height: 80vh; height: 600px;">
             <span class="close" onclick="closeTaefelerSelector()">&times;</span>
             <div class="modal-header">
                 <div class="modal-title">Select Täfeler</div>
                 <div class="modal-subtitle">Choose a täfeler for this game</div>
             </div>
-            <div class="game-details-modal">
+            <div class="game-details-modal" style="height: calc(100% - 120px); overflow-y: auto;">
                 <div class="form-section">
                     <div class="form-group">
                         <label for="taefelerSearch">Search Täfelers</label>
-                        <input type="text" id="taefelerSearch" placeholder="Search täfelers..." oninput="filterTaefelers()" style="width: 100%; margin-bottom: 15px;">
+                        <input type="text" id="taefelerSearch" placeholder="Search täfelers..." oninput="filterTaefelers()" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
                     </div>
                     <div class="form-group">
-                        <label for="taefelerDropdown">Available Täfelers</label>
-                        <select id="taefelerDropdown" size="8" style="width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
-                            <option value="">-- Select Täfeler --</option>
-                        </select>
+                        <label>Available Täfelers</label>
+                        <div id="taefelerResults" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                            <!-- Results will be populated here -->
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
-                <button class="btn btn-primary" onclick="confirmTaefelerSelection()">Select</button>
+                <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
             </div>
         </div>
     </div>
 
     <!-- Scorer Selector Modal -->
     <div id="scorerSelectorModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-height: 80vh; height: 600px;">
             <span class="close" onclick="closeScorerSelector()">&times;</span>
             <div class="modal-header">
                 <div class="modal-title">Select Scorer</div>
                 <div class="modal-subtitle">Choose a scorer for this game</div>
             </div>
-            <div class="game-details-modal">
+            <div class="game-details-modal" style="height: calc(100% - 120px); overflow-y: auto;">
                 <div class="form-section">
                     <div class="form-group">
                         <label for="scorerSearch">Search Scorers</label>
-                        <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()" style="width: 100%; margin-bottom: 15px;">
+                        <input type="text" id="scorerSearch" placeholder="Search scorers..." oninput="filterScorers()" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
                     </div>
                     <div class="form-group">
-                        <label for="scorerDropdown">Available Scorers</label>
-                        <select id="scorerDropdown" size="8" style="width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
-                            <option value="">-- Select Scorer --</option>
-                        </select>
+                        <label>Available Scorers</label>
+                        <div id="scorerResults" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                            <!-- Results will be populated here -->
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeScorerSelector()">Cancel</button>
-                <button class="btn btn-primary" onclick="confirmScorerSelection()">Select</button>
             </div>
         </div>
     </div>
@@ -1652,42 +1646,68 @@
             }
         }
 
-        // Populate täfeler dropdown
-        function populateTaefelerDropdown() {
-            console.log('Populating täfeler dropdown, allTaefelers:', allTaefelers);
-            const dropdown = document.getElementById('taefelerDropdown');
-            dropdown.innerHTML = '<option value="">-- Select Täfeler --</option>';
+        // Populate täfeler results
+        function populateTaefelerResults() {
+            console.log('Populating täfeler results, allTaefelers:', allTaefelers);
+            const resultsContainer = document.getElementById('taefelerResults');
             
             if (allTaefelers && allTaefelers.length > 0) {
+                resultsContainer.innerHTML = '';
                 allTaefelers.forEach(person => {
-                    const option = document.createElement('option');
-                    option.value = person.id;
-                    option.textContent = `${person.fname} ${person.lname}`;
-                    option.dataset.phone = person.phone;
-                    dropdown.appendChild(option);
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.innerHTML = `
+                        <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
+                        <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${person.phone || 'No phone'}</div>
+                    `;
+                    
+                    resultItem.addEventListener('click', () => selectTaefeler(person));
+                    resultItem.addEventListener('mouseenter', () => {
+                        resultItem.style.backgroundColor = '#f8f9fa';
+                    });
+                    resultItem.addEventListener('mouseleave', () => {
+                        resultItem.style.backgroundColor = 'white';
+                    });
+                    
+                    resultsContainer.appendChild(resultItem);
                 });
-                console.log(`Added ${allTaefelers.length} täfelers to dropdown`);
+                console.log(`Added ${allTaefelers.length} täfelers to results`);
             } else {
+                resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No täfelers found</div>';
                 console.log('No täfelers found in allTaefelers array');
             }
         }
 
-        // Populate scorer dropdown
-        function populateScorerDropdown() {
-            console.log('Populating scorer dropdown, allScorers:', allScorers);
-            const dropdown = document.getElementById('scorerDropdown');
-            dropdown.innerHTML = '<option value="">-- Select Scorer --</option>';
+        // Populate scorer results
+        function populateScorerResults() {
+            console.log('Populating scorer results, allScorers:', allScorers);
+            const resultsContainer = document.getElementById('scorerResults');
             
             if (allScorers && allScorers.length > 0) {
+                resultsContainer.innerHTML = '';
                 allScorers.forEach(person => {
-                    const option = document.createElement('option');
-                    option.value = person.id;
-                    option.textContent = `${person.fname} ${person.lname}`;
-                    option.dataset.phone = person.phone;
-                    dropdown.appendChild(option);
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.innerHTML = `
+                        <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
+                        <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${person.phone || 'No phone'}</div>
+                    `;
+                    
+                    resultItem.addEventListener('click', () => selectScorer(person));
+                    resultItem.addEventListener('mouseenter', () => {
+                        resultItem.style.backgroundColor = '#f8f9fa';
+                    });
+                    resultItem.addEventListener('mouseleave', () => {
+                        resultItem.style.backgroundColor = 'white';
+                    });
+                    
+                    resultsContainer.appendChild(resultItem);
                 });
-                console.log(`Added ${allScorers.length} scorers to dropdown`);
+                console.log(`Added ${allScorers.length} scorers to results`);
             } else {
+                resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No scorers found</div>';
                 console.log('No scorers found in allScorers array');
             }
         }
@@ -1695,82 +1715,108 @@
         // Filter täfelers based on search input
         function filterTaefelers() {
             const searchTerm = document.getElementById('taefelerSearch').value.toLowerCase();
-            const dropdown = document.getElementById('taefelerDropdown');
-            const options = dropdown.querySelectorAll('option');
-            let visibleCount = 0;
+            const resultsContainer = document.getElementById('taefelerResults');
             
-            options.forEach(option => {
-                if (option.value === '') return; // Skip the placeholder option
-                const text = option.textContent.toLowerCase();
-                const isVisible = text.includes(searchTerm);
-                option.style.display = isVisible ? '' : 'none';
-                if (isVisible) visibleCount++;
+            if (!allTaefelers || allTaefelers.length === 0) {
+                resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No täfelers available</div>';
+                return;
+            }
+            
+            const filteredTaefelers = allTaefelers.filter(person => {
+                const fullName = `${person.fname} ${person.lname}`.toLowerCase();
+                return fullName.includes(searchTerm);
             });
-
-            // Show "no results" message if no matches
-            if (visibleCount === 0 && searchTerm.length > 0) {
-                const noResultsOption = dropdown.querySelector('option[value="no-results"]');
-                if (!noResultsOption) {
-                    const option = document.createElement('option');
-                    option.value = 'no-results';
-                    option.textContent = 'No results found - Add New Person';
-                    option.disabled = true;
-                    option.style.color = '#666';
-                    option.style.fontStyle = 'italic';
-                    dropdown.appendChild(option);
-                }
+            
+            if (filteredTaefelers.length === 0 && searchTerm.length > 0) {
+                resultsContainer.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #666;">
+                        <div>No results found</div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
+                        </div>
+                    </div>
+                `;
             } else {
-                const noResultsOption = dropdown.querySelector('option[value="no-results"]');
-                if (noResultsOption) {
-                    noResultsOption.remove();
-                }
+                resultsContainer.innerHTML = '';
+                filteredTaefelers.forEach(person => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.innerHTML = `
+                        <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
+                        <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${person.phone || 'No phone'}</div>
+                    `;
+                    
+                    resultItem.addEventListener('click', () => selectTaefeler(person));
+                    resultItem.addEventListener('mouseenter', () => {
+                        resultItem.style.backgroundColor = '#f8f9fa';
+                    });
+                    resultItem.addEventListener('mouseleave', () => {
+                        resultItem.style.backgroundColor = 'white';
+                    });
+                    
+                    resultsContainer.appendChild(resultItem);
+                });
             }
         }
 
         // Filter scorers based on search input
         function filterScorers() {
             const searchTerm = document.getElementById('scorerSearch').value.toLowerCase();
-            const dropdown = document.getElementById('scorerDropdown');
-            const options = dropdown.querySelectorAll('option');
-            let visibleCount = 0;
+            const resultsContainer = document.getElementById('scorerResults');
             
-            options.forEach(option => {
-                if (option.value === '') return; // Skip the placeholder option
-                const text = option.textContent.toLowerCase();
-                const isVisible = text.includes(searchTerm);
-                option.style.display = isVisible ? '' : 'none';
-                if (isVisible) visibleCount++;
+            if (!allScorers || allScorers.length === 0) {
+                resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No scorers available</div>';
+                return;
+            }
+            
+            const filteredScorers = allScorers.filter(person => {
+                const fullName = `${person.fname} ${person.lname}`.toLowerCase();
+                return fullName.includes(searchTerm);
             });
-
-            // Show "no results" message if no matches
-            if (visibleCount === 0 && searchTerm.length > 0) {
-                const noResultsOption = dropdown.querySelector('option[value="no-results"]');
-                if (!noResultsOption) {
-                    const option = document.createElement('option');
-                    option.value = 'no-results';
-                    option.textContent = 'No results found - Contact Luca (luca.canepa@gmail.com)';
-                    option.disabled = true;
-                    option.style.color = '#666';
-                    option.style.fontStyle = 'italic';
-                    dropdown.appendChild(option);
-                }
+            
+            if (filteredScorers.length === 0 && searchTerm.length > 0) {
+                resultsContainer.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #666;">
+                        <div>No results found</div>
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Contact Luca (luca.canepa@gmail.com)
+                        </div>
+                    </div>
+                `;
             } else {
-                const noResultsOption = dropdown.querySelector('option[value="no-results"]');
-                if (noResultsOption) {
-                    noResultsOption.remove();
-                }
+                resultsContainer.innerHTML = '';
+                filteredScorers.forEach(person => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.innerHTML = `
+                        <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
+                        <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${person.phone || 'No phone'}</div>
+                    `;
+                    
+                    resultItem.addEventListener('click', () => selectScorer(person));
+                    resultItem.addEventListener('mouseenter', () => {
+                        resultItem.style.backgroundColor = '#f8f9fa';
+                    });
+                    resultItem.addEventListener('mouseleave', () => {
+                        resultItem.style.backgroundColor = 'white';
+                    });
+                    
+                    resultsContainer.appendChild(resultItem);
+                });
             }
         }
 
         // Show täfeler selector modal
         function showTaefelerSelector() {
-            populateTaefelerDropdown();
+            populateTaefelerResults();
             document.getElementById('taefelerSelectorModal').style.display = 'block';
         }
 
         // Show scorer selector modal
         function showScorerSelector() {
-            populateScorerDropdown();
+            populateScorerResults();
             document.getElementById('scorerSelectorModal').style.display = 'block';
         }
 
@@ -1788,26 +1834,13 @@
             filterScorers(); // Reset filter
         }
 
-        // Confirm täfeler selection
-        function confirmTaefelerSelection() {
-            const dropdown = document.getElementById('taefelerDropdown');
-            const selectedOption = dropdown.options[dropdown.selectedIndex];
+        // Select täfeler from results
+        function selectTaefeler(person) {
+            document.getElementById('selectedTaefelerName').textContent = `${person.fname} ${person.lname}`;
+            closeTaefelerSelector();
             
-            if (selectedOption && selectedOption.value && selectedOption.value !== 'no-results') {
-                const selectedName = selectedOption.textContent;
-                const selectedPhone = selectedOption.dataset.phone;
-                
-                document.getElementById('selectedTaefelerName').textContent = selectedName;
-                document.getElementById('selectedTaefelerPhone').textContent = selectedPhone || '-';
-                
-                // Show confirm button and hide select button
-                document.getElementById('confirmTaefelerBtn').style.display = 'inline-block';
-                document.getElementById('selectTaefelerBtn').style.display = 'none';
-                
-                closeTaefelerSelector();
-            } else {
-                alert('Please select a valid täfeler');
-            }
+            // Auto-save the selection
+            saveGameDetails();
         }
 
         // Confirm täfeler (final confirmation)
@@ -1819,26 +1852,13 @@
             alert('Täfeler confirmed and locked!');
         }
 
-        // Confirm scorer selection
-        function confirmScorerSelection() {
-            const dropdown = document.getElementById('scorerDropdown');
-            const selectedOption = dropdown.options[dropdown.selectedIndex];
+        // Select scorer from results
+        function selectScorer(person) {
+            document.getElementById('selectedScorerName').textContent = `${person.fname} ${person.lname}`;
+            closeScorerSelector();
             
-            if (selectedOption && selectedOption.value && selectedOption.value !== 'no-results') {
-                const selectedName = selectedOption.textContent;
-                const selectedPhone = selectedOption.dataset.phone;
-                
-                document.getElementById('selectedScorerName').textContent = selectedName;
-                document.getElementById('selectedScorerPhone').textContent = selectedPhone || '-';
-                
-                // Show confirm button and hide select button
-                document.getElementById('confirmScorerBtn').style.display = 'inline-block';
-                document.getElementById('selectScorerBtn').style.display = 'none';
-                
-                closeScorerSelector();
-            } else {
-                alert('Please select a valid scorer');
-            }
+            // Auto-save the selection
+            saveGameDetails();
         }
 
         // Confirm scorer (final confirmation)
@@ -1868,9 +1888,7 @@
         function setCurrentSelections(game) {
             // Reset selections
             document.getElementById('selectedTaefelerName').textContent = '-';
-            document.getElementById('selectedTaefelerPhone').textContent = '-';
             document.getElementById('selectedScorerName').textContent = '-';
-            document.getElementById('selectedScorerPhone').textContent = '-';
 
             // Set team displays
             document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team_short ? `(${game.taefeler_team_short})` : '';
@@ -1878,19 +1896,11 @@
 
             // If game has existing selections, show them
             if (game.taefeler_name) {
-                const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
-                if (taefeler) {
-                    document.getElementById('selectedTaefelerName').textContent = game.taefeler_name;
-                    document.getElementById('selectedTaefelerPhone').textContent = taefeler.phone || '-';
-                }
+                document.getElementById('selectedTaefelerName').textContent = game.taefeler_name;
             }
             
             if (game.scorer_name) {
-                const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
-                if (scorer) {
-                    document.getElementById('selectedScorerName').textContent = game.scorer_name;
-                    document.getElementById('selectedScorerPhone').textContent = scorer.phone || '-';
-                }
+                document.getElementById('selectedScorerName').textContent = game.scorer_name;
             }
         }
 
@@ -1922,9 +1932,9 @@
                 await loadTaefelers();
                 await loadScorers();
                 
-                // Update dropdowns
-                populateTaefelerDropdown();
-                populateScorerDropdown();
+                // Update results
+                populateTaefelerResults();
+                populateScorerResults();
 
                 closeAddPersonModal();
                 alert('Person added successfully!');
