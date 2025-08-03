@@ -1162,13 +1162,11 @@
 
     <!-- Täfeler Selector Modal -->
     <div id="taefelerSelectorModal" class="modal">
-        <div class="modal-content" style="max-height: 70vh; height: 500px;">
-            <span class="close" onclick="closeTaefelerSelector()">&times;</span>
+        <div class="modal-content" style="max-height: 60vh; height: 450px;">
             <div class="modal-header">
                 <div class="modal-title">Select Täfeler</div>
-                <div class="modal-subtitle">Choose a täfeler for this game</div>
             </div>
-            <div class="game-details-modal" style="height: calc(100% - 140px); overflow: hidden;">
+            <div class="game-details-modal" style="height: calc(100% - 120px); overflow: hidden;">
                 <div class="form-section">
                     <div class="form-group">
                         <label for="taefelerSearch">Search Täfelers</label>
@@ -1176,7 +1174,7 @@
                     </div>
                     <div class="form-group">
                         <label>Available Täfelers</label>
-                        <div id="taefelerResults" style="height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <div id="taefelerResults" style="height: 180px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
                             <!-- Results will be populated here -->
                         </div>
                     </div>
@@ -1192,13 +1190,11 @@
 
     <!-- Scorer Selector Modal -->
     <div id="scorerSelectorModal" class="modal">
-        <div class="modal-content" style="max-height: 70vh; height: 500px;">
-            <span class="close" onclick="closeScorerSelector()">&times;</span>
+        <div class="modal-content" style="max-height: 60vh; height: 450px;">
             <div class="modal-header">
                 <div class="modal-title">Select Scorer</div>
-                <div class="modal-subtitle">Choose a scorer for this game</div>
             </div>
-            <div class="game-details-modal" style="height: calc(100% - 140px); overflow: hidden;">
+            <div class="game-details-modal" style="height: calc(100% - 120px); overflow: hidden;">
                 <div class="form-section">
                     <div class="form-group">
                         <label for="scorerSearch">Search Scorers</label>
@@ -1206,7 +1202,7 @@
                     </div>
                     <div class="form-group">
                         <label>Available Scorers</label>
-                        <div id="scorerResults" style="height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <div id="scorerResults" style="height: 180px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
                             <!-- Results will be populated here -->
                         </div>
                     </div>
@@ -1678,9 +1674,9 @@
                 allTaefelers.forEach(person => {
                     const resultItem = document.createElement('div');
                     resultItem.className = 'result-item';
-                    resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.style.cssText = 'padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
                     resultItem.innerHTML = `
-                        <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
+                        <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
                     resultItem.addEventListener('click', () => selectTaefeler(person));
@@ -1710,9 +1706,9 @@
                 allScorers.forEach(person => {
                     const resultItem = document.createElement('div');
                     resultItem.className = 'result-item';
-                    resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.style.cssText = 'padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
                     resultItem.innerHTML = `
-                        <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
+                        <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
                     resultItem.addEventListener('click', () => selectScorer(person));
@@ -1761,9 +1757,9 @@
                 filteredTaefelers.forEach(person => {
                     const resultItem = document.createElement('div');
                     resultItem.className = 'result-item';
-                    resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.style.cssText = 'padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
                     resultItem.innerHTML = `
-                        <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
+                        <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
                     resultItem.addEventListener('click', () => selectTaefeler(person));
@@ -1808,9 +1804,9 @@
                 filteredScorers.forEach(person => {
                     const resultItem = document.createElement('div');
                     resultItem.className = 'result-item';
-                    resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.style.cssText = 'padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
                     resultItem.innerHTML = `
-                        <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
+                        <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
                     resultItem.addEventListener('click', () => selectScorer(person));
