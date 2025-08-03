@@ -1034,7 +1034,6 @@
                         </div>
                         <div class="form-group" style="flex: 0 0 auto; margin-left: 15px;">
                             <button type="button" class="btn btn-primary" onclick="showTaefelerSelector()" id="selectTaefelerBtn">Select Täfeler</button>
-                            <button type="button" id="addTaefelerBtn" class="btn btn-info" style="margin-top: 10px;" onclick="showAddTaefelerModal()">Add New Person</button>
                         </div>
                     </div>
                 </div>
@@ -1186,6 +1185,7 @@
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
                 <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
+                <button class="btn btn-primary" id="confirmTaefelerBtn" onclick="confirmTaefelerSelection()" style="display: none;">Confirm</button>
             </div>
         </div>
     </div>
@@ -1214,6 +1214,7 @@
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeScorerSelector()">Cancel</button>
+                <button class="btn btn-primary" id="confirmScorerBtn" onclick="confirmScorerSelection()" style="display: none;">Confirm</button>
             </div>
         </div>
     </div>
@@ -1660,7 +1661,6 @@
                     resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
                     resultItem.innerHTML = `
                         <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
-                        <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${person.phone || 'No phone'}</div>
                     `;
                     
                     resultItem.addEventListener('click', () => selectTaefeler(person));
@@ -1693,7 +1693,6 @@
                     resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
                     resultItem.innerHTML = `
                         <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
-                        <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${person.phone || 'No phone'}</div>
                     `;
                     
                     resultItem.addEventListener('click', () => selectScorer(person));
@@ -1745,7 +1744,6 @@
                     resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
                     resultItem.innerHTML = `
                         <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
-                        <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${person.phone || 'No phone'}</div>
                     `;
                     
                     resultItem.addEventListener('click', () => selectTaefeler(person));
@@ -1793,7 +1791,6 @@
                     resultItem.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
                     resultItem.innerHTML = `
                         <div style="font-weight: 500; color: #333;">${person.fname} ${person.lname}</div>
-                        <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${person.phone || 'No phone'}</div>
                     `;
                     
                     resultItem.addEventListener('click', () => selectScorer(person));
@@ -1837,11 +1834,18 @@
 
         // Select täfeler from results
         function selectTaefeler(person) {
-            document.getElementById('selectedTaefelerName').textContent = `${person.fname} ${person.lname}`;
-            closeTaefelerSelector();
+            // Highlight the selected item
+            const resultItems = document.querySelectorAll('#taefelerResults .result-item');
+            resultItems.forEach(item => {
+                item.style.backgroundColor = 'white';
+                item.style.border = 'none';
+            });
+            event.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
+            event.target.closest('.result-item').style.border = '2px solid #2196f3';
             
-            // Auto-save the selection
-            saveGameDetails();
+            // Change button text to "Confirm"
+            document.getElementById('confirmTaefelerBtn').textContent = 'Confirm';
+            document.getElementById('confirmTaefelerBtn').style.display = 'inline-block';
         }
 
         // Confirm täfeler (final confirmation)
@@ -1855,20 +1859,42 @@
 
         // Select scorer from results
         function selectScorer(person) {
-            document.getElementById('selectedScorerName').textContent = `${person.fname} ${person.lname}`;
-            closeScorerSelector();
+            // Highlight the selected item
+            const resultItems = document.querySelectorAll('#scorerResults .result-item');
+            resultItems.forEach(item => {
+                item.style.backgroundColor = 'white';
+                item.style.border = 'none';
+            });
+            event.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
+            event.target.closest('.result-item').style.border = '2px solid #2196f3';
             
-            // Auto-save the selection
-            saveGameDetails();
+            // Change button text to "Confirm"
+            document.getElementById('confirmScorerBtn').textContent = 'Confirm';
+            document.getElementById('confirmScorerBtn').style.display = 'inline-block';
         }
 
-        // Confirm scorer (final confirmation)
-        function confirmScorer() {
-            document.getElementById('confirmScorerBtn').style.display = 'none';
-            document.getElementById('selectScorerBtn').style.display = 'inline-block';
-            document.getElementById('selectScorerBtn').disabled = true;
-            document.getElementById('selectScorerBtn').textContent = 'Scorer Confirmed';
-            alert('Scorer confirmed and locked!');
+        // Confirm täfeler selection
+        function confirmTaefelerSelection() {
+            const selectedItem = document.querySelector('#taefelerResults .result-item[style*="border: 2px solid #2196f3"]');
+            if (selectedItem) {
+                const nameElement = selectedItem.querySelector('div');
+                const fullName = nameElement.textContent;
+                document.getElementById('selectedTaefelerName').textContent = fullName;
+                closeTaefelerSelector();
+                saveGameDetails();
+            }
+        }
+
+        // Confirm scorer selection
+        function confirmScorerSelection() {
+            const selectedItem = document.querySelector('#scorerResults .result-item[style*="border: 2px solid #2196f3"]');
+            if (selectedItem) {
+                const nameElement = selectedItem.querySelector('div');
+                const fullName = nameElement.textContent;
+                document.getElementById('selectedScorerName').textContent = fullName;
+                closeScorerSelector();
+                saveGameDetails();
+            }
         }
 
         // Show add new person modal
