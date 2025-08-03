@@ -796,29 +796,8 @@
             <h1>Schreibereinsätze Coaches Panel</h1>
         </div>
 
-                 <!-- Authentication Section -->
-         <div id="authSection" class="auth-section">
-             <div class="auth-form">
-                 <div style="text-align: left; margin-bottom: 20px;">
-                     <button class="btn btn-outline" onclick="goBack()">← Back</button>
-                 </div>
-                 <h2>Coaches Login</h2>
-                 <div id="loginForm">
-                     <div class="form-group">
-                         <label for="adminEmail">Email</label>
-                         <input type="email" id="adminEmail" placeholder="Enter your email">
-                     </div>
-                     <div class="form-group">
-                         <label for="adminPassword">Password</label>
-                         <input type="password" id="adminPassword" placeholder="Enter your password">
-                     </div>
-                     <button class="btn btn-primary" onclick="loginAdmin()">Login</button>
-                 </div>
-             </div>
-         </div>
-
-        <!-- Coaches Content -->
-        <div id="adminContent" class="main-content" style="display: none;">
+                         <!-- Coaches Content -->
+        <div id="adminContent" class="main-content">
             <div class="user-info">
                 <div>
                     <strong>Logged in as:</strong> <span id="userEmail"></span>
@@ -1468,16 +1447,26 @@
             document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || 'TBD';
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || 'TBD';
             
-            // Populate täfeler information (read-only)
+            // Populate täfeler information (read-only) with phone lookup from scorers table
             document.getElementById('taefelerNameDisplay').textContent = game.taefeler_name || '-';
-            document.getElementById('taefelerPhoneDisplay').textContent = game.taefeler_phone || '-';
+            if (game.taefeler_name) {
+                const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                document.getElementById('taefelerPhoneDisplay').textContent = taefeler ? taefeler.phone || 'no phone found' : 'no phone found';
+            } else {
+                document.getElementById('taefelerPhoneDisplay').textContent = '-';
+            }
             
             // Show/hide scorer section based on whether scorer team is assigned
             const scorerSection = document.getElementById('scorerSection');
             if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
                 scorerSection.style.display = 'block';
                 document.getElementById('scorerNameDisplay').textContent = game.scorer_name || '-';
-                document.getElementById('scorerPhoneDisplay').textContent = game.scorer_phone || '-';
+                if (game.scorer_name) {
+                    const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                    document.getElementById('scorerPhoneDisplay').textContent = scorer ? scorer.phone || 'no phone found' : 'no phone found';
+                } else {
+                    document.getElementById('scorerPhoneDisplay').textContent = '-';
+                }
             } else {
                 scorerSection.style.display = 'none';
             }
@@ -1982,6 +1971,19 @@
                                 const scorerNameClass = noScorerTeam ? 'scorer-disabled' : '';
                                 const scorerPhoneClass = noScorerTeam ? 'scorer-disabled' : '';
                                 
+                                // Look up phone numbers from scorers table
+                                let scorerPhone = '';
+                                if (game.scorer_name) {
+                                    const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                                    scorerPhone = scorer ? scorer.phone || 'no phone found' : 'no phone found';
+                                }
+                                
+                                let taefelerPhone = '';
+                                if (game.taefeler_name) {
+                                    const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                                    taefelerPhone = taefeler ? taefeler.phone || 'no phone found' : 'no phone found';
+                                }
+                                
                                 return `
                                     <tr class="${rowClass}">
                                         <td>${formattedDate}</td>
@@ -1991,10 +1993,10 @@
                                         <td>${game.halle_short || ''}</td>
                                         <td class="${scorerTeamClass}">${game.scorer_team_short || ''}</td>
                                         <td class="${scorerNameClass}">${game.scorer_name || ''}</td>
-                                        <td class="${scorerPhoneClass}">${game.scorer_phone || ''}</td>
+                                        <td class="${scorerPhoneClass}">${scorerPhone}</td>
                                         <td>${game.taefeler_team_short || ''}</td>
                                         <td>${game.taefeler_name || ''}</td>
-                                        <td>${game.taefeler_phone || ''}</td>
+                                        <td>${taefelerPhone}</td>
                                     </tr>
                                 `;
                             }).join('')}
