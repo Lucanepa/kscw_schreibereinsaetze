@@ -2197,7 +2197,7 @@
             currentGame = game;
             
             // Hide main content and show focused game view
-            document.getElementById('mainContent').style.display = 'none';
+            document.querySelector('.main-content').style.display = 'none';
             document.getElementById('focusedGameView').style.display = 'block';
             
             // Populate focused game view
@@ -2246,7 +2246,7 @@
         // Back to main view
         function backToMainView() {
             document.getElementById('focusedGameView').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
+            document.querySelector('.main-content').style.display = 'block';
             currentGame = null;
         }
 
