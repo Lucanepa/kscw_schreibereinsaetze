@@ -2723,7 +2723,7 @@
                 // Check for issues - only show green check if BOTH roles are confirmed
                 const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
                 const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && 
-                                         (!game.scorer_name || !game.scorer_name.trim());
+                                         (!game.scorer_name || !game.scorer_name.trim() || game.scorer_name === '-');
                 const isEditable = isGameEditable(game);
                 
                 // Only show green check if both roles are confirmed (no issues)
@@ -3010,7 +3010,7 @@
                 // Check for issues
                 const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
                 const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && 
-                                         (!game.scorer_name || !game.scorer_name.trim());
+                                         (!game.scorer_name || !game.scorer_name.trim() || game.scorer_name === '-');
                 const hasIssues = hasTaefelerIssue || hasScorerIssue;
 
                 const gameClass = hasIssues ? 'team-game-item has-issues' : 'team-game-item';
@@ -3025,8 +3025,8 @@
                         <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? `
-                                <div class="team-role-item ${!game.scorer_name || !game.scorer_name.trim() ? 'has-issue' : ''}">
-                                    📝 ${translations[currentLanguage].scorer}: ${game.scorer_team_short}${game.scorer_name ? ` (${game.scorer_name})` : ''}
+                                <div class="team-role-item ${!game.scorer_name || !game.scorer_name.trim() || game.scorer_name === '-' ? 'has-issue' : ''}">
+                                    📝 ${translations[currentLanguage].scorer}: ${game.scorer_team_short}${game.scorer_name && game.scorer_name !== '-' ? ` (${game.scorer_name})` : ''}
                                 </div>
                             ` : ''}
                             <div class="team-role-item ${!game.taefeler_name || !game.taefeler_name.trim() ? 'has-issue' : ''}">
