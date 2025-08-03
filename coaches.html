@@ -1049,36 +1049,16 @@
             SUPABASE_CONFIG.anonKey
         );
 
-        // Login admin
-        async function loginAdmin() {
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-
-            if (!email || !password) {
-                alert('Please enter both email and password');
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                currentUser = data.user;
-                showAdminContent();
-            } catch (error) {
-                alert('Login failed: ' + error.message);
-            }
+        // Initialize coaches content
+        function initializeCoachesContent() {
+            loadAdminData();
         }
 
         // Logout
         async function logout() {
             await supabase.auth.signOut();
             currentUser = null;
-            showAuthSection();
+            window.location.href = 'index.html';
         }
 
         // Go to main page
@@ -1093,20 +1073,6 @@
             } else {
                 window.location.href = 'index.html';
             }
-        }
-
-        // Show admin content
-        function showAdminContent() {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('adminContent').style.display = 'block';
-            document.getElementById('userEmail').textContent = currentUser.email;
-            loadAdminData();
-        }
-
-        // Show auth section
-        function showAuthSection() {
-            document.getElementById('authSection').style.display = 'block';
-            document.getElementById('adminContent').style.display = 'none';
         }
 
         // Load admin data
@@ -1848,13 +1814,9 @@
             }
         }
 
-        // Check authentication status on page load
+        // Initialize coaches content on page load
         async function checkAuthStatus() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                currentUser = user;
-                showAdminContent();
-            }
+            initializeCoachesContent();
         }
 
         // Download Excel
