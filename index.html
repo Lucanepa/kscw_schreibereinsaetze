@@ -1180,7 +1180,7 @@
                         <label>Current Täfeler:</label>
                         <span id="currentTaefelerName">-</span>
                     </div>
-                    <div class="selection-controls">
+                    <div class="selection-controls" id="taefelerSelectionControls">
                         <button class="btn btn-primary" onclick="showTaefelerSelector()">Select Täfeler</button>
                     </div>
                 </div>
@@ -1191,7 +1191,7 @@
                         <label>Current Scorer:</label>
                         <span id="currentScorerName">-</span>
                     </div>
-                    <div class="selection-controls">
+                    <div class="selection-controls" id="scorerSelectionControls">
                         <button class="btn btn-primary" onclick="showScorerSelector()">Select Scorer</button>
                     </div>
                 </div>
@@ -2085,6 +2085,11 @@
                 window.selectedTaefeler = null;
             }
             if (typeof filterTaefelers === 'function') filterTaefelers(); // Reset filter
+            
+            // Update the focused game view to reflect any changes
+            if (currentGame) {
+                populateFocusedGameView(currentGame);
+            }
         }
 
         // Close scorer selector focused view
@@ -2104,6 +2109,11 @@
                 window.selectedScorer = null;
             }
             if (typeof filterScorers === 'function') filterScorers(); // Reset filter
+            
+            // Update the focused game view to reflect any changes
+            if (currentGame) {
+                populateFocusedGameView(currentGame);
+            }
         }
 
         // Show confirmation in focused view
@@ -2224,8 +2234,7 @@
                 saveGameDetails();
                 window.confirmationType = null;
                 
-                // Show success message
-                alert('Täfeler confirmed and locked!');
+                // Return focus to game details (no alert)
             } else if (window.confirmationType === 'scorer' && window.selectedScorer) {
                 const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
                 
@@ -2248,8 +2257,7 @@
                 saveGameDetails();
                 window.confirmationType = null;
                 
-                // Show success message
-                alert('Scorer confirmed and locked!');
+                // Return focus to game details (no alert)
             }
         }
 
@@ -2273,10 +2281,10 @@
             // Store the selected person
             window.selectedTaefeler = person;
             
-            // Change button text to "Confirm"
+            // Show confirm button
             const confirmTaefelerBtn = document.getElementById('confirmTaefelerBtn');
             if (confirmTaefelerBtn) {
-                confirmTaefelerBtn.textContent = 'Confirm';
+                confirmTaefelerBtn.textContent = 'Confirm Selection';
                 confirmTaefelerBtn.style.display = 'inline-block';
             }
         }
@@ -2303,10 +2311,10 @@
             // Store the selected person
             window.selectedScorer = person;
             
-            // Change button text to "Confirm"
+            // Show confirm button
             const confirmScorerBtn = document.getElementById('confirmScorerBtn');
             if (confirmScorerBtn) {
-                confirmScorerBtn.textContent = 'Confirm';
+                confirmScorerBtn.textContent = 'Confirm Selection';
                 confirmScorerBtn.style.display = 'inline-block';
             }
         }
@@ -2426,6 +2434,22 @@
                 scorerSection.style.display = 'block';
             } else {
                 scorerSection.style.display = 'none';
+            }
+            
+            // Hide selection buttons for confirmed roles
+            const taefelerSelectionControls = document.getElementById('taefelerSelectionControls');
+            const scorerSelectionControls = document.getElementById('scorerSelectionControls');
+            
+            if (game.taefeler_name && game.taefeler_name.trim() !== '') {
+                taefelerSelectionControls.style.display = 'none';
+            } else {
+                taefelerSelectionControls.style.display = 'block';
+            }
+            
+            if (game.scorer_name && game.scorer_name.trim() !== '') {
+                scorerSelectionControls.style.display = 'none';
+            } else {
+                scorerSelectionControls.style.display = 'block';
             }
         }
 
@@ -2685,11 +2709,16 @@
                 const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
-                // Check for issues
+                // Check for issues - only show green check if BOTH roles are confirmed
                 const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
                 const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && 
                                          (!game.scorer_name || !game.scorer_name.trim());
                 const isEditable = isGameEditable(game);
+                
+                // Only show green check if both roles are confirmed (no issues)
+                const hasTaefelerConfirmed = !hasTaefelerIssue;
+                const hasScorerConfirmed = !hasScorerIssue;
+                const bothRolesConfirmed = hasTaefelerConfirmed && (game.scorer_team_short && game.scorer_team_short.trim() !== '' ? hasScorerConfirmed : true);
 
                 const gameCard = document.createElement('div');
                 gameCard.className = 'game-card';
@@ -2718,6 +2747,7 @@
                             <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
                         </div>
                     </div>
+                    ${bothRolesConfirmed ? '<div style="text-align: center; margin-top: 10px; color: #28a745; font-weight: bold;">✅ Game Details Confirmed</div>' : ''}
                 `;
 
                 gamesContainer.appendChild(gameCard);
@@ -2852,7 +2882,6 @@
                 // Go back to main view
                 backToMainView();
                 renderGames();
-                alert('Game details saved successfully!');
             } catch (error) {
                 console.error('Error saving game details:', error);
                 alert('Error saving game details. Please try again.');
