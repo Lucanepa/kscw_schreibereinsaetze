@@ -2098,8 +2098,30 @@
             
             const modal = document.getElementById('confirmationModal');
             console.log('Confirmation modal element:', modal);
-            modal.style.display = 'block';
-            console.log('Modal display set to block');
+            
+            // Force modal to be visible with important styles
+            modal.style.cssText = `
+                display: block !important;
+                position: fixed !important;
+                z-index: 9999 !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                background-color: rgba(0,0,0,0.5) !important;
+            `;
+            
+            // Temporarily hide focused views to test modal visibility
+            const focusedViews = document.querySelectorAll('.focused-game-view');
+            focusedViews.forEach(view => {
+                if (view.style.display !== 'none') {
+                    console.log('Hiding focused view:', view.id);
+                    view.style.display = 'none';
+                }
+            });
+            
+            console.log('Modal display set to block with forced styles');
+            console.log('Modal computed styles:', window.getComputedStyle(modal));
         }
 
         // Close confirmation modal
