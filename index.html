@@ -2227,6 +2227,11 @@
                     selectedTaefelerName.textContent = fullName;
                 }
                 
+                // Update currentGame object with new täfeler information
+                if (currentGame) {
+                    currentGame.taefeler_name = fullName;
+                }
+                
                 // Set confirmation state
                 window.taefelerConfirmed = true;
                 
@@ -2251,6 +2256,11 @@
                 const selectedScorerName = document.getElementById('selectedScorerName');
                 if (selectedScorerName) {
                     selectedScorerName.textContent = fullName;
+                }
+                
+                // Update currentGame object with new scorer information
+                if (currentGame) {
+                    currentGame.scorer_name = fullName;
                 }
                 
                 // Close scorer selector and save
