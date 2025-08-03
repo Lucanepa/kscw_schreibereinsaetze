@@ -1162,6 +1162,7 @@
             <div class="focused-game-header">
                 <button class="btn btn-outline" onclick="backToMainView()">← Back to Games</button>
                 <h2 id="focusedGameTitle">Game Details</h2>
+                <button class="btn btn-success" onclick="downloadICS()">📅 Download ICS</button>
             </div>
             
             <div class="focused-game-info">
@@ -2622,7 +2623,7 @@
 
         // Open coach access
         async function openCoachAccess() {
-            window.open('coaches.html', '_blank');
+            window.location.href = 'coaches.html';
         }
 
         // Close modal
