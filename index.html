@@ -2834,9 +2834,8 @@
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
                 // Check for issues - only show green check if BOTH roles are confirmed
-                const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
-                const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && 
-                                         (!game.scorer_name || !game.scorer_name.trim() || game.scorer_name === '-');
+                const hasTaefelerIssue = !game.taefeler_id;
+                const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && !game.scorer_id;
                 const isEditable = isGameEditable(game);
                 
                 // Only show green check if both roles are confirmed (no issues)
@@ -2868,6 +2867,23 @@
                 gameCard.setAttribute('data-match-id', game.match_id);
                 gameCard.setAttribute('data-match-name', `${game.home_team} vs ${game.away_team}`);
 
+                // Retrieve names from scorer_scorers table using IDs
+                let taefelerName = '';
+                if (game.taefeler_id) {
+                    const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                    if (taefeler) {
+                        taefelerName = `${taefeler.fname} ${taefeler.lname}`;
+                    }
+                }
+                
+                let scorerName = '';
+                if (game.scorer_id) {
+                    const scorer = allScorers.find(s => s.id === game.scorer_id);
+                    if (scorer) {
+                        scorerName = `${scorer.fname} ${scorer.lname}`;
+                    }
+                }
+                
                 gameCard.innerHTML = `
                     <div class="game-header">
                         <div class="game-date">${formattedDate}</div>
@@ -2880,12 +2896,12 @@
                     <div class="game-roles">
                         ${game.scorer_team_short && game.scorer_team_short.trim() !== '' && isEditable ? `
                             <div class="role-item">
-                                <div class="role-label">📝 Scorer: ${game.scorer_team_short}${game.scorer_name ? ` (${game.scorer_name})` : ''}</div>
+                                <div class="role-label">📝 Scorer: ${game.scorer_team_short}${scorerName ? ` (${scorerName})` : ''}</div>
                                 <div class="status-icon">${hasScorerIssue ? '⚠️' : '✅'}</div>
                             </div>
                         ` : ''}
                         <div class="role-item">
-                            <div class="role-label">🏐 ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler'}: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
+                            <div class="role-label">🏐 ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler'}: ${game.taefeler_team_short || 'TBD'}${taefelerName ? ` (${taefelerName})` : ''}</div>
                             <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
                         </div>
                     </div>
@@ -3160,11 +3176,27 @@
                 const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
-                // Check for issues
-                const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
-                const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && 
-                                         (!game.scorer_name || !game.scorer_name.trim() || game.scorer_name === '-');
+                // Check for issues using IDs
+                const hasTaefelerIssue = !game.taefeler_id;
+                const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && !game.scorer_id;
                 const hasIssues = hasTaefelerIssue || hasScorerIssue;
+
+                // Retrieve names from scorer_scorers table using IDs
+                let taefelerName = '';
+                if (game.taefeler_id) {
+                    const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                    if (taefeler) {
+                        taefelerName = `${taefeler.fname} ${taefeler.lname}`;
+                    }
+                }
+                
+                let scorerName = '';
+                if (game.scorer_id) {
+                    const scorer = allScorers.find(s => s.id === game.scorer_id);
+                    if (scorer) {
+                        scorerName = `${scorer.fname} ${scorer.lname}`;
+                    }
+                }
 
                 const gameClass = hasIssues ? 'team-game-item has-issues' : 'team-game-item';
 
@@ -3178,12 +3210,12 @@
                         <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? `
-                                <div class="team-role-item ${!game.scorer_name || !game.scorer_name.trim() || game.scorer_name === '-' ? 'has-issue' : ''}">
-                                    📝 ${translations[currentLanguage].scorer}: ${game.scorer_team_short}${game.scorer_name && game.scorer_name !== '-' ? ` (${game.scorer_name})` : ''}
+                                <div class="team-role-item ${!game.scorer_id ? 'has-issue' : ''}">
+                                    📝 ${translations[currentLanguage].scorer}: ${game.scorer_team_short}${scorerName ? ` (${scorerName})` : ''}
                                 </div>
                             ` : ''}
-                            <div class="team-role-item ${!game.taefeler_name || !game.taefeler_name.trim() ? 'has-issue' : ''}">
-                                🏐 ${translations[currentLanguage].taefeler}: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}
+                            <div class="team-role-item ${!game.taefeler_id ? 'has-issue' : ''}">
+                                🏐 ${translations[currentLanguage].taefeler}: ${game.taefeler_team_short || 'TBD'}${taefelerName ? ` (${taefelerName})` : ''}
                             </div>
                         </div>
                     </div>
