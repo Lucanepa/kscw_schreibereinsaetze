@@ -1524,7 +1524,13 @@
             const dropdown = document.getElementById('taefelerDropdown');
             dropdown.innerHTML = '<option value="">-- Select Täfeler --</option>';
             
-            allTaefelers.forEach(person => {
+            // Filter täfelers by team if currentGame has taefeler_team_short
+            let filteredTaefelers = allTaefelers;
+            if (currentGame && currentGame.taefeler_team_short) {
+                filteredTaefelers = allTaefelers.filter(person => person.team === currentGame.taefeler_team_short);
+            }
+            
+            filteredTaefelers.forEach(person => {
                 const option = document.createElement('option');
                 option.value = person.id;
                 option.textContent = `${person.fname} ${person.lname}`;
@@ -1554,7 +1560,13 @@
             const dropdown = document.getElementById('scorerDropdown');
             dropdown.innerHTML = '<option value="">-- Select Scorer --</option>';
             
-            allScorers.forEach(person => {
+            // Filter scorers by team if currentGame has scorer_team_short
+            let filteredScorers = allScorers;
+            if (currentGame && currentGame.scorer_team_short) {
+                filteredScorers = allScorers.filter(person => person.team === currentGame.scorer_team_short);
+            }
+            
+            filteredScorers.forEach(person => {
                 const option = document.createElement('option');
                 option.value = person.id;
                 option.textContent = `${person.fname} ${person.lname}`;
@@ -1585,6 +1597,12 @@
             const dropdown = document.getElementById('taefelerDropdown');
             const options = dropdown.querySelectorAll('option');
             let visibleCount = 0;
+            
+            // First filter by team if currentGame has taefeler_team_short
+            let teamFilteredTaefelers = allTaefelers;
+            if (currentGame && currentGame.taefeler_team_short) {
+                teamFilteredTaefelers = allTaefelers.filter(person => person.team === currentGame.taefeler_team_short);
+            }
             
             options.forEach(option => {
                 if (option.value === '') return; // Skip the placeholder option
@@ -1620,6 +1638,12 @@
             const dropdown = document.getElementById('scorerDropdown');
             const options = dropdown.querySelectorAll('option');
             let visibleCount = 0;
+            
+            // First filter by team if currentGame has scorer_team_short
+            let teamFilteredScorers = allScorers;
+            if (currentGame && currentGame.scorer_team_short) {
+                teamFilteredScorers = allScorers.filter(person => person.team === currentGame.scorer_team_short);
+            }
             
             options.forEach(option => {
                 if (option.value === '') return; // Skip the placeholder option
@@ -1661,34 +1685,26 @@
             document.getElementById('confirmTaefelerBtn').style.display = 'none';
             document.getElementById('confirmScorerBtn').style.display = 'none';
 
-            // If game has existing selections, show them
-            if (game.taefeler_name) {
-                // Try to find by ID first, then fall back to name matching
-                let taefeler = null;
-                if (game.taefeler_id) {
-                    taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                }
-                if (!taefeler) {
-                    taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
-                }
+            // If game has existing selections, show them using IDs
+            if (game.taefeler_id) {
+                const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
                 if (taefeler) {
-                    document.getElementById('selectedTaefelerName').textContent = game.taefeler_name;
+                    document.getElementById('selectedTaefelerName').textContent = `${taefeler.fname} ${taefeler.lname}`;
                     document.getElementById('selectedTaefelerPhone').textContent = taefeler.phone || '-';
+                } else {
+                    document.getElementById('selectedTaefelerName').textContent = 'Person not found';
+                    document.getElementById('selectedTaefelerPhone').textContent = 'no phone found';
                 }
             }
             
-            if (game.scorer_name) {
-                // Try to find by ID first, then fall back to name matching
-                let scorer = null;
-                if (game.scorer_id) {
-                    scorer = allScorers.find(s => s.id === game.scorer_id);
-                }
-                if (!scorer) {
-                    scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
-                }
+            if (game.scorer_id) {
+                const scorer = allScorers.find(s => s.id === game.scorer_id);
                 if (scorer) {
-                    document.getElementById('selectedScorerName').textContent = game.scorer_name;
+                    document.getElementById('selectedScorerName').textContent = `${scorer.fname} ${scorer.lname}`;
                     document.getElementById('selectedScorerPhone').textContent = scorer.phone || '-';
+                } else {
+                    document.getElementById('selectedScorerName').textContent = 'Person not found';
+                    document.getElementById('selectedScorerPhone').textContent = 'no phone found';
                 }
             }
         }
@@ -1822,14 +1838,9 @@
                 }
                 
                 // Use match_id for updates (much simpler and more reliable)
-                const updateData = {
-                    taefeler_name: taefelerName,
-                    taefeler_phone: taefelerPhone,
-                    scorer_name: scorerName,
-                    scorer_phone: scorerPhone
-                };
+                const updateData = {};
                 
-                // Add ID fields if they exist in currentGame
+                // Only store IDs, not names or phones
                 if (currentGame.taefeler_id) {
                     updateData.taefeler_id = currentGame.taefeler_id;
                 }
@@ -1850,11 +1861,7 @@
                 // Update the game in our local array
                 const gameIndex = allGames.findIndex(g => g.match_id === currentGame.match_id);
                 if (gameIndex !== -1) {
-                    allGames[gameIndex].taefeler_name = taefelerName;
-                    allGames[gameIndex].taefeler_phone = taefelerPhone;
-                    allGames[gameIndex].scorer_name = scorerName;
-                    allGames[gameIndex].scorer_phone = scorerPhone;
-                    // Also update ID fields if they exist
+                    // Only store IDs, not names or phones
                     if (currentGame.taefeler_id) {
                         allGames[gameIndex].taefeler_id = currentGame.taefeler_id;
                     }
@@ -1899,46 +1906,46 @@
                     });
                     const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
                     
-                    // Look up phone numbers from scorers table
+                    // Look up names and phone numbers from scorers table using IDs
+                    let scorerName = '';
                     let scorerPhone = '';
-                    if (game.scorer_name) {
-                        // Try to find by ID first, then fall back to name matching
-                        let scorer = null;
-                        if (game.scorer_id) {
-                            scorer = allScorers.find(s => s.id === game.scorer_id);
+                    if (game.scorer_id) {
+                        const scorer = allScorers.find(s => s.id === game.scorer_id);
+                        if (scorer) {
+                            scorerName = `${scorer.fname} ${scorer.lname}`;
+                            scorerPhone = scorer.phone || 'no phone found';
+                        } else {
+                            scorerName = 'Person not found';
+                            scorerPhone = 'no phone found';
                         }
-                        if (!scorer) {
-                            scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
-                        }
-                        scorerPhone = scorer ? scorer.phone || 'no phone found' : 'no phone found';
                     }
                     
+                    let taefelerName = '';
                     let taefelerPhone = '';
-                    if (game.taefeler_name) {
-                        // Try to find by ID first, then fall back to name matching
-                        let taefeler = null;
-                        if (game.taefeler_id) {
-                            taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                    if (game.taefeler_id) {
+                        const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                        if (taefeler) {
+                            taefelerName = `${taefeler.fname} ${taefeler.lname}`;
+                            taefelerPhone = taefeler.phone || 'no phone found';
+                        } else {
+                            taefelerName = 'Person not found';
+                            taefelerPhone = 'no phone found';
                         }
-                        if (!taefeler) {
-                            taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
-                        }
-                        taefelerPhone = taefeler ? taefeler.phone || 'no phone found' : 'no phone found';
                     }
                     
-                    return [
-                        formattedDate,
-                        formattedTime,
-                        game.home_team || '',
-                        game.away_team || '',
-                        game.halle_short || '',
-                        game.scorer_team_short || '',
-                        game.scorer_name || '',
-                        scorerPhone,
-                        game.taefeler_team_short || '',
-                        game.taefeler_name || '',
-                        taefelerPhone
-                    ].map(field => `"${field}"`).join(',');
+                                           return [
+                           formattedDate,
+                           formattedTime,
+                           game.home_team || '',
+                           game.away_team || '',
+                           game.halle_short || '',
+                           game.scorer_team_short || '',
+                           scorerName,
+                           scorerPhone,
+                           game.taefeler_team_short || '',
+                           taefelerName,
+                           taefelerPhone
+                       ].map(field => `"${field}"`).join(',');
                 })
             ].join('\n');
             
@@ -2004,10 +2011,9 @@
                                 });
                                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
                                 
-                                // Check for issues (missing names)
-                                const hasTaefelerIssue = !game.taefeler_name || !game.taefeler_name.trim();
-                                const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && 
-                                                         (!game.scorer_name || !game.scorer_name.trim());
+                                // Check for issues (missing IDs)
+                                const hasTaefelerIssue = !game.taefeler_id;
+                                const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && !game.scorer_id;
                                 const hasIssues = hasTaefelerIssue || hasScorerIssue;
                                 
                                 // Check if scorer team is empty
@@ -2018,31 +2024,31 @@
                                 const scorerNameClass = noScorerTeam ? 'scorer-disabled' : '';
                                 const scorerPhoneClass = noScorerTeam ? 'scorer-disabled' : '';
                                 
-                                // Look up phone numbers from scorers table
+                                // Look up names and phone numbers from scorers table using IDs
+                                let scorerName = '';
                                 let scorerPhone = '';
-                                if (game.scorer_name) {
-                                    // Try to find by ID first, then fall back to name matching
-                                    let scorer = null;
-                                    if (game.scorer_id) {
-                                        scorer = allScorers.find(s => s.id === game.scorer_id);
+                                if (game.scorer_id) {
+                                    const scorer = allScorers.find(s => s.id === game.scorer_id);
+                                    if (scorer) {
+                                        scorerName = `${scorer.fname} ${scorer.lname}`;
+                                        scorerPhone = scorer.phone || 'no phone found';
+                                    } else {
+                                        scorerName = 'Person not found';
+                                        scorerPhone = 'no phone found';
                                     }
-                                    if (!scorer) {
-                                        scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
-                                    }
-                                    scorerPhone = scorer ? scorer.phone || 'no phone found' : 'no phone found';
                                 }
                                 
+                                let taefelerName = '';
                                 let taefelerPhone = '';
-                                if (game.taefeler_name) {
-                                    // Try to find by ID first, then fall back to name matching
-                                    let taefeler = null;
-                                    if (game.taefeler_id) {
-                                        taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                                if (game.taefeler_id) {
+                                    const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                                    if (taefeler) {
+                                        taefelerName = `${taefeler.fname} ${taefeler.lname}`;
+                                        taefelerPhone = taefeler.phone || 'no phone found';
+                                    } else {
+                                        taefelerName = 'Person not found';
+                                        taefelerPhone = 'no phone found';
                                     }
-                                    if (!taefeler) {
-                                        taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
-                                    }
-                                    taefelerPhone = taefeler ? taefeler.phone || 'no phone found' : 'no phone found';
                                 }
                                 
                                 return `
@@ -2053,10 +2059,10 @@
                                         <td>${game.away_team || ''}</td>
                                         <td>${game.halle_short || ''}</td>
                                         <td class="${scorerTeamClass}">${game.scorer_team_short || ''}</td>
-                                        <td class="${scorerNameClass}">${game.scorer_name || ''}</td>
+                                        <td class="${scorerNameClass}">${scorerName}</td>
                                         <td class="${scorerPhoneClass}">${scorerPhone}</td>
                                         <td>${game.taefeler_team_short || ''}</td>
-                                        <td>${game.taefeler_name || ''}</td>
+                                        <td>${taefelerName}</td>
                                         <td>${taefelerPhone}</td>
                                     </tr>
                                 `;
@@ -2134,8 +2140,8 @@
             const teamIssues = {};
 
             allGames.forEach(game => {
-                // Check Täfeler issues
-                if (!game.taefeler_name || !game.taefeler_name.trim()) {
+                // Check Täfeler issues (missing ID)
+                if (!game.taefeler_id) {
                     if (game.taefeler_team_short) {
                         if (!teamIssues[game.taefeler_team_short]) {
                             teamIssues[game.taefeler_team_short] = { taefeler: 0, scorer: 0 };
@@ -2144,9 +2150,9 @@
                     }
                 }
 
-                // Check Scorer issues
+                // Check Scorer issues (missing ID)
                 if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
-                    if (!game.scorer_name || !game.scorer_name.trim()) {
+                    if (!game.scorer_id) {
                         if (!teamIssues[game.scorer_team_short]) {
                             teamIssues[game.scorer_team_short] = { taefeler: 0, scorer: 0 };
                         }
