@@ -673,6 +673,8 @@
         let allTeams = [];
         let teamNameMapping = {}; // Maps short names to long names
         let currentGame = null;
+        let allScorers = []; // All scorers from scorer_scorers table
+        let allTaefelers = []; // All täfelers from scorer_scorers table
 
         // Initialize Supabase
         const supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
@@ -682,11 +684,11 @@
              loadGames();
          });
 
-        // Load games from scorer_matches_complete table
+        // Load games from scorer_matches table
         async function loadGames() {
             try {
                 const { data, error } = await supabase
-                    .from('scorer_matches_complete')
+                    .from('scorer_matches')
                     .select('*')
                     .order('date', { ascending: true })
                     .order('time', { ascending: true })
@@ -696,6 +698,8 @@
                 allGames = data || [];
 
                 await loadTeams();
+                await loadScorers();
+                await loadTaefelers();
                 renderGames(getPastGames(allGames));
                 populateTeamFilter();
             } catch (error) {
@@ -704,6 +708,41 @@
             } finally {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('gamesGrid').style.display = 'grid';
+            }
+        }
+
+        // Load scorers from scorer_scorers table
+        async function loadScorers() {
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_scorers')
+                    .select('*')
+                    .eq('scorer_licence', true)
+                    .order('lname', { ascending: true })
+                    .order('fname', { ascending: true });
+
+                if (error) throw error;
+                allScorers = data || [];
+            } catch (error) {
+                console.error('Error loading scorers:', error);
+                allScorers = [];
+            }
+        }
+
+        // Load all täfelers from scorer_scorers table
+        async function loadTaefelers() {
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_scorers')
+                    .select('*')
+                    .order('lname', { ascending: true })
+                    .order('fname', { ascending: true });
+
+                if (error) throw error;
+                allTaefelers = data || [];
+            } catch (error) {
+                console.error('Error loading täfelers:', error);
+                allTaefelers = [];
             }
         }
 
@@ -905,11 +944,24 @@
             document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
             document.getElementById('modalGameNumber').textContent = game.gamen || '-';
 
-                         // Populate read-only contact information
-             document.getElementById('modalTaefelerName').textContent = game.taefeler_name || '-';
-             document.getElementById('modalTaefelerPhone').textContent = game.taefeler_phone || '-';
-             document.getElementById('modalScorerName').textContent = game.scorer_name || '-';
-             document.getElementById('modalScorerPhone').textContent = game.scorer_phone || '-';
+                         // Populate read-only contact information from scorer_scorers table
+                         if (game.taefeler_name) {
+                             const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
+                             document.getElementById('modalTaefelerName').textContent = game.taefeler_name;
+                             document.getElementById('modalTaefelerPhone').textContent = taefeler ? taefeler.phone || '-' : '-';
+                         } else {
+                             document.getElementById('modalTaefelerName').textContent = '-';
+                             document.getElementById('modalTaefelerPhone').textContent = '-';
+                         }
+                         
+                         if (game.scorer_name) {
+                             const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
+                             document.getElementById('modalScorerName').textContent = game.scorer_name;
+                             document.getElementById('modalScorerPhone').textContent = scorer ? scorer.phone || '-' : '-';
+                         } else {
+                             document.getElementById('modalScorerName').textContent = '-';
+                             document.getElementById('modalScorerPhone').textContent = '-';
+                         }
 
             document.getElementById('gameModal').style.display = 'block';
         }
@@ -931,7 +983,7 @@
                     .from('scorer_edit_log')
                     .insert({
                         action: action, // 'CREATE', 'UPDATE', 'DELETE'
-                        table_name: 'scorer_matches_complete',
+                        table_name: 'scorer_matches',
                         record_id: currentGame.match_id,
                         field_name: fieldName,
                         old_value: oldValue,
