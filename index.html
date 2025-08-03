@@ -2504,7 +2504,7 @@
             document.getElementById('focusedGameGym').textContent = game.halle_short || 'TBD';
             document.getElementById('focusedGameHomeTeam').textContent = game.home_team || 'TBD';
             document.getElementById('focusedGameAwayTeam').textContent = game.away_team || 'TBD';
-            document.getElementById('focusedGameNumber').textContent = `${game.home_team} vs ${game.away_team}`;
+            document.getElementById('focusedGameNumber').textContent = game.gamen || 'TBD';
             
             // Set team displays
             document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team_short ? `(${game.taefeler_team_short})` : '';
