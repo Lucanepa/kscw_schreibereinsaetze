@@ -148,10 +148,7 @@
             padding: 30px;
         }
 
-        .admin-access {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+
 
         .filters {
             background: #f8f9fa;
@@ -1094,7 +1091,6 @@
         <div class="main-content">
             <div class="admin-access">
                 <button class="btn btn-info" onclick="showSummary()">📊 Summary</button>
-                <button class="btn btn-secondary" onclick="openAdminAccess()">Admin Access</button>
                 <button class="btn btn-secondary" onclick="openCoachAccess()">Coach Access</button>
             </div>
 
@@ -2152,8 +2148,31 @@
                 : `If you confirm, you will not be able to change your decision later. In case of emergency or dire need to change the name, please contact Luca or Thamy.<br><br><strong>Selected Person:</strong> ${fullName}`;
             
             // Update the action buttons to show confirm/cancel
-            const actionButtons = document.querySelector('.action-buttons');
-            console.log('Looking for action-buttons element:', actionButtons);
+            // First try to find action buttons in the currently visible view
+            let actionButtons = null;
+            
+            // Check if we're in the scorer selector view
+            const scorerSelectorView = document.getElementById('scorerSelectorView');
+            if (scorerSelectorView && scorerSelectorView.style.display !== 'none') {
+                actionButtons = scorerSelectorView.querySelector('.action-buttons');
+                console.log('Looking for action-buttons in scorer selector view:', actionButtons);
+            }
+            
+            // If not found in scorer selector, check täfeler selector
+            if (!actionButtons) {
+                const taefelerSelectorView = document.getElementById('taefelerSelectorView');
+                if (taefelerSelectorView && taefelerSelectorView.style.display !== 'none') {
+                    actionButtons = taefelerSelectorView.querySelector('.action-buttons');
+                    console.log('Looking for action-buttons in täfeler selector view:', actionButtons);
+                }
+            }
+            
+            // Fallback to general query
+            if (!actionButtons) {
+                actionButtons = document.querySelector('.action-buttons');
+                console.log('Looking for action-buttons element (fallback):', actionButtons);
+            }
+            
             if (actionButtons) {
                 console.log('Found action-buttons, updating HTML');
                 actionButtons.innerHTML = `
@@ -2174,8 +2193,28 @@
         function cancelConfirmation() {
             window.confirmationType = null;
             
-            // Restore normal action buttons
-            const actionButtons = document.querySelector('.action-buttons');
+            // Find the correct action buttons element
+            let actionButtons = null;
+            
+            // Check if we're in the scorer selector view
+            const scorerSelectorView = document.getElementById('scorerSelectorView');
+            if (scorerSelectorView && scorerSelectorView.style.display !== 'none') {
+                actionButtons = scorerSelectorView.querySelector('.action-buttons');
+            }
+            
+            // If not found in scorer selector, check täfeler selector
+            if (!actionButtons) {
+                const taefelerSelectorView = document.getElementById('taefelerSelectorView');
+                if (taefelerSelectorView && taefelerSelectorView.style.display !== 'none') {
+                    actionButtons = taefelerSelectorView.querySelector('.action-buttons');
+                }
+            }
+            
+            // Fallback to general query
+            if (!actionButtons) {
+                actionButtons = document.querySelector('.action-buttons');
+            }
+            
             if (actionButtons) {
                 const taefelerSelectorView = document.getElementById('taefelerSelectorView');
                 const scorerSelectorView = document.getElementById('scorerSelectorView');
@@ -2498,19 +2537,7 @@
             });
         });
 
-        // Open admin access
-        async function openAdminAccess() {
-            const email = prompt('Please enter your email address:');
-            if (!email) return;
-            
-            const authorizedAdmins = ['luca.canepa@gmail.com', 'thammy@kscw.ch'];
-            
-            if (authorizedAdmins.includes(email.toLowerCase())) {
-                window.open('admin.html', '_blank');
-            } else {
-                alert('Access denied. Only authorized administrators can access the admin panel.');
-            }
-        }
+
 
         // Open coach access
         async function openCoachAccess() {
