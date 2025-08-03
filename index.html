@@ -933,7 +933,7 @@
         <div class="main-content">
             <div class="admin-access">
                 <button class="btn btn-info" onclick="showSummary()">📊 Summary</button>
-                <a href="coaches.html" class="btn btn-secondary">Coaches Access</a>
+                <button class="btn btn-secondary" onclick="openRoleBasedAccess()">Admin/Coaches Access</button>
             </div>
 
             <div class="filters">
@@ -1882,6 +1882,67 @@
             document.getElementById('newPersonFname').value = '';
             document.getElementById('newPersonLname').value = '';
             document.getElementById('newPersonPhone').value = '';
+        }
+
+        // Open game modal
+        function openGameModal(game) {
+            currentGame = game;
+            setCurrentSelections(game);
+            
+            // Populate modal with game details
+            document.getElementById('modalTitle').textContent = 'Game Details';
+            document.getElementById('modalSubtitle').textContent = 'Match Information';
+            
+            // Format date
+            const gameDate = new Date(game.date);
+            const formattedDate = gameDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Populate match information
+            document.getElementById('modalDate').textContent = formattedDate;
+            document.getElementById('modalTime').textContent = game.time ? game.time.substring(0, 5) : 'TBD';
+            document.getElementById('modalGym').textContent = game.halle_short || 'TBD';
+            document.getElementById('modalHomeTeam').textContent = game.home_team || 'TBD';
+            document.getElementById('modalAwayTeam').textContent = game.away_team || 'TBD';
+            document.getElementById('modalGameNumber').textContent = game.match_id || 'TBD';
+            document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || 'TBD';
+            document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || 'TBD';
+            
+            // Show/hide scorer section based on whether scorer team is assigned
+            const scorerSection = document.getElementById('scorerSection');
+            if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
+                scorerSection.style.display = 'block';
+            } else {
+                scorerSection.style.display = 'none';
+            }
+            
+            document.getElementById('gameModal').style.display = 'block';
+        }
+
+        // Open role-based access (admin or coaches)
+        async function openRoleBasedAccess() {
+            const email = prompt('Please enter your email address:');
+            if (!email) return;
+            
+            const authorizedAdmins = ['luca.canepa@gmail.com', 'thammy@kscw.ch'];
+            
+            if (authorizedAdmins.includes(email.toLowerCase())) {
+                // Open admin panel
+                window.open('admin.html', '_blank');
+            } else {
+                // Open coaches panel
+                window.open('coaches.html', '_blank');
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').style.display = 'none';
+            currentGame = null;
         }
 
         // Set current selections when opening modal
