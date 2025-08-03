@@ -2238,6 +2238,9 @@
             } else if (window.confirmationType === 'scorer' && window.selectedScorer) {
                 const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
                 
+                // Set confirmation state first
+                window.scorerConfirmed = true;
+                
                 // Update focused view
                 const currentScorerName = document.getElementById('currentScorerName');
                 if (currentScorerName) {
@@ -2250,9 +2253,7 @@
                     selectedScorerName.textContent = fullName;
                 }
                 
-                // Set confirmation state
-                window.scorerConfirmed = true;
-                
+                // Close scorer selector and save
                 closeScorerSelector();
                 saveGameDetails();
                 window.confirmationType = null;
