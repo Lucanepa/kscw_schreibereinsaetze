@@ -1282,7 +1282,7 @@
                 .select('*')
                 .order('date', { ascending: true })
                 .order('time', { ascending: true })
-                .order('halle_short', { ascending: true });
+                .order('halle', { ascending: true });
 
             if (error) throw error;
             allGames = data || [];
@@ -1618,7 +1618,7 @@
                     <div class="game-details">
                         <div class="detail-item">
                             <div class="detail-label">Gym</div>
-                            <div class="detail-value">${escapeHtml(game.halle_short || '-')}</div>
+                            <div class="detail-value">${escapeHtml(game.halle || '-')}</div>
                         </div>
 
                         <div class="detail-item">
@@ -1652,7 +1652,7 @@
             // Populate game information
             document.getElementById('focusedGameDate').textContent = escapeHtml(formattedDate);
             document.getElementById('focusedGameTime').textContent = game.time ? game.time.substring(0, 5) : 'TBD';
-            document.getElementById('focusedGameGym').textContent = escapeHtml(game.halle_short || 'TBD');
+            document.getElementById('focusedGameGym').textContent = escapeHtml(game.halle || 'TBD');
             document.getElementById('focusedGameHomeTeam').textContent = escapeHtml(game.home_team || 'TBD');
             document.getElementById('focusedGameAwayTeam').textContent = escapeHtml(game.away_team || 'TBD');
             document.getElementById('focusedGameNumber').textContent = escapeHtml(game.gamen || 'TBD');
@@ -1821,7 +1821,7 @@
                             away_team: currentGame.away_team,
                             date: currentGame.date,
                             time: currentGame.time,
-                            halle_short: currentGame.halle_short
+                            halle: currentGame.halle
                         }
                     });
 
@@ -2315,7 +2315,7 @@
                         formattedTime,
                         game.home_team || '',
                         game.away_team || '',
-                        game.halle_short || '',
+                        game.halle || '',
                         game.scorer_team || '',
                         scorerName,
                         scorerPhone,
@@ -2446,7 +2446,7 @@
                                         <td>${formattedTime}</td>
                                         <td>${game.home_team || ''}</td>
                                         <td>${game.away_team || ''}</td>
-                                        <td>${game.halle_short || ''}</td>
+                                        <td>${game.halle || ''}</td>
                                         <td class="${scorerTeamClass}">${game.scorer_team || ''}</td>
                                         <td class="${scorerNameClass}">${scorerName}</td>
                                         <td class="${scorerPhoneClass}">${scorerPhone}</td>
@@ -2647,7 +2647,7 @@
                             <div class="team-game-time">${formattedTime}</div>
                         </div>
                         <div class="team-game-teams">${game.home_team} vs ${game.away_team}</div>
-                        <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
+                        <div class="team-game-location">📍 ${game.halle || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team && game.scorer_team.trim() !== '' ? `
                                 <div class="team-role-item ${!game.scorer_id ? 'has-issue' : ''}">

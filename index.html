@@ -1819,11 +1819,8 @@
             const resultsContainer = document.getElementById('taefelerResults');
             
             if (allTaefelers && allTaefelers.length > 0) {
-                // Filter täfelers by team if currentGame has taefeler_team
+                // Show all täfelers without team filtering for now
                 let filteredTaefelers = allTaefelers;
-                if (currentGame && currentGame.taefeler_team) {
-                    filteredTaefelers = allTaefelers.filter(person => person.team === currentGame.taefeler_team);
-                }
                 
                 resultsContainer.innerHTML = '';
                 filteredTaefelers.forEach(person => {
@@ -1854,11 +1851,8 @@
             const resultsContainer = document.getElementById('scorerResults');
             
             if (allScorers && allScorers.length > 0) {
-                // Filter scorers by team if currentGame has scorer_team
+                // Show all scorers without team filtering for now
                 let filteredScorers = allScorers;
-                if (currentGame && currentGame.scorer_team) {
-                    filteredScorers = allScorers.filter(person => person.team === currentGame.scorer_team);
-                }
                 
                 resultsContainer.innerHTML = '';
                 filteredScorers.forEach(person => {
@@ -1894,14 +1888,8 @@
                 return;
             }
             
-            // First filter by team if currentGame has taefeler_team
-            let teamFilteredTaefelers = allTaefelers;
-            if (currentGame && currentGame.taefeler_team) {
-                teamFilteredTaefelers = allTaefelers.filter(person => person.team === currentGame.taefeler_team);
-            }
-            
-            // Then filter by search term
-            const filteredTaefelers = teamFilteredTaefelers.filter(person => {
+            // Filter by search term only (no team filtering for now)
+            const filteredTaefelers = allTaefelers.filter(person => {
                 const fullName = `${person.fname} ${person.lname}`.toLowerCase();
                 return fullName.includes(searchTerm);
             });
@@ -1948,14 +1936,8 @@
                 return;
             }
             
-            // First filter by team if currentGame has scorer_team
-            let teamFilteredScorers = allScorers;
-            if (currentGame && currentGame.scorer_team) {
-                teamFilteredScorers = allScorers.filter(person => person.team === currentGame.scorer_team);
-            }
-            
-            // Then filter by search term
-            const filteredScorers = teamFilteredScorers.filter(person => {
+            // Filter by search term only (no team filtering for now)
+            const filteredScorers = allScorers.filter(person => {
                 const fullName = `${person.fname} ${person.lname}`.toLowerCase();
                 return fullName.includes(searchTerm);
             });
