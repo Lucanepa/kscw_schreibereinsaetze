@@ -2543,59 +2543,7 @@
             }
         }
 
-        // Open game modal (read-only for coaches)
-        function openGameModal(game) {
-            currentGame = game;
-            
-            // Populate modal with game details
-            document.getElementById('modalTitle').textContent = 'Game Details';
-            document.getElementById('modalSubtitle').textContent = 'Match Information';
-            
-            // Format date
-            const gameDate = new Date(game.date);
-            const formattedDate = gameDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            // Populate match information
-            document.getElementById('modalDate').textContent = formattedDate;
-            document.getElementById('modalTime').textContent = game.time ? game.time.substring(0, 5) : 'TBD';
-            document.getElementById('modalGym').textContent = game.halle_short || 'TBD';
-            document.getElementById('modalHomeTeam').textContent = game.home_team || 'TBD';
-            document.getElementById('modalAwayTeam').textContent = game.away_team || 'TBD';
-            document.getElementById('modalGameNumber').textContent = game.gamen || 'TBD';
-            document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || 'TBD';
-            document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || 'TBD';
-            
-            // Populate täfeler information (read-only) with phone lookup from scorers table
-            document.getElementById('taefelerNameDisplay').textContent = game.taefeler_name || '-';
-            if (game.taefeler_name) {
-                const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
-                document.getElementById('taefelerPhoneDisplay').textContent = taefeler ? taefeler.phone || 'no phone found' : 'no phone found';
-            } else {
-                document.getElementById('taefelerPhoneDisplay').textContent = '-';
-            }
-            
-            // Show/hide scorer section based on whether scorer team is assigned
-            const scorerSection = document.getElementById('scorerSection');
-            if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
-                scorerSection.style.display = 'block';
-                document.getElementById('scorerNameDisplay').textContent = game.scorer_name || '-';
-                if (game.scorer_name) {
-                    const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
-                    document.getElementById('scorerPhoneDisplay').textContent = scorer ? scorer.phone || 'no phone found' : 'no phone found';
-                } else {
-                    document.getElementById('scorerPhoneDisplay').textContent = '-';
-                }
-            } else {
-                scorerSection.style.display = 'none';
-            }
-            
-            document.getElementById('gameModal').style.display = 'block';
-        }
+
 
         // Download ICS file
         function downloadICS() {
