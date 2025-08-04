@@ -1435,14 +1435,14 @@
 
             // Filter by taefeler team
             if (taefelerTeam) {
-                filtered = filtered.filter(game => game.taefeler_team_short === taefelerTeam);
+                filtered = filtered.filter(game => game.taefeler_team === taefelerTeam);
             }
 
             // Filter by scorer team (includes both separate scorer and combined scorer_taefeler)
             if (scorerTeam) {
                 filtered = filtered.filter(game => 
-                    game.scorer_team_short === scorerTeam || 
-                    game.scorer_taefeler_team_short === scorerTeam
+                    game.scorer_team === scorerTeam || 
+                    game.scorer_taefeler_team === scorerTeam
                 );
             }
 
@@ -1455,22 +1455,26 @@
             // Filter by issues
             if (issuesFilter === 'issues') {
                 filtered = filtered.filter(game => {
-                    const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team_short && game.scorer_taefeler_team_short.trim() !== '');
+                    const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
+                                          (!game.taefeler_team || game.taefeler_team.trim() === '') &&
+                                          (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
                     
                     if (isCombinedGame) {
                         return !game.scorer_taefeler_id;
                     } else {
-                        return (!game.taefeler_id || (game.scorer_team_short && game.scorer_team_short.trim() !== '' && !game.scorer_id));
+                        return (!game.taefeler_id || (game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id));
                     }
                 });
             } else if (issuesFilter === 'no-issues') {
                 filtered = filtered.filter(game => {
-                    const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team_short && game.scorer_taefeler_team_short.trim() !== '');
+                    const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
+                                          (!game.taefeler_team || game.taefeler_team.trim() === '') &&
+                                          (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
                     
                     if (isCombinedGame) {
                         return game.scorer_taefeler_id;
                     } else {
-                        return game.taefeler_id && (!game.scorer_team_short || game.scorer_team_short.trim() === '' || game.scorer_id);
+                        return game.taefeler_id && (!game.scorer_team || game.scorer_team.trim() === '' || game.scorer_id);
                     }
                 });
             }
@@ -1522,29 +1526,32 @@
                 }
                 
                 // Check if this is a combined scorer/täfeler game
-                const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team_short && game.scorer_taefeler_team_short.trim() !== '');
+                // If both scorer_team and taefeler_team are null, it's a combined game
+                const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
+                                      (!game.taefeler_team || game.taefeler_team.trim() === '') &&
+                                      (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
                 
                 if (isCombinedGame) {
                     // Combined scorer/täfeler status
                     const combinedInfo = scorerTaefelerName ? 
-                        `${scorerTaefelerName} (${game.scorer_taefeler_team_short})` : 
-                        game.scorer_taefeler_team_short || 'TBD';
+                        `${scorerTaefelerName} (${game.scorer_taefeler_team})` : 
+                        game.scorer_taefeler_team || 'TBD';
                     const combinedStatus = !game.scorer_taefeler_id ? '⚠️' : '✅';
                     statusIcons.push(`${combinedStatus} Scorer/Täfeler: ${combinedInfo}`);
                 } else {
                     // Separate täfeler and scorer status
-                    const taefelerLabel = game.scorer_team_short && game.scorer_team_short.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
+                    const taefelerLabel = game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
                     const taefelerInfo = taefelerName ? 
-                        `${taefelerName} (${game.taefeler_team_short})` : 
-                        game.taefeler_team_short || 'TBD';
+                        `${taefelerName} (${game.taefeler_team})` : 
+                        game.taefeler_team || 'TBD';
                     const taefelerStatus = !game.taefeler_id ? '⚠️' : '✅';
                     statusIcons.push(`${taefelerStatus} ${taefelerLabel}: ${taefelerInfo}`);
                     
                     // Scorer status (only if scorer team is assigned)
-                    if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
+                    if (game.scorer_team && game.scorer_team.trim() !== '') {
                         const scorerInfo = scorerName ? 
-                            `${scorerName} (${game.scorer_team_short})` : 
-                            game.scorer_team_short;
+                            `${scorerName} (${game.scorer_team})` : 
+                            game.scorer_team;
                         const scorerStatus = !game.scorer_id ? '⚠️' : '✅';
                         statusIcons.push(`${scorerStatus} Scorer: ${scorerInfo}`);
                     }
@@ -1613,29 +1620,32 @@
                 }
                 
                 // Check if this is a combined scorer/täfeler game
-                const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team_short && game.scorer_taefeler_team_short.trim() !== '');
+                // If both scorer_team and taefeler_team are null, it's a combined game
+                const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
+                                      (!game.taefeler_team || game.taefeler_team.trim() === '') &&
+                                      (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
                 
                 if (isCombinedGame) {
                     // Combined scorer/täfeler status
                     const combinedInfo = scorerTaefelerName ? 
-                        `${scorerTaefelerName} (${game.scorer_taefeler_team_short})` : 
-                        game.scorer_taefeler_team_short || 'TBD';
+                        `${scorerTaefelerName} (${game.scorer_taefeler_team})` : 
+                        game.scorer_taefeler_team || 'TBD';
                     const combinedStatus = !game.scorer_taefeler_id ? '⚠️' : '✅';
                     statusIcons.push(`${combinedStatus} Scorer/Täfeler: ${combinedInfo}`);
                 } else {
                     // Separate täfeler and scorer status
-                    const taefelerLabel = game.scorer_team_short && game.scorer_team_short.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
+                    const taefelerLabel = game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
                     const taefelerInfo = taefelerName ? 
-                        `${taefelerName} (${game.taefeler_team_short})` : 
-                        game.taefeler_team_short || 'TBD';
+                        `${taefelerName} (${game.taefeler_team})` : 
+                        game.taefeler_team || 'TBD';
                     const taefelerStatus = !game.taefeler_id ? '⚠️' : '✅';
                     statusIcons.push(`${taefelerStatus} ${taefelerLabel}: ${taefelerInfo}`);
                     
                     // Scorer status (only if scorer team is assigned)
-                    if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
+                    if (game.scorer_team && game.scorer_team.trim() !== '') {
                         const scorerInfo = scorerName ? 
-                            `${scorerName} (${game.scorer_team_short})` : 
-                            game.scorer_team_short;
+                            `${scorerName} (${game.scorer_team})` : 
+                            game.scorer_team;
                         const scorerStatus = !game.scorer_id ? '⚠️' : '✅';
                         statusIcons.push(`${scorerStatus} Scorer: ${scorerInfo}`);
                     }
