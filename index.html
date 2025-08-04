@@ -1194,17 +1194,6 @@
             </div>
 
             <div class="role-selection-section">
-                <div class="role-section" id="taefelerRoleSection">
-                    <h3>Täfeler Assignment <span id="taefelerTeamDisplay">()</span></h3>
-                    <div class="current-selection">
-                        <label>Current Täfeler:</label>
-                        <span id="currentTaefelerName">-</span>
-                    </div>
-                    <div class="selection-controls" id="taefelerSelectionControls">
-                        <button class="btn btn-primary" onclick="showTaefelerSelector()">Select Täfeler</button>
-                    </div>
-                </div>
-
                 <div class="role-section" id="scorerRoleSection" style="display: none;">
                     <h3>Scorer Assignment <span id="scorerTeamDisplay">()</span></h3>
                     <div class="current-selection">
@@ -1213,6 +1202,17 @@
                     </div>
                     <div class="selection-controls" id="scorerSelectionControls">
                         <button class="btn btn-primary" onclick="showScorerSelector()">Select Scorer</button>
+                    </div>
+                </div>
+
+                <div class="role-section" id="taefelerRoleSection">
+                    <h3>Täfeler Assignment <span id="taefelerTeamDisplay">()</span></h3>
+                    <div class="current-selection">
+                        <label>Current Täfeler:</label>
+                        <span id="currentTaefelerName">-</span>
+                    </div>
+                    <div class="selection-controls" id="taefelerSelectionControls">
+                        <button class="btn btn-primary" onclick="showTaefelerSelector()">Select Täfeler</button>
                     </div>
                 </div>
             </div>
@@ -1268,21 +1268,6 @@
                     </div>
                 </div>
 
-                <div class="form-section" id="formSection">
-                    <h3>Täfeler Information <span id="taefelerTeamDisplay" style="font-size: 0.8em; color: #666; font-weight: normal;"></span></h3>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 1;">
-                            <label>Selected Täfeler</label>
-                            <div id="selectedTaefelerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
-                                <span id="selectedTaefelerName">-</span>
-                            </div>
-                        </div>
-                        <div class="form-group" style="flex: 0 0 auto; margin-left: 15px;">
-                            <button type="button" class="btn btn-primary" onclick="showTaefelerSelector()" id="selectTaefelerBtn">Select Täfeler</button>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="form-section" id="scorerSection" style="display: none;">
                     <h3>Scorer Information <span id="scorerTeamDisplay" style="font-size: 0.8em; color: #666; font-weight: normal;"></span></h3>
                     <div class="form-row">
@@ -1298,17 +1283,24 @@
                     </div>
                 </div>
 
+                <div class="form-section" id="formSection">
+                    <h3>Täfeler Information <span id="taefelerTeamDisplay" style="font-size: 0.8em; color: #666; font-weight: normal;"></span></h3>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Selected Täfeler</label>
+                            <div id="selectedTaefelerInfo" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 5px;">
+                                <span id="selectedTaefelerName">-</span>
+                            </div>
+                        </div>
+                        <div class="form-group" style="flex: 0 0 auto; margin-left: 15px;">
+                            <button type="button" class="btn btn-primary" onclick="showTaefelerSelector()" id="selectTaefelerBtn">Select Täfeler</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="detail-section" id="readOnlySection" style="display: none;">
                     <h3>Contact Information</h3>
                     <div class="detail-grid">
-                        <div class="detail-item">
-                            <div class="detail-label">Täfeler Name</div>
-                            <div class="detail-value" id="modalTaefelerName">-</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Täfeler Phone</div>
-                            <div class="detail-value" id="modalTaefelerPhone">-</div>
-                        </div>
                         <div class="detail-item">
                             <div class="detail-label">Scorer Name</div>
                             <div class="detail-value" id="modalScorerName">-</div>
@@ -1316,6 +1308,14 @@
                         <div class="detail-item">
                             <div class="detail-label">Scorer Phone</div>
                             <div class="detail-value" id="modalScorerPhone">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Täfeler Name</div>
+                            <div class="detail-value" id="modalTaefelerName">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Täfeler Phone</div>
+                            <div class="detail-value" id="modalTaefelerPhone">-</div>
                         </div>
                     </div>
                 </div>
@@ -1463,6 +1463,35 @@
                 <div class="action-buttons">
                     <button class="btn btn-secondary" onclick="closeScorerSelector()">Cancel</button>
                     <button class="btn btn-primary" id="confirmScorerBtn" onclick="confirmScorerSelection()" style="display: none;">Confirm Selection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scorer/Täfeler Selector Focused View -->
+    <div id="scorerTaefelerSelectorView" class="focused-game-view" style="display: none;">
+        <div class="focused-game-container">
+            <div class="focused-game-header">
+                <button class="btn btn-outline" onclick="closeScorerTaefelerSelector()">← Back to Game</button>
+                <h2>Select Scorer/Täfeler</h2>
+            </div>
+            
+            <div class="selector-content">
+                <div class="search-section">
+                    <label for="scorerTaefelerSearch">Search Scorer/Täfeler</label>
+                    <input type="text" id="scorerTaefelerSearch" placeholder="Search scorer/täfeler..." oninput="filterScorerTaefelers()" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                
+                <div class="results-section">
+                    <label>Available Scorer/Täfeler</label>
+                    <div id="scorerTaefelerResults" style="height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white; margin-bottom: 20px;">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="closeScorerTaefelerSelector()">Cancel</button>
+                    <button class="btn btn-primary" id="confirmScorerTaefelerBtn" onclick="confirmScorerTaefelerSelection()" style="display: none;">Confirm Selection</button>
                 </div>
             </div>
         </div>
@@ -1856,9 +1885,17 @@
                 let filteredTaefelers = allTaefelers;
                 if (currentGame && currentGame.taefeler_team) {
                     console.log('Filtering täfelers by team:', currentGame.taefeler_team);
-                    console.log('Available täfelers:', allTaefelers.map(t => ({ name: `${t.fname} ${t.lname}`, team: t.team })));
-                    filteredTaefelers = allTaefelers.filter(person => person.team === currentGame.taefeler_team);
-                    console.log('Filtered täfelers:', filteredTaefelers.map(t => ({ name: `${t.fname} ${t.lname}`, team: t.team })));
+                    console.log('Available täfelers:', allTaefelers.map(t => ({ name: `${t.fname} ${t.lname}`, teams: t.teams })));
+                    console.log('Unique team names in täfelers:', [...new Set(allTaefelers.flatMap(t => t.teams || []))]);
+                    filteredTaefelers = allTaefelers.filter(person => {
+                        // Check if person has teams array and if it includes the current team
+                        if (Array.isArray(person.teams)) {
+                            return person.teams.includes(currentGame.taefeler_team);
+                        }
+                        // Fallback for existing single team field
+                        return person.team === currentGame.taefeler_team;
+                    });
+                    console.log('Filtered täfelers:', filteredTaefelers.map(t => ({ name: `${t.fname} ${t.lname}`, teams: t.teams })));
                 }
                 
                 resultsContainer.innerHTML = '';
@@ -1894,9 +1931,17 @@
                 let filteredScorers = allScorers;
                 if (currentGame && currentGame.scorer_team) {
                     console.log('Filtering scorers by team:', currentGame.scorer_team);
-                    console.log('Available scorers:', allScorers.map(s => ({ name: `${s.fname} ${s.lname}`, team: s.team })));
-                    filteredScorers = allScorers.filter(person => person.team === currentGame.scorer_team);
-                    console.log('Filtered scorers:', filteredScorers.map(s => ({ name: `${s.fname} ${s.lname}`, team: s.team })));
+                    console.log('Available scorers:', allScorers.map(s => ({ name: `${s.fname} ${s.lname}`, teams: s.teams })));
+                    console.log('Unique team names in scorers:', [...new Set(allScorers.flatMap(s => s.teams || []))]);
+                    filteredScorers = allScorers.filter(person => {
+                        // Check if person has teams array and if it includes the current team
+                        if (Array.isArray(person.teams)) {
+                            return person.teams.includes(currentGame.scorer_team);
+                        }
+                        // Fallback for existing single team field
+                        return person.team === currentGame.scorer_team;
+                    });
+                    console.log('Filtered scorers:', filteredScorers.map(s => ({ name: `${s.fname} ${s.lname}`, teams: s.teams })));
                 }
                 
                 resultsContainer.innerHTML = '';
@@ -1931,7 +1976,14 @@
                 // Filter täfelers by team if currentGame has scorer_taefeler_team
                 let filteredTaefelers = allTaefelers;
                 if (currentGame && currentGame.scorer_taefeler_team) {
-                    filteredTaefelers = allTaefelers.filter(person => person.team === currentGame.scorer_taefeler_team);
+                    filteredTaefelers = allTaefelers.filter(person => {
+                        // Check if person has teams array and if it includes the current team
+                        if (Array.isArray(person.teams)) {
+                            return person.teams.includes(currentGame.scorer_taefeler_team);
+                        }
+                        // Fallback for existing single team field
+                        return person.team === currentGame.scorer_taefeler_team;
+                    });
                 }
                 
                 resultsContainer.innerHTML = '';
@@ -1971,7 +2023,14 @@
             // First filter by team if currentGame has taefeler_team
             let teamFilteredTaefelers = allTaefelers;
             if (currentGame && currentGame.taefeler_team) {
-                teamFilteredTaefelers = allTaefelers.filter(person => person.team === currentGame.taefeler_team);
+                teamFilteredTaefelers = allTaefelers.filter(person => {
+                    // Check if person has teams array and if it includes the current team
+                    if (Array.isArray(person.teams)) {
+                        return person.teams.includes(currentGame.taefeler_team);
+                    }
+                    // Fallback for existing single team field
+                    return person.team === currentGame.taefeler_team;
+                });
             }
             
             // Then filter by search term
@@ -2025,7 +2084,14 @@
             // First filter by team if currentGame has scorer_team
             let teamFilteredScorers = allScorers;
             if (currentGame && currentGame.scorer_team) {
-                teamFilteredScorers = allScorers.filter(person => person.team === currentGame.scorer_team);
+                teamFilteredScorers = allScorers.filter(person => {
+                    // Check if person has teams array and if it includes the current team
+                    if (Array.isArray(person.teams)) {
+                        return person.teams.includes(currentGame.scorer_team);
+                    }
+                    // Fallback for existing single team field
+                    return person.team === currentGame.scorer_team;
+                });
             }
             
             // Then filter by search term
@@ -2079,7 +2145,14 @@
             // First filter by team if currentGame has scorer_taefeler_team
             let teamFilteredTaefelers = allTaefelers;
             if (currentGame && currentGame.scorer_taefeler_team) {
-                teamFilteredTaefelers = allTaefelers.filter(person => person.team === currentGame.scorer_taefeler_team);
+                teamFilteredTaefelers = allTaefelers.filter(person => {
+                    // Check if person has teams array and if it includes the current team
+                    if (Array.isArray(person.teams)) {
+                        return person.teams.includes(currentGame.scorer_taefeler_team);
+                    }
+                    // Fallback for existing single team field
+                    return person.team === currentGame.scorer_taefeler_team;
+                });
             }
             
             // Then filter by search term
