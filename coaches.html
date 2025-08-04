@@ -1192,7 +1192,7 @@
     <script>
         let allGames = [];
         let allteams = [];
-        let teamNameMapping = {}; // New mapping for long team names
+
         let currentGame = null;
         let currentUser = null;
         let allScorers = []; // All scorers from scorer_scorers table
@@ -1345,25 +1345,20 @@
             });
         }
 
-        // Load teams (hardcoded since scorer_teams table doesn't exist)
+        // Load teams from scorer_teams table
         async function loadteams() {
-            // Create mapping from short names to long names (hardcoded)
-            teamNameMapping = {
-                'D1': 'KSC Wiedikon D1',
-                'D2': 'KSC Wiedikon D2',
-                'D3': 'KSC Wiedikon D3',
-                'D4': 'KSC Wiedikon D4',
-                'H1': 'KSC Wiedikon H1',
-                'H2': 'KSC Wiedikon H2',
-                'H3': 'KSC Wiedikon H3',
-                'DU23-1': 'KSC Wiedikon DU23-1',
-                'DU23-2': 'KSC Wiedikon DU23-2',
-                'HU23-1': 'KSC Wiedikon HU23-1',
-                'Legends': 'KSC Wiedikon Legends'
-            };
-            
-            // Create teams array from the mapping keys
-            allteams = Object.keys(teamNameMapping).sort();
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_teams')
+                    .select('team')
+                    .order('team');
+
+                if (error) throw error;
+                allteams = data.map(team => team.team).sort();
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                allteams = [];
+            }
         }
 
         // Populate admin filters
@@ -1423,8 +1418,7 @@
 
             // Filter by home team
             if (homeTeam) {
-                const teamLongName = teamNameMapping[homeTeam];
-                filtered = filtered.filter(game => game.home_team === teamLongName);
+                filtered = filtered.filter(game => game.home_team === homeTeam);
             }
 
             // Filter by issues
@@ -2487,8 +2481,7 @@
 
             // Filter by home team
             if (homeTeam) {
-                const teamLongName = teamNameMapping[homeTeam];
-                filtered = filtered.filter(game => game.home_team === teamLongName);
+                filtered = filtered.filter(game => game.home_team === homeTeam);
             }
 
             // Filter by issues
@@ -2555,12 +2548,11 @@
             Object.keys(teamIssues).sort().forEach(team => {
                 const issues = teamIssues[team];
                 const totalIssues = issues.taefeler + issues.scorer + issues.combined;
-                const teamLongName = teamNameMapping[team] || team;
                 
                 summaryHTML += `
                     <div class="game-card team-issue-card" onclick="showTeamGames('${team}')">
                         <div class="game-header">
-                            <div class="game-date">${teamLongName}</div>
+                            <div class="game-date">${team}</div>
                             <div class="game-time">${totalIssues} Issues</div>
                         </div>
                         <div class="game-teams">
@@ -2604,16 +2596,15 @@
 
         // Show team games modal
         function showTeamGames(teamshortName) {
-            const teamLongName = teamNameMapping[teamshortName];
             const teamGames = allGames.filter(game => 
                 game.taefeler_team === teamshortName || 
                 game.scorer_team === teamshortName ||
                 game.scorer_taefeler_team === teamshortName ||
-                game.home_team === teamLongName ||
-                game.away_team === teamLongName
+                game.home_team === teamshortName ||
+                game.away_team === teamshortName
             );
 
-            document.getElementById('teamGamesTitle').textContent = `${teamNameMapping[teamshortName] || teamshortName} Games`;
+            document.getElementById('teamGamesTitle').textContent = `${teamshortName} Games`;
             
             let teamGamesHTML = `<div class="team-games-list">`;
             

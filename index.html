@@ -1508,7 +1508,7 @@
     <script>
         let allGames = [];
         let allTeams = [];
-        let teamNameMapping = {}; // New mapping for long team names
+
         let currentGame = null;
         let allScorers = []; // All scorers from scorer_scorers table
         let allTaefelers = []; // All täfelers from scorer_scorers table
@@ -2719,25 +2719,20 @@
             });
         }
 
-        // Load teams (hardcoded since scorer_teams table doesn't exist)
+        // Load teams from scorer_teams table
         async function loadTeams() {
-            // Create mapping from short names to long names (hardcoded)
-            teamNameMapping = {
-                'D1': 'KSC Wiedikon D1',
-                'D2': 'KSC Wiedikon D2',
-                'D3': 'KSC Wiedikon D3',
-                'D4': 'KSC Wiedikon D4',
-                'H1': 'KSC Wiedikon H1',
-                'H2': 'KSC Wiedikon H2',
-                'H3': 'KSC Wiedikon H3',
-                'DU23-1': 'KSC Wiedikon DU23-1',
-                'DU23-2': 'KSC Wiedikon DU23-2',
-                'HU23-1': 'KSC Wiedikon HU23-1',
-                'Legends': 'KSC Wiedikon Legends'
-            };
-            
-            // Create teams array from the mapping keys
-            allTeams = Object.keys(teamNameMapping).sort();
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_teams')
+                    .select('team')
+                    .order('team');
+
+                if (error) throw error;
+                allTeams = data.map(team => team.team).sort();
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                allTeams = [];
+            }
         }
 
         // Populate team filter dropdown
@@ -2761,10 +2756,9 @@
             let filtered = filterCurrentGames(allGames);
 
             if (teamFilter) {
-                const teamLongName = teamNameMapping[teamFilter];
                 filtered = filtered.filter(game => 
-                    game.home_team === teamLongName || 
-                    game.away_team === teamLongName ||
+                    game.home_team === teamFilter || 
+                    game.away_team === teamFilter ||
                     game.scorer_team === teamFilter ||
                     game.taefeler_team === teamFilter ||
                     game.scorer_taefeler_team === teamFilter
@@ -3152,12 +3146,11 @@
             Object.keys(teamIssues).sort().forEach(team => {
                 const issues = teamIssues[team];
                 const totalIssues = issues.taefeler + issues.scorer;
-                const teamLongName = teamNameMapping[team] || team;
                 
                 summaryHTML += `
                     <div class="game-card team-issue-card" onclick="showTeamGames('${team}')">
                         <div class="game-header">
-                            <div class="game-date">${teamLongName}</div>
+                            <div class="game-date">${team}</div>
                             <div class="game-time">${totalIssues} Issues</div>
                         </div>
                         <div class="game-teams">
@@ -3195,15 +3188,14 @@
 
         // Show team games modal
         function showTeamGames(teamShortName) {
-            const teamLongName = teamNameMapping[teamShortName];
             const teamGames = allGames.filter(game => 
                 game.taefeler_team === teamShortName || 
                 game.scorer_team === teamShortName ||
-                game.home_team === teamLongName ||
-                game.away_team === teamLongName
+                game.home_team === teamShortName ||
+                game.away_team === teamShortName
             );
 
-            document.getElementById('teamGamesTitle').textContent = `${teamLongName} ${translations[currentLanguage].teamGames}`;
+            document.getElementById('teamGamesTitle').textContent = `${teamShortName} ${translations[currentLanguage].teamGames}`;
             document.querySelector('#teamGamesModal .modal-subtitle').textContent = translations[currentLanguage].allGamesForTeam;
             document.querySelector('#teamGamesModal .btn-secondary').textContent = translations[currentLanguage].close;
             
