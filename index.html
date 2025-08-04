@@ -148,8 +148,6 @@
             padding: 30px;
         }
 
-
-
         .filters {
             background: #f8f9fa;
             padding: 20px;
@@ -1814,48 +1812,6 @@
         // Load scorers from scorer_scorers table
         async function loadScorers() {
             try {
-                console.log('Loading scorers from database...');
-                
-                // First, test database connection with a known table
-                const { data: testData, error: testError } = await supabase
-                    .from('scorer_matches')
-                    .select('*')
-                    .limit(1);
-                
-                if (testError) {
-                    console.error('❌ Database connection test failed:', testError);
-                    throw testError;
-                }
-                
-                console.log('✅ Database connection test successful, matches table accessible');
-                console.log('🔍 Test data from scorer_matches:', testData);
-                
-                // Now check if we can get any data from the scorer_scorers table
-                const { data: allData, error: allError } = await supabase
-                    .from('scorer_scorers')
-                    .select('*');
-                
-                if (allError) {
-                    console.error('❌ Error loading all data from scorer_scorers:', allError);
-                    console.error('❌ Error details:', allError.message, allError.details, allError.hint);
-                    throw allError;
-                }
-                
-                console.log('📊 All data in scorer_scorers table:', allData);
-                console.log('📊 Number of records in scorer_scorers:', allData ? allData.length : 0);
-                
-                // Try a simple count query
-                const { count, error: countError } = await supabase
-                    .from('scorer_scorers')
-                    .select('*', { count: 'exact', head: true });
-                
-                if (countError) {
-                    console.error('❌ Error counting records:', countError);
-                } else {
-                    console.log('🔢 Total count of records in scorer_scorers:', count);
-                }
-                
-                // Now try the filtered query
                 const { data, error } = await supabase
                     .from('scorer_scorers')
                     .select('*')
@@ -1865,10 +1821,7 @@
 
                 if (error) throw error;
                 allScorers = data || [];
-                console.log('🎯 Loaded scorers with licence=true:', allScorers);
-                console.log('🎯 Number of licensed scorers:', allScorers.length);
             } catch (error) {
-                console.error('❌ Error loading scorers:', error);
                 allScorers = [];
             }
         }
@@ -1876,7 +1829,6 @@
         // Load all täfelers from scorer_scorers table
         async function loadTaefelers() {
             try {
-                console.log('Loading täfelers from database...');
                 const { data, error } = await supabase
                     .from('scorer_scorers')
                     .select('*')
@@ -1885,17 +1837,13 @@
 
                 if (error) throw error;
                 allTaefelers = data || [];
-                console.log('📊 Loaded all täfelers:', allTaefelers);
-                console.log('📊 Number of täfelers:', allTaefelers.length);
             } catch (error) {
-                console.error('❌ Error loading täfelers:', error);
                 allTaefelers = [];
             }
         }
 
         // Populate täfeler results
         function populateTaefelerResults() {
-            console.log('Populating täfeler results, allTaefelers:', allTaefelers);
             const resultsContainer = document.getElementById('taefelerResults');
             
             if (allTaefelers && allTaefelers.length > 0) {
@@ -1903,8 +1851,6 @@
                 let filteredTaefelers = allTaefelers;
                 if (currentGame && currentGame.taefeler_team_short) {
                     filteredTaefelers = allTaefelers.filter(person => person.team === currentGame.taefeler_team_short);
-                    console.log(`Filtered täfelers by team ${currentGame.taefeler_team_short}:`, filteredTaefelers.length);
-                    console.log('Available teams in täfelers:', [...new Set(allTaefelers.map(p => p.team))]);
                 }
                 
                 resultsContainer.innerHTML = '';
@@ -1926,16 +1872,13 @@
                     
                     resultsContainer.appendChild(resultItem);
                 });
-                console.log(`Added ${filteredTaefelers.length} täfelers to results`);
             } else {
                 resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No täfelers found</div>';
-                console.log('No täfelers found in allTaefelers array');
             }
         }
 
         // Populate scorer results
         function populateScorerResults() {
-            console.log('Populating scorer results, allScorers:', allScorers);
             const resultsContainer = document.getElementById('scorerResults');
             
             if (allScorers && allScorers.length > 0) {
@@ -1943,8 +1886,6 @@
                 let filteredScorers = allScorers;
                 if (currentGame && currentGame.scorer_team_short) {
                     filteredScorers = allScorers.filter(person => person.team === currentGame.scorer_team_short);
-                    console.log(`Filtered scorers by team ${currentGame.scorer_team_short}:`, filteredScorers.length);
-                    console.log('Available teams in scorers:', [...new Set(allScorers.map(p => p.team))]);
                 }
                 
                 resultsContainer.innerHTML = '';
@@ -1966,10 +1907,8 @@
                     
                     resultsContainer.appendChild(resultItem);
                 });
-                console.log(`Added ${filteredScorers.length} scorers to results`);
             } else {
                 resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No scorers found</div>';
-                console.log('No scorers found in allScorers array');
             }
         }
 
@@ -2108,16 +2047,7 @@
             window.confirmationType = null;
         }
 
-        // Debug function to check current state
-        function debugConfirmationState() {
-            console.log('=== Confirmation State Debug ===');
-            console.log('taefelerConfirmed:', window.taefelerConfirmed);
-            console.log('scorerConfirmed:', window.scorerConfirmed);
-            console.log('selectedTaefeler:', window.selectedTaefeler);
-            console.log('selectedScorer:', window.selectedScorer);
-            console.log('confirmationType:', window.confirmationType);
-            console.log('==============================');
-        }
+
 
         // Close täfeler selector focused view
         function closeTaefelerSelector() {
@@ -2169,11 +2099,8 @@
 
         // Show confirmation in focused view
         function showConfirmationInView(type) {
-            console.log('showConfirmationInView called with type:', type);
-            
             // Validate input
             if (!type || (type !== 'taefeler' && type !== 'scorer')) {
-                console.error('Invalid type provided to showConfirmationInView:', type);
                 alert('Error: Invalid confirmation type');
                 return;
             }
@@ -2184,15 +2111,11 @@
             
             // Validate selected person
             if (!selectedPerson) {
-                console.error('No person selected for type:', type);
                 alert('Error: No person selected');
                 return;
             }
             
             const fullName = `${selectedPerson.fname} ${selectedPerson.lname}`;
-            
-            console.log('Selected person:', selectedPerson);
-            console.log('Full name:', fullName);
             
             // Store the type for final confirmation
             window.confirmationType = type;
@@ -2210,7 +2133,6 @@
             const scorerSelectorView = document.getElementById('scorerSelectorView');
             if (scorerSelectorView && scorerSelectorView.style.display !== 'none') {
                 actionButtons = scorerSelectorView.querySelector('.action-buttons');
-                console.log('Looking for action-buttons in scorer selector view:', actionButtons);
             }
             
             // If not found in scorer selector, check täfeler selector
@@ -2218,18 +2140,15 @@
                 const taefelerSelectorView = document.getElementById('taefelerSelectorView');
                 if (taefelerSelectorView && taefelerSelectorView.style.display !== 'none') {
                     actionButtons = taefelerSelectorView.querySelector('.action-buttons');
-                    console.log('Looking for action-buttons in täfeler selector view:', actionButtons);
                 }
             }
             
             // Fallback to general query
             if (!actionButtons) {
                 actionButtons = document.querySelector('.action-buttons');
-                console.log('Looking for action-buttons element (fallback):', actionButtons);
             }
             
             if (actionButtons) {
-                console.log('Found action-buttons, updating HTML');
                 actionButtons.innerHTML = `
                     <button class="btn btn-secondary" onclick="cancelConfirmation()">Cancel</button>
                     <button class="btn btn-primary" onclick="finalConfirmSelection()">Confirm Selection</button>
@@ -2237,9 +2156,7 @@
                         ${confirmMessage}
                     </div>
                 `;
-                console.log('Action buttons updated successfully');
             } else {
-                console.error('Could not find action-buttons element');
                 alert('Error: Could not find action buttons');
             }
         }
@@ -2309,10 +2226,6 @@
 
         // Final confirmation
         function finalConfirmSelection() {
-            console.log('finalConfirmSelection called');
-            console.log('window.confirmationType:', window.confirmationType);
-            console.log('window.selectedScorer:', window.selectedScorer);
-            
             if (window.confirmationType === 'taefeler' && window.selectedTaefeler) {
                 const fullName = `${window.selectedTaefeler.fname} ${window.selectedTaefeler.lname}`;
                 
@@ -2343,13 +2256,10 @@
                 
                 // Return focus to game details (no alert)
             } else if (window.confirmationType === 'scorer' && window.selectedScorer) {
-                console.log('Processing scorer confirmation');
                 const fullName = `${window.selectedScorer.fname} ${window.selectedScorer.lname}`;
-                console.log('Full name:', fullName);
                 
                 // Set confirmation state first
                 window.scorerConfirmed = true;
-                console.log('Set window.scorerConfirmed to true');
                 
                 // Update focused view
                 const currentScorerName = document.getElementById('currentScorerName');
@@ -2438,10 +2348,6 @@
 
         // Confirm täfeler selection
         function confirmTaefelerSelection() {
-            console.log('confirmTaefelerSelection called');
-            console.log('window.selectedTaefeler:', window.selectedTaefeler);
-            console.log('window.taefelerConfirmed:', window.taefelerConfirmed);
-            
             // Check if already confirmed
             if (window.taefelerConfirmed) {
                 alert('Täfeler has already been confirmed and cannot be changed.');
@@ -2449,20 +2355,14 @@
             }
             
             if (window.selectedTaefeler) {
-                console.log('Showing confirmation in view for täfeler');
                 showConfirmationInView('taefeler');
             } else {
-                console.log('No täfeler selected');
                 alert('Please select a täfeler first');
             }
         }
 
         // Confirm scorer selection
         function confirmScorerSelection() {
-            console.log('confirmScorerSelection called');
-            console.log('window.selectedScorer:', window.selectedScorer);
-            console.log('window.scorerConfirmed:', window.scorerConfirmed);
-            
             // Check if already confirmed
             if (window.scorerConfirmed) {
                 alert('Scorer has already been confirmed and cannot be changed.');
@@ -2470,10 +2370,8 @@
             }
             
             if (window.selectedScorer) {
-                console.log('Showing confirmation in view for scorer');
                 showConfirmationInView('scorer');
             } else {
-                console.log('No scorer selected');
                 alert('Please select a scorer first');
             }
         }
@@ -2893,19 +2791,6 @@
                 const scorerTeamRequired = game.scorer_team_short && game.scorer_team_short.trim() !== '';
                 const bothRolesConfirmed = hasTaefelerConfirmed && (!scorerTeamRequired || hasScorerConfirmed);
                 
-                // Debug logging for the specific game
-                if (game.home_team && game.away_team) {
-                    console.log(`Game: ${game.home_team} vs ${game.away_team}`);
-                    console.log(`  taefeler_name: "${game.taefeler_name}"`);
-                    console.log(`  scorer_name: "${game.scorer_name}"`);
-                    console.log(`  scorer_team_short: "${game.scorer_team_short}"`);
-                    console.log(`  hasTaefelerIssue: ${hasTaefelerIssue}`);
-                    console.log(`  hasScorerIssue: ${hasScorerIssue}`);
-                    console.log(`  hasTaefelerConfirmed: ${hasTaefelerConfirmed}`);
-                    console.log(`  hasScorerConfirmed: ${hasScorerConfirmed}`);
-                    console.log(`  scorerTeamRequired: ${scorerTeamRequired}`);
-                    console.log(`  bothRolesConfirmed: ${bothRolesConfirmed}`);
-                }
 
                 const gameCard = document.createElement('div');
                 gameCard.className = 'game-card';
@@ -3052,7 +2937,6 @@
             }
 
             try {
-                console.log('Saving game details for:', currentGame);
                 
                 // Log changes for each field that was modified
                 if (currentGame.taefeler_name !== taefelerName) {

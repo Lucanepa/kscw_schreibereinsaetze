@@ -1283,7 +1283,6 @@
 
         // Load games from Supabase
         async function loadGames() {
-            console.log('Loading games...');
             const { data, error } = await supabase
                 .from('scorer_matches')
                 .select('*')
@@ -1293,17 +1292,10 @@
 
             if (error) throw error;
             allGames = data || [];
-            console.log('Loaded games:', allGames);
-            console.log('DEBUG: Sample game IDs:', allGames.slice(0, 3).map(g => ({ 
-                match_id: g.match_id, 
-                taefeler_id: g.taefeler_id, 
-                scorer_id: g.scorer_id 
-            })));
         }
 
         // Load scorers from scorer_scorers table
         async function loadScorers() {
-            console.log('Loading scorers...');
             const { data, error } = await supabase
                 .from('scorer_scorers')
                 .select('*')
@@ -1313,13 +1305,10 @@
 
             if (error) throw error;
             allScorers = data || [];
-            console.log('Loaded scorers:', allScorers);
-            console.log('DEBUG: Sample scorer IDs:', allScorers.slice(0, 3).map(s => ({ id: s.id, name: `${s.fname} ${s.lname}` })));
         }
 
         // Load all täfelers from scorer_scorers table
         async function loadTaefelers() {
-            console.log('Loading täfelers...');
             const { data, error } = await supabase
                 .from('scorer_scorers')
                 .select('*')
@@ -1328,8 +1317,6 @@
 
             if (error) throw error;
             allTaefelers = data || [];
-            console.log('Loaded täfelers:', allTaefelers);
-            console.log('DEBUG: Sample täfeler IDs:', allTaefelers.slice(0, 3).map(t => ({ id: t.id, name: `${t.fname} ${t.lname}` })));
         }
 
         // Filter out past games (games older than the day after their scheduled date)
@@ -1620,9 +1607,6 @@
 
         // Open focused game view (read-only for coaches)
         function openGameModal(game) {
-            console.log('DEBUG: openGameModal called with game:', game);
-            console.log('DEBUG: Game taefeler_id:', game.taefeler_id);
-            console.log('DEBUG: Game scorer_id:', game.scorer_id);
             currentGame = game;
             
             // Set game title
@@ -1650,25 +1634,15 @@
             document.getElementById('scorerTeamDisplay').textContent = game.scorer_team_short ? `(${game.scorer_team_short})` : '';
             
             // Populate täfeler information with ID-based lookup
-            console.log('DEBUG: Game data:', game);
-            console.log('DEBUG: allTaefelers length:', allTaefelers ? allTaefelers.length : 'undefined');
-            console.log('DEBUG: Game taefeler_id:', game.taefeler_id);
-            
             let taefelerName = '-';
             let taefelerPhone = '-';
             if (game.taefeler_id) {
-                console.log('DEBUG: Looking for taefeler with ID:', game.taefeler_id);
                 const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                console.log('DEBUG: Found taefeler:', taefeler);
                 if (taefeler) {
                     taefelerName = `${taefeler.fname} ${taefeler.lname}`;
                     taefelerPhone = taefeler.phone || 'no phone found';
                 }
-            } else {
-                console.log('DEBUG: No taefeler_id found in game');
             }
-            console.log('DEBUG: Final taefelerName:', taefelerName);
-            console.log('DEBUG: Final taefelerPhone:', taefelerPhone);
             
             document.getElementById('currentTaefelerName').textContent = taefelerName;
             document.getElementById('currentTaefelerPhone').textContent = taefelerPhone;
@@ -1677,24 +1651,16 @@
             const scorerSection = document.getElementById('scorerRoleSection');
             if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
                 scorerSection.style.display = 'block';
-                console.log('DEBUG: Game scorer_id:', game.scorer_id);
-                console.log('DEBUG: allScorers length:', allScorers ? allScorers.length : 'undefined');
                 
                 let scorerName = '-';
                 let scorerPhone = '-';
                 if (game.scorer_id) {
-                    console.log('DEBUG: Looking for scorer with ID:', game.scorer_id);
                     const scorer = allScorers.find(s => s.id === game.scorer_id);
-                    console.log('DEBUG: Found scorer:', scorer);
                     if (scorer) {
                         scorerName = `${scorer.fname} ${scorer.lname}`;
                         scorerPhone = scorer.phone || 'no phone found';
                     }
-                } else {
-                    console.log('DEBUG: No scorer_id found in game');
                 }
-                console.log('DEBUG: Final scorerName:', scorerName);
-                console.log('DEBUG: Final scorerPhone:', scorerPhone);
                 
                 document.getElementById('currentScorerName').textContent = scorerName;
                 document.getElementById('currentScorerPhone').textContent = scorerPhone;
