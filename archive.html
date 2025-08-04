@@ -676,6 +676,14 @@
         let allScorers = []; // All scorers from scorer_scorers table
         let allTaefelers = []; // All täfelers from scorer_scorers table
 
+        // Escape HTML to prevent XSS attacks
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Initialize Supabase
         const supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
@@ -881,22 +889,22 @@
 
                 gameCard.innerHTML = `
                     <div class="game-header">
-                        <div class="game-date">${formattedDate}</div>
-                        <div class="game-time">${formattedTime}</div>
+                        <div class="game-date">${escapeHtml(formattedDate)}</div>
+                        <div class="game-time">${escapeHtml(formattedTime)}</div>
                     </div>
                     <div class="game-teams">
-                        ${game.home_team} vs ${game.away_team}
+                        ${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}
                     </div>
-                    <div class="game-location">📍 ${game.halle_short || 'TBD'}</div>
+                    <div class="game-location">📍 ${escapeHtml(game.halle_short || 'TBD')}</div>
                     <div class="game-roles">
                         ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? `
                             <div class="role-item">
-                                <div class="role-label">📝 Scorer: ${game.scorer_team_short}${game.scorer_name ? ` (${game.scorer_name})` : ''}</div>
+                                <div class="role-label">📝 Scorer: ${escapeHtml(game.scorer_team_short)}${game.scorer_name ? ` (${escapeHtml(game.scorer_name)})` : ''}</div>
                                 <div class="status-icon">${hasScorerIssue ? '⚠️' : '✅'}</div>
                             </div>
                         ` : ''}
                         <div class="role-item">
-                            <div class="role-label">🏐 ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler'}: ${game.taefeler_team_short || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}</div>
+                            <div class="role-label">🏐 ${game.scorer_team_short && game.scorer_team_short.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler'}: ${escapeHtml(game.taefeler_team_short || 'TBD')}${game.taefeler_name ? ` (${escapeHtml(game.taefeler_name)})` : ''}</div>
                             <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
                         </div>
                     </div>
@@ -929,22 +937,22 @@
                 day: 'numeric'
             });
 
-            document.getElementById('modalTitle').textContent = `${game.home_team} vs ${game.away_team}`;
-            document.getElementById('modalSubtitle').textContent = formattedDate;
-            document.getElementById('modalDate').textContent = formattedDate;
+            document.getElementById('modalTitle').textContent = `${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}`;
+            document.getElementById('modalSubtitle').textContent = escapeHtml(formattedDate);
+            document.getElementById('modalDate').textContent = escapeHtml(formattedDate);
             document.getElementById('modalTime').textContent = game.time ? game.time.substring(0, 5) : 'TBD';
-            document.getElementById('modalGym').textContent = game.halle_short || '-';
-            document.getElementById('modalHomeTeam').textContent = game.home_team || '-';
-            document.getElementById('modalAwayTeam').textContent = game.away_team || '-';
-            document.getElementById('modalScorerTeam').textContent = game.scorer_team_short || '-';
-            document.getElementById('modalTaefelerTeam').textContent = game.taefeler_team_short || '-';
-            document.getElementById('modalGameNumber').textContent = game.gamen || '-';
+            document.getElementById('modalGym').textContent = escapeHtml(game.halle_short || '-');
+            document.getElementById('modalHomeTeam').textContent = escapeHtml(game.home_team || '-');
+            document.getElementById('modalAwayTeam').textContent = escapeHtml(game.away_team || '-');
+            document.getElementById('modalScorerTeam').textContent = escapeHtml(game.scorer_team_short || '-');
+            document.getElementById('modalTaefelerTeam').textContent = escapeHtml(game.taefeler_team_short || '-');
+            document.getElementById('modalGameNumber').textContent = escapeHtml(game.gamen || '-');
 
                          // Populate read-only contact information from scorer_scorers table
                          if (game.taefeler_name) {
                              const taefeler = allTaefelers.find(t => `${t.fname} ${t.lname}` === game.taefeler_name);
-                             document.getElementById('modalTaefelerName').textContent = game.taefeler_name;
-                             document.getElementById('modalTaefelerPhone').textContent = taefeler ? taefeler.phone || '-' : '-';
+                             document.getElementById('modalTaefelerName').textContent = escapeHtml(game.taefeler_name);
+                             document.getElementById('modalTaefelerPhone').textContent = taefeler ? escapeHtml(taefeler.phone || '-') : '-';
                          } else {
                              document.getElementById('modalTaefelerName').textContent = '-';
                              document.getElementById('modalTaefelerPhone').textContent = '-';
@@ -952,8 +960,8 @@
                          
                          if (game.scorer_name) {
                              const scorer = allScorers.find(s => `${s.fname} ${s.lname}` === game.scorer_name);
-                             document.getElementById('modalScorerName').textContent = game.scorer_name;
-                             document.getElementById('modalScorerPhone').textContent = scorer ? scorer.phone || '-' : '-';
+                             document.getElementById('modalScorerName').textContent = escapeHtml(game.scorer_name);
+                             document.getElementById('modalScorerPhone').textContent = scorer ? escapeHtml(scorer.phone || '-') : '-';
                          } else {
                              document.getElementById('modalScorerName').textContent = '-';
                              document.getElementById('modalScorerPhone').textContent = '-';

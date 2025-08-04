@@ -91,32 +91,6 @@
             border-color: rgba(255, 255, 255, 0.6);
         }
 
-        .archive-link {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-        }
-
-        .btn-archive {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: all 0.3s ease;
-            letter-spacing: 0.01em;
-        }
-
-        .btn-archive:hover {
-            background: rgba(255, 255, 255, 0.3);
-            color: white;
-            text-decoration: none;
-        }
-
         .info-text {
             max-width: 800px;
             margin: 0 auto;
@@ -751,11 +725,7 @@
                 top: 15px;
                 right: 15px;
             }
-            
-            .archive-link {
-                top: 15px;
-                left: 15px;
-            }
+        
             
             .lang-btn, .btn-archive, .btn-info {
                 padding: 6px 12px;
@@ -1104,9 +1074,6 @@
                 <button class="lang-btn active" onclick="switchLanguage('de')">DE</button>
             </div>
             <button id="infoButton" class="btn btn-info" onclick="openInfoModal()">ℹ️ <span id="infoButtonText">Wichtige Informationen</span></button>
-            <div class="archive-link">
-                <a href="archive.html" class="btn btn-archive">📚 Archive</a>
-            </div>
 
 
         </div>
@@ -1757,9 +1724,9 @@
                 `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-                `SUMMARY:${currentGame.home_team} vs ${currentGame.away_team}`,
-                `DESCRIPTION:Volleyball match at ${currentGame.halle || 'TBD'}. Scorer: ${currentGame.scorer_team || 'TBD'}. Täfeler: ${currentGame.taefeler_team || 'TBD'}.`,
-                `LOCATION:${currentGame.halle || 'TBD'}`,
+                `SUMMARY:${escapeHtml(currentGame.home_team)} vs ${escapeHtml(currentGame.away_team)}`,
+                `DESCRIPTION:Volleyball match at ${escapeHtml(currentGame.halle || 'TBD')}. Scorer: ${escapeHtml(currentGame.scorer_team || 'TBD')}. Täfeler: ${escapeHtml(currentGame.taefeler_team || 'TBD')}.`,
+                `LOCATION:${escapeHtml(currentGame.halle || 'TBD')}`,
                 'BEGIN:VALARM',
                 `TRIGGER:-P1D`,
                 'ACTION:DISPLAY',
@@ -2450,18 +2417,18 @@
             const taefelerLabel = taefelerSection.querySelector('label');
             
             if (hasScorerTeam) {
-                taefelerTitle.innerHTML = `Täfeler Assignment <span id="taefelerTeamDisplay">(${game.taefeler_team}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span></span>`;
+                taefelerTitle.innerHTML = `Täfeler Assignment <span id="taefelerTeamDisplay">(${escapeHtml(game.taefeler_team)}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span></span>`;
                 taefelerLabel.textContent = 'Current Täfeler:';
             } else {
-                taefelerTitle.innerHTML = `Schreiber/Täfeler Assignment <span id="taefelerTeamDisplay">(${game.taefeler_team || 'TBD'})</span>`;
+                taefelerTitle.innerHTML = `Schreiber/Täfeler Assignment <span id="taefelerTeamDisplay">(${escapeHtml(game.taefeler_team || 'TBD')})</span>`;
                 taefelerLabel.textContent = 'Current Schreiber/Täfeler:';
             }
             
             // Set scorer team display
-            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team ? `(${game.scorer_team})` : '';
+            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team ? `(${escapeHtml(game.scorer_team)})` : '';
             if (game.scorer_team) {
                 const scorerTeamDisplay = document.getElementById('scorerTeamDisplay');
-                scorerTeamDisplay.innerHTML = `(${game.scorer_team}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
+                scorerTeamDisplay.innerHTML = `(${escapeHtml(game.scorer_team)}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
             }
             
             // Check if this is a combined scorer/täfeler game
@@ -2503,7 +2470,7 @@
                 }
                 
                 // Set team display
-                document.getElementById('scorerTaefelerTeamDisplay').textContent = game.scorer_taefeler_team ? `(${game.scorer_taefeler_team})` : '';
+                document.getElementById('scorerTaefelerTeamDisplay').textContent = game.scorer_taefeler_team ? `(${escapeHtml(game.scorer_taefeler_team)})` : '';
                 
                 // Populate combined scorer/täfeler information
                 let scorerTaefelerName = '-';
@@ -2648,17 +2615,17 @@
             document.getElementById('selectedScorerName').textContent = '-';
 
             // Set team displays
-            document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team ? `(${game.taefeler_team})` : '';
-            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team ? `(${game.scorer_team})` : '';
+            document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team ? `(${escapeHtml(game.taefeler_team)})` : '';
+            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team ? `(${escapeHtml(game.scorer_team)})` : '';
             
             // Add filtering indicator
             if (game.taefeler_team) {
                 const taefelerTeamDisplay = document.getElementById('taefelerTeamDisplay');
-                taefelerTeamDisplay.innerHTML = `(${game.taefeler_team}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
+                taefelerTeamDisplay.innerHTML = `(${escapeHtml(game.taefeler_team)}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
             }
             if (game.scorer_team) {
                 const scorerTeamDisplay = document.getElementById('scorerTeamDisplay');
-                scorerTeamDisplay.innerHTML = `(${game.scorer_team}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
+                scorerTeamDisplay.innerHTML = `(${escapeHtml(game.scorer_team)}) <span style="color: #28a745; font-size: 0.8em;">🔒 Filtered</span>`;
             }
 
             // If game has existing selections, show them (lookup from IDs)
@@ -2947,28 +2914,28 @@
                 
                 gameCard.innerHTML = `
                     <div class="game-header">
-                        <div class="game-date">${formattedDate}</div>
-                        <div class="game-time">${formattedTime}</div>
+                        <div class="game-date">${escapeHtml(formattedDate)}</div>
+                        <div class="game-time">${escapeHtml(formattedTime)}</div>
                     </div>
                     <div class="game-teams">
-                        ${game.home_team} vs ${game.away_team}
+                        ${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}
                     </div>
-                    <div class="game-location">📍 ${game.halle || 'TBD'}</div>
+                    <div class="game-location">📍 ${escapeHtml(game.halle || 'TBD')}</div>
                     <div class="game-roles">
                         ${isCombinedGame ? `
                             <div class="role-item">
-                                <div class="role-label">📝 Scorer/Täfeler: ${game.scorer_taefeler_team}${scorerTaefelerName ? ` (${scorerTaefelerName})` : ''}</div>
+                                <div class="role-label">📝 Scorer/Täfeler: ${escapeHtml(game.scorer_taefeler_team)}${scorerTaefelerName ? ` (${escapeHtml(scorerTaefelerName)})` : ''}</div>
                                 <div class="status-icon">${hasScorerTaefelerIssue ? '⚠️' : '✅'}</div>
                             </div>
                         ` : `
-                            ${game.scorer_team && game.scorer_team.trim() !== '' && isEditable ? `
+                            ${game.scorer_team && game.scorer_team.trim() !== '' ? `
                                 <div class="role-item">
-                                    <div class="role-label">📝 Scorer: ${game.scorer_team}${scorerName ? ` (${scorerName})` : ''}</div>
+                                    <div class="role-label">📝 Scorer: ${escapeHtml(game.scorer_team)}${scorerName ? ` (${escapeHtml(scorerName)})` : ''}${!isEditable ? ' 🔒' : ''}</div>
                                     <div class="status-icon">${hasScorerIssue ? '⚠️' : '✅'}</div>
                                 </div>
                             ` : ''}
                             <div class="role-item">
-                                <div class="role-label">🏐 Täfeler: ${game.taefeler_team || 'TBD'}${taefelerName ? ` (${taefelerName})` : ''}</div>
+                                <div class="role-label">🏐 Täfeler: ${escapeHtml(game.taefeler_team || 'TBD')}${taefelerName ? ` (${escapeHtml(taefelerName)})` : ''}</div>
                                 <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
                             </div>
                         `}
@@ -2978,6 +2945,14 @@
 
                 gamesContainer.appendChild(gameCard);
             });
+        }
+
+        // Escape HTML to prevent XSS attacks
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // Check if game is within 2 days of start time (editable)
@@ -3276,19 +3251,19 @@
                 teamGamesHTML += `
                     <div class="${gameClass}">
                         <div class="team-game-header">
-                            <div class="team-game-date">${formattedDate}</div>
-                            <div class="team-game-time">${formattedTime}</div>
+                            <div class="team-game-date">${escapeHtml(formattedDate)}</div>
+                            <div class="team-game-time">${escapeHtml(formattedTime)}</div>
                         </div>
-                        <div class="team-game-teams">${game.home_team} ${translations[currentLanguage].vs} ${game.away_team}</div>
-                        <div class="team-game-location">📍 ${game.halle || 'TBD'}</div>
+                        <div class="team-game-teams">${escapeHtml(game.home_team)} ${translations[currentLanguage].vs} ${escapeHtml(game.away_team)}</div>
+                        <div class="team-game-location">📍 ${escapeHtml(game.halle || 'TBD')}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team && game.scorer_team.trim() !== '' ? `
                                 <div class="team-role-item ${!game.scorer_id ? 'has-issue' : ''}">
-                                    📝 ${translations[currentLanguage].scorer}: ${game.scorer_team}${scorerName ? ` (${scorerName})` : ''}
+                                    📝 ${translations[currentLanguage].scorer}: ${escapeHtml(game.scorer_team)}${scorerName ? ` (${escapeHtml(scorerName)})` : ''}
                                 </div>
                             ` : ''}
                             <div class="team-role-item ${!game.taefeler_id ? 'has-issue' : ''}">
-                                🏐 ${translations[currentLanguage].taefeler}: ${game.taefeler_team || 'TBD'}${taefelerName ? ` (${taefelerName})` : ''}
+                                🏐 ${translations[currentLanguage].taefeler}: ${escapeHtml(game.taefeler_team || 'TBD')}${taefelerName ? ` (${escapeHtml(taefelerName)})` : ''}
                             </div>
                         </div>
                     </div>

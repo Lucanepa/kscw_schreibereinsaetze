@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,30 +41,6 @@
         .header h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
-        }
-
-        .archive-link {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-        }
-
-        .btn-archive {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-archive:hover {
-            background: rgba(255, 255, 255, 0.3);
-            color: white;
-            text-decoration: none;
         }
 
         .dropdown-container {
@@ -744,16 +719,6 @@
                 margin-bottom: 6px;
             }
             
-            .archive-link {
-                top: 15px;
-                left: 15px;
-            }
-            
-            .btn-archive {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-            
             .main-content {
                 padding: 20px;
             }
@@ -918,9 +883,6 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="archive-link">
-                <a href="archive.html" class="btn btn-archive">📚 Archive</a>
-            </div>
             <h1>Schreibereinsätze Coaches Panel</h1>
         </div>
 
@@ -1236,6 +1198,30 @@
         let allScorers = []; // All scorers from scorer_scorers table
         let allTaefelers = []; // All täfelers from scorer_scorers table
 
+        // Helper function to determine if a game is a combined scorer/täfeler game
+        function isCombined(game) {
+            return (!game.scorer_team || game.scorer_team.trim() === '') && 
+                   (!game.taefeler_team || game.taefeler_team.trim() === '') &&
+                   (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
+        }
+
+        // Helper function to determine if a game has issues
+        function hasIssues(game) {
+            if (isCombined(game)) {
+                return !game.scorer_taefeler_id;
+            } else {
+                return (!game.taefeler_id || (game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id));
+            }
+        }
+
+        // Escape HTML to prevent XSS attacks
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Initialize Supabase
         const supabase = window.supabase.createClient(
             SUPABASE_CONFIG.url,
@@ -1454,29 +1440,9 @@
 
             // Filter by issues
             if (issuesFilter === 'issues') {
-                filtered = filtered.filter(game => {
-                    const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
-                                          (!game.taefeler_team || game.taefeler_team.trim() === '') &&
-                                          (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
-                    
-                    if (isCombinedGame) {
-                        return !game.scorer_taefeler_id;
-                    } else {
-                        return (!game.taefeler_id || (game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id));
-                    }
-                });
+                filtered = filtered.filter(game => hasIssues(game));
             } else if (issuesFilter === 'no-issues') {
-                filtered = filtered.filter(game => {
-                    const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
-                                          (!game.taefeler_team || game.taefeler_team.trim() === '') &&
-                                          (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
-                    
-                    if (isCombinedGame) {
-                        return game.scorer_taefeler_id;
-                    } else {
-                        return game.taefeler_id && (!game.scorer_team || game.scorer_team.trim() === '' || game.scorer_id);
-                    }
-                });
+                filtered = filtered.filter(game => !hasIssues(game));
             }
 
             renderAdminTable(filtered);
@@ -1526,32 +1492,27 @@
                 }
                 
                 // Check if this is a combined scorer/täfeler game
-                // If both scorer_team and taefeler_team are null, it's a combined game
-                const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
-                                      (!game.taefeler_team || game.taefeler_team.trim() === '') &&
-                                      (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
-                
-                if (isCombinedGame) {
+                if (isCombined(game)) {
                     // Combined scorer/täfeler status
                     const combinedInfo = scorerTaefelerName ? 
-                        `${scorerTaefelerName} (${game.scorer_taefeler_team})` : 
-                        game.scorer_taefeler_team || 'TBD';
+                        `${escapeHtml(scorerTaefelerName)} (${escapeHtml(game.scorer_taefeler_team)})` : 
+                        escapeHtml(game.scorer_taefeler_team || 'TBD');
                     const combinedStatus = !game.scorer_taefeler_id ? '⚠️' : '✅';
                     statusIcons.push(`${combinedStatus} Scorer/Täfeler: ${combinedInfo}`);
                 } else {
                     // Separate täfeler and scorer status
                     const taefelerLabel = game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
                     const taefelerInfo = taefelerName ? 
-                        `${taefelerName} (${game.taefeler_team})` : 
-                        game.taefeler_team || 'TBD';
+                        `${escapeHtml(taefelerName)} (${escapeHtml(game.taefeler_team)})` : 
+                        escapeHtml(game.taefeler_team || 'TBD');
                     const taefelerStatus = !game.taefeler_id ? '⚠️' : '✅';
                     statusIcons.push(`${taefelerStatus} ${taefelerLabel}: ${taefelerInfo}`);
                     
                     // Scorer status (only if scorer team is assigned)
                     if (game.scorer_team && game.scorer_team.trim() !== '') {
                         const scorerInfo = scorerName ? 
-                            `${scorerName} (${game.scorer_team})` : 
-                            game.scorer_team;
+                            `${escapeHtml(scorerName)} (${escapeHtml(game.scorer_team)})` : 
+                            escapeHtml(game.scorer_team);
                         const scorerStatus = !game.scorer_id ? '⚠️' : '✅';
                         statusIcons.push(`${scorerStatus} Scorer: ${scorerInfo}`);
                     }
@@ -1559,11 +1520,11 @@
 
                 return `
                     <tr>
-                        <td>${formattedDate}</td>
-                        <td>${formattedTime}</td>
-                        <td>${game.home_team || '-'}</td>
-                        <td>${game.away_team || '-'}</td>
-                        <td>${game.halle_short || '-'}</td>
+                        <td>${escapeHtml(formattedDate)}</td>
+                        <td>${escapeHtml(formattedTime)}</td>
+                        <td>${escapeHtml(game.home_team || '-')}</td>
+                        <td>${escapeHtml(game.away_team || '-')}</td>
+                        <td>${escapeHtml(game.halle_short || '-')}</td>
                         <td class="status-indicator">${statusIcons.join('<br>')}</td>
                         <td>
                             <button class="btn btn-warning" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">View</button>
@@ -1620,32 +1581,27 @@
                 }
                 
                 // Check if this is a combined scorer/täfeler game
-                // If both scorer_team and taefeler_team are null, it's a combined game
-                const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
-                                      (!game.taefeler_team || game.taefeler_team.trim() === '') &&
-                                      (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
-                
-                if (isCombinedGame) {
+                if (isCombined(game)) {
                     // Combined scorer/täfeler status
                     const combinedInfo = scorerTaefelerName ? 
-                        `${scorerTaefelerName} (${game.scorer_taefeler_team})` : 
-                        game.scorer_taefeler_team || 'TBD';
+                        `${escapeHtml(scorerTaefelerName)} (${escapeHtml(game.scorer_taefeler_team)})` : 
+                        escapeHtml(game.scorer_taefeler_team || 'TBD');
                     const combinedStatus = !game.scorer_taefeler_id ? '⚠️' : '✅';
                     statusIcons.push(`${combinedStatus} Scorer/Täfeler: ${combinedInfo}`);
                 } else {
                     // Separate täfeler and scorer status
                     const taefelerLabel = game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
                     const taefelerInfo = taefelerName ? 
-                        `${taefelerName} (${game.taefeler_team})` : 
-                        game.taefeler_team || 'TBD';
+                        `${escapeHtml(taefelerName)} (${escapeHtml(game.taefeler_team)})` : 
+                        escapeHtml(game.taefeler_team || 'TBD');
                     const taefelerStatus = !game.taefeler_id ? '⚠️' : '✅';
                     statusIcons.push(`${taefelerStatus} ${taefelerLabel}: ${taefelerInfo}`);
                     
                     // Scorer status (only if scorer team is assigned)
                     if (game.scorer_team && game.scorer_team.trim() !== '') {
                         const scorerInfo = scorerName ? 
-                            `${scorerName} (${game.scorer_team})` : 
-                            game.scorer_team;
+                            `${escapeHtml(scorerName)} (${escapeHtml(game.scorer_team)})` : 
+                            escapeHtml(game.scorer_team);
                         const scorerStatus = !game.scorer_id ? '⚠️' : '✅';
                         statusIcons.push(`${scorerStatus} Scorer: ${scorerInfo}`);
                     }
@@ -1655,13 +1611,13 @@
                 mobileCard.className = 'mobile-game-card';
                 mobileCard.innerHTML = `
                     <div class="game-header">
-                        <div class="game-date-time">${formattedDate} ${formattedTime}</div>
-                        <div class="game-teams">${game.home_team || '-'} vs ${game.away_team || '-'}</div>
+                        <div class="game-date-time">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
+                        <div class="game-teams">${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}</div>
                     </div>
                     <div class="game-details">
                         <div class="detail-item">
                             <div class="detail-label">Gym</div>
-                            <div class="detail-value">${game.halle_short || '-'}</div>
+                            <div class="detail-value">${escapeHtml(game.halle_short || '-')}</div>
                         </div>
 
                         <div class="detail-item">
@@ -1681,7 +1637,7 @@
             currentGame = game;
             
             // Set game title
-            document.getElementById('focusedGameTitle').textContent = `${game.home_team} vs ${game.away_team}`;
+            document.getElementById('focusedGameTitle').textContent = `${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}`;
             
             // Format date
             const gameDate = new Date(game.date);
@@ -1693,19 +1649,19 @@
             });
             
             // Populate game information
-            document.getElementById('focusedGameDate').textContent = formattedDate;
+            document.getElementById('focusedGameDate').textContent = escapeHtml(formattedDate);
             document.getElementById('focusedGameTime').textContent = game.time ? game.time.substring(0, 5) : 'TBD';
-            document.getElementById('focusedGameGym').textContent = game.halle_short || 'TBD';
-            document.getElementById('focusedGameHomeTeam').textContent = game.home_team || 'TBD';
-            document.getElementById('focusedGameAwayTeam').textContent = game.away_team || 'TBD';
-            document.getElementById('focusedGameNumber').textContent = game.gamen || 'TBD';
+            document.getElementById('focusedGameGym').textContent = escapeHtml(game.halle_short || 'TBD');
+            document.getElementById('focusedGameHomeTeam').textContent = escapeHtml(game.home_team || 'TBD');
+            document.getElementById('focusedGameAwayTeam').textContent = escapeHtml(game.away_team || 'TBD');
+            document.getElementById('focusedGameNumber').textContent = escapeHtml(game.gamen || 'TBD');
             
             // Set team displays
-            document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team_short ? `(${game.taefeler_team_short})` : '';
-            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team_short ? `(${game.scorer_team_short})` : '';
+            document.getElementById('taefelerTeamDisplay').textContent = game.taefeler_team ? `(${escapeHtml(game.taefeler_team)})` : '';
+            document.getElementById('scorerTeamDisplay').textContent = game.scorer_team ? `(${escapeHtml(game.scorer_team)})` : '';
             
             // Check if this is a combined scorer/täfeler game
-            const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team_short && game.scorer_taefeler_team_short.trim() !== '');
+            const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
             
             if (isCombinedGame) {
                 // Combined scorer/täfeler game
@@ -1737,7 +1693,7 @@
                 }
                 
                 // Set team display
-                document.getElementById('scorerTaefelerTeamDisplay').textContent = game.scorer_taefeler_team_short ? `(${game.scorer_taefeler_team_short})` : '';
+                document.getElementById('scorerTaefelerTeamDisplay').textContent = game.scorer_taefeler_team ? `(${game.scorer_taefeler_team})` : '';
                 
                 // Populate combined scorer/täfeler information
                 let scorerTaefelerName = '-';
@@ -1785,7 +1741,7 @@
                 
                 // Show/hide scorer section based on whether scorer team is assigned
                 const scorerSection = document.getElementById('scorerRoleSection');
-                if (game.scorer_team_short && game.scorer_team_short.trim() !== '') {
+                if (game.scorer_team && game.scorer_team.trim() !== '') {
                     scorerSection.style.display = 'block';
                     
                     let scorerName = '-';
@@ -1887,16 +1843,16 @@
             const dropdown = document.getElementById('taefelerDropdown');
             dropdown.innerHTML = '<option value="">-- Select Täfeler --</option>';
             
-            // Filter täfelers by team if currentGame has taefeler_team_short
+            // Filter täfelers by team if currentGame has taefeler_team
             let filteredTaefelers = allTaefelers;
-            if (currentGame && currentGame.taefeler_team_short) {
+            if (currentGame && currentGame.taefeler_team) {
                 filteredTaefelers = allTaefelers.filter(person => {
                     // Check if person has teams array and if it includes the current team
                     if (Array.isArray(person.teams)) {
-                        return person.teams.includes(currentGame.taefeler_team_short);
+                        return person.teams.includes(currentGame.taefeler_team);
                     }
                     // Fallback for existing single team field
-                    return person.team === currentGame.taefeler_team_short;
+                    return person.team === currentGame.taefeler_team;
                 });
             }
             
@@ -1931,16 +1887,16 @@
             const dropdown = document.getElementById('scorerDropdown');
             dropdown.innerHTML = '<option value="">-- Select Scorer --</option>';
             
-            // Filter scorers by team if currentGame has scorer_team_short
+            // Filter scorers by team if currentGame has scorer_team
             let filteredScorers = allScorers;
-            if (currentGame && currentGame.scorer_team_short) {
+            if (currentGame && currentGame.scorer_team) {
                 filteredScorers = allScorers.filter(person => {
                     // Check if person has teams array and if it includes the current team
                     if (Array.isArray(person.teams)) {
-                        return person.teams.includes(currentGame.scorer_team_short);
+                        return person.teams.includes(currentGame.scorer_team);
                     }
                     // Fallback for existing single team field
-                    return person.team === currentGame.scorer_team_short;
+                    return person.team === currentGame.scorer_team;
                 });
             }
             
@@ -1977,16 +1933,16 @@
             const options = dropdown.querySelectorAll('option');
             let visibleCount = 0;
             
-            // First filter by team if currentGame has taefeler_team_short
+            // First filter by team if currentGame has taefeler_team
             let teamFilteredTaefelers = allTaefelers;
-            if (currentGame && currentGame.taefeler_team_short) {
+            if (currentGame && currentGame.taefeler_team) {
                 teamFilteredTaefelers = allTaefelers.filter(person => {
                     // Check if person has teams array and if it includes the current team
                     if (Array.isArray(person.teams)) {
-                        return person.teams.includes(currentGame.taefeler_team_short);
+                        return person.teams.includes(currentGame.taefeler_team);
                     }
                     // Fallback for existing single team field
-                    return person.team === currentGame.taefeler_team_short;
+                    return person.team === currentGame.taefeler_team;
                 });
             }
             
@@ -2025,16 +1981,16 @@
             const options = dropdown.querySelectorAll('option');
             let visibleCount = 0;
             
-            // First filter by team if currentGame has scorer_team_short
+            // First filter by team if currentGame has scorer_team
             let teamFilteredScorers = allScorers;
-            if (currentGame && currentGame.scorer_team_short) {
+            if (currentGame && currentGame.scorer_team) {
                 teamFilteredScorers = allScorers.filter(person => {
                     // Check if person has teams array and if it includes the current team
                     if (Array.isArray(person.teams)) {
-                        return person.teams.includes(currentGame.scorer_team_short);
+                        return person.teams.includes(currentGame.scorer_team);
                     }
                     // Fallback for existing single team field
-                    return person.team === currentGame.scorer_team_short;
+                    return person.team === currentGame.scorer_team;
                 });
             }
             
@@ -2365,15 +2321,15 @@
                         game.home_team || '',
                         game.away_team || '',
                         game.halle_short || '',
-                        game.scorer_team_short || '',
+                        game.scorer_team || '',
                         scorerName,
                         scorerPhone,
                         scorerEmail,
-                        game.scorer_taefeler_team_short || '',
+                        game.scorer_taefeler_team || '',
                         scorerTaefelerName,
                         scorerTaefelerPhone,
                         scorerTaefelerEmail,
-                        game.taefeler_team_short || '',
+                        game.taefeler_team || '',
                         taefelerName,
                         taefelerPhone,
                         taefelerEmail
@@ -2451,11 +2407,11 @@
                                 
                                 // Check for issues (missing IDs)
                                 const hasTaefelerIssue = !game.taefeler_id;
-                                const hasScorerIssue = game.scorer_team_short && game.scorer_team_short.trim() !== '' && !game.scorer_id;
+                                const hasScorerIssue = game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
                                 const hasIssues = hasTaefelerIssue || hasScorerIssue;
                                 
                                 // Check if scorer team is empty
-                                const noScorerTeam = !game.scorer_team_short || game.scorer_team_short.trim() === '';
+                                const noScorerTeam = !game.scorer_team || game.scorer_team.trim() === '';
                                 
                                 const rowClass = hasIssues ? 'row-issue' : '';
                                 const scorerTeamClass = noScorerTeam ? 'scorer-disabled' : '';
@@ -2496,15 +2452,15 @@
                                         <td>${game.home_team || ''}</td>
                                         <td>${game.away_team || ''}</td>
                                         <td>${game.halle_short || ''}</td>
-                                        <td class="${scorerTeamClass}">${game.scorer_team_short || ''}</td>
+                                        <td class="${scorerTeamClass}">${game.scorer_team || ''}</td>
                                         <td class="${scorerNameClass}">${scorerName}</td>
                                         <td class="${scorerPhoneClass}">${scorerPhone}</td>
                                         <td class="${scorerPhoneClass}">${scorerEmail}</td>
-                                        <td>${game.scorer_taefeler_team_short || ''}</td>
+                                        <td>${game.scorer_taefeler_team || ''}</td>
                                         <td>${scorerTaefelerName}</td>
                                         <td>${scorerTaefelerPhone}</td>
                                         <td>${scorerTaefelerEmail}</td>
-                                        <td>${game.taefeler_team_short || ''}</td>
+                                        <td>${game.taefeler_team || ''}</td>
                                         <td>${taefelerName}</td>
                                         <td>${taefelerPhone}</td>
                                         <td>${taefelerEmail}</td>
@@ -2535,14 +2491,14 @@
 
             // Filter by taefeler team
             if (taefelerTeam) {
-                filtered = filtered.filter(game => game.taefeler_team_short === taefelerTeam);
+                filtered = filtered.filter(game => game.taefeler_team === taefelerTeam);
             }
 
             // Filter by scorer team (includes both separate scorer and combined scorer_taefeler)
             if (scorerTeam) {
                 filtered = filtered.filter(game => 
-                    game.scorer_team_short === scorerTeam || 
-                    game.scorer_taefeler_team_short === scorerTeam
+                    game.scorer_team === scorerTeam || 
+                    game.scorer_taefeler_team === scorerTeam
                 );
             }
 
@@ -2554,25 +2510,9 @@
 
             // Filter by issues
             if (issuesFilter === 'issues') {
-                filtered = filtered.filter(game => {
-                    const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team_short && game.scorer_taefeler_team_short.trim() !== '');
-                    
-                    if (isCombinedGame) {
-                        return !game.scorer_taefeler_id;
-                    } else {
-                        return (!game.taefeler_id || (game.scorer_team_short && game.scorer_team_short.trim() !== '' && !game.scorer_id));
-                    }
-                });
+                filtered = filtered.filter(game => hasIssues(game));
             } else if (issuesFilter === 'no-issues') {
-                filtered = filtered.filter(game => {
-                    const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team_short && game.scorer_taefeler_team_short.trim() !== '');
-                    
-                    if (isCombinedGame) {
-                        return game.scorer_taefeler_id;
-                    } else {
-                        return game.taefeler_id && (!game.scorer_team_short || game.scorer_team_short.trim() === '' || game.scorer_id);
-                    }
-                });
+                filtered = filtered.filter(game => !hasIssues(game));
             }
 
             return filtered;
@@ -2595,12 +2535,7 @@
             const teamIssues = {};
 
             allGames.forEach(game => {
-                // Check if this is a combined scorer/täfeler game
-                const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
-                                      (!game.taefeler_team || game.taefeler_team.trim() === '') &&
-                                      (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
-                
-                if (isCombinedGame) {
+                if (isCombined(game)) {
                     // Combined game - check scorer_taefeler issues
                     if (!game.scorer_taefeler_id) {
                         if (!teamIssues[game.scorer_taefeler_team]) {
@@ -2708,26 +2643,10 @@
                 });
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
-                // Check if this is a combined scorer/täfeler game
-                const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
-                                      (!game.taefeler_team || game.taefeler_team.trim() === '') &&
-                                      (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
-                
                 // Check for issues
-                let hasTaefelerIssue = false;
-                let hasScorerIssue = false;
-                let hasScorerTaefelerIssue = false;
-                
-                if (isCombinedGame) {
-                    hasScorerTaefelerIssue = !game.scorer_taefeler_id;
-                } else {
-                    hasTaefelerIssue = !game.taefeler_id;
-                    hasScorerIssue = game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
-                }
-                
-                const hasIssues = hasTaefelerIssue || hasScorerIssue || hasScorerTaefelerIssue;
+                const gameHasIssues = hasIssues(game);
 
-                const gameClass = hasIssues ? 'team-game-item has-issues' : 'team-game-item';
+                const gameClass = gameHasIssues ? 'team-game-item has-issues' : 'team-game-item';
 
                 teamGamesHTML += `
                     <div class="${gameClass}">
@@ -2739,12 +2658,24 @@
                         <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team && game.scorer_team.trim() !== '' ? `
-                                <div class="team-role-item ${!game.scorer_name || !game.scorer_name.trim() ? 'has-issue' : ''}">
-                                    📝 Scorer: ${game.scorer_team}${game.scorer_name ? ` (${game.scorer_name})` : ''}
+                                <div class="team-role-item ${!game.scorer_id ? 'has-issue' : ''}">
+                                    📝 Scorer: ${game.scorer_team}${(() => {
+                                        if (game.scorer_id) {
+                                            const scorer = allScorers.find(s => s.id === game.scorer_id);
+                                            return scorer ? ` (${scorer.fname} ${scorer.lname})` : '';
+                                        }
+                                        return '';
+                                    })()}
                                 </div>
                             ` : ''}
-                            <div class="team-role-item ${!game.taefeler_name || !game.taefeler_name.trim() ? 'has-issue' : ''}">
-                                🏐 ${game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Scorer/Täfeler'}: ${game.taefeler_team || 'TBD'}${game.taefeler_name ? ` (${game.taefeler_name})` : ''}
+                            <div class="team-role-item ${!game.taefeler_id ? 'has-issue' : ''}">
+                                🏐 ${game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Scorer/Täfeler'}: ${game.taefeler_team || 'TBD'}${(() => {
+                                    if (game.taefeler_id) {
+                                        const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                                        return taefeler ? ` (${taefeler.fname} ${taefeler.lname})` : '';
+                                    }
+                                    return '';
+                                })()}
                             </div>
                         </div>
                     </div>
