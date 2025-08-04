@@ -727,7 +727,7 @@
             }
         
             
-            .lang-btn, .btn-archive, .btn-info {
+            .lang-btn, .btn-info {
                 padding: 6px 12px;
                 font-size: 12px;
             }
@@ -1724,7 +1724,7 @@
                 `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-                `SUMMARY:${escapeHtml(currentGame.home_team)} vs ${escapeHtml(currentGame.away_team)}`,
+                `SUMMARY:${escapeICS(`${currentGame.home_team} vs ${currentGame.away_team}`)}`,
                 `DESCRIPTION:Volleyball match at ${escapeHtml(currentGame.halle || 'TBD')}. Scorer: ${escapeHtml(currentGame.scorer_team || 'TBD')}. Täfeler: ${escapeHtml(currentGame.taefeler_team || 'TBD')}.`,
                 `LOCATION:${escapeHtml(currentGame.halle || 'TBD')}`,
                 'BEGIN:VALARM',
@@ -2719,36 +2719,25 @@
             });
         }
 
-        // Load teams from teams table
+        // Load teams (hardcoded since scorer_teams table doesn't exist)
         async function loadTeams() {
-            try {
-                const { data, error } = await supabase
-                    .from('scorer_teams')
-                    .select('team')
-                    .order('team');
-
-                if (error) throw error;
-                allTeams = data.map(team => team.team).sort();
-                
-                // Create mapping from short names to long names (hardcoded)
-                teamNameMapping = {
-                    'D1': 'KSC Wiedikon D1',
-                    'D2': 'KSC Wiedikon D2',
-                    'D3': 'KSC Wiedikon D3',
-                    'D4': 'KSC Wiedikon D4',
-                    'H1': 'KSC Wiedikon H1',
-                    'H2': 'KSC Wiedikon H2',
-                    'H3': 'KSC Wiedikon H3',
-                    'DU23-1': 'KSC Wiedikon DU23-1',
-                    'DU23-2': 'KSC Wiedikon DU23-2',
-                    'HU23-1': 'KSC Wiedikon HU23-1',
-                    'Legends': 'KSC Wiedikon Legends'
-                };
-            } catch (error) {
-                console.error('Error loading teams:', error);
-                allTeams = [];
-                teamNameMapping = {};
-            }
+            // Create mapping from short names to long names (hardcoded)
+            teamNameMapping = {
+                'D1': 'KSC Wiedikon D1',
+                'D2': 'KSC Wiedikon D2',
+                'D3': 'KSC Wiedikon D3',
+                'D4': 'KSC Wiedikon D4',
+                'H1': 'KSC Wiedikon H1',
+                'H2': 'KSC Wiedikon H2',
+                'H3': 'KSC Wiedikon H3',
+                'DU23-1': 'KSC Wiedikon DU23-1',
+                'DU23-2': 'KSC Wiedikon DU23-2',
+                'HU23-1': 'KSC Wiedikon HU23-1',
+                'Legends': 'KSC Wiedikon Legends'
+            };
+            
+            // Create teams array from the mapping keys
+            allTeams = Object.keys(teamNameMapping).sort();
         }
 
         // Populate team filter dropdown

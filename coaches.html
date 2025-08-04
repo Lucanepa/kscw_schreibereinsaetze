@@ -1345,41 +1345,30 @@
             });
         }
 
-        // Load scorer_teams from scorer_teams table
+        // Load teams (hardcoded since scorer_teams table doesn't exist)
         async function loadteams() {
-            try {
-                const { data, error } = await supabase
-                    .from('scorer_teams')
-                    .select('team_short')
-                    .order('team_short');
-
-                if (error) throw error;
-                allteams = data.map(team => team.team_short).sort();
-                
-                // Create mapping from short names to long names (hardcoded)
-                teamNameMapping = {
-                    'D1': 'KSC Wiedikon D1',
-                    'D2': 'KSC Wiedikon D2',
-                    'D3': 'KSC Wiedikon D3',
-                    'D4': 'KSC Wiedikon D4',
-                    'H1': 'KSC Wiedikon H1',
-                    'H2': 'KSC Wiedikon H2',
-                    'H3': 'KSC Wiedikon H3',
-                    'DU23-1': 'KSC Wiedikon DU23-1',
-                    'DU23-2': 'KSC Wiedikon DU23-2',
-                    'HU23-1': 'KSC Wiedikon HU23-1',
-                    'Legends': 'KSC Wiedikon Legends'
-                };
-            } catch (error) {
-                console.error('Error loading teams:', error);
-                allteams = [];
-                teamNameMapping = {};
-            }
+            // Create mapping from short names to long names (hardcoded)
+            teamNameMapping = {
+                'D1': 'KSC Wiedikon D1',
+                'D2': 'KSC Wiedikon D2',
+                'D3': 'KSC Wiedikon D3',
+                'D4': 'KSC Wiedikon D4',
+                'H1': 'KSC Wiedikon H1',
+                'H2': 'KSC Wiedikon H2',
+                'H3': 'KSC Wiedikon H3',
+                'DU23-1': 'KSC Wiedikon DU23-1',
+                'DU23-2': 'KSC Wiedikon DU23-2',
+                'HU23-1': 'KSC Wiedikon HU23-1',
+                'Legends': 'KSC Wiedikon Legends'
+            };
+            
+            // Create teams array from the mapping keys
+            allteams = Object.keys(teamNameMapping).sort();
         }
 
         // Populate admin filters
         function populateAdminFilters() {
-            // Taefeler scorer_teams
+            // Taefeler teams
             const taefelerFilter = document.getElementById('adminTaefelerFilter');
                          taefelerFilter.innerHTML = '<option value="">All Täfeler teams</option>';
             allteams.forEach(team => {
@@ -1389,7 +1378,7 @@
                 taefelerFilter.appendChild(option);
             });
 
-            // Scorer scorer_teams
+            // Scorer teams
             const scorerFilter = document.getElementById('adminScorerFilter');
             scorerFilter.innerHTML = '<option value="">All Scorer teams</option>';
             allteams.forEach(team => {
@@ -1399,7 +1388,7 @@
                 scorerFilter.appendChild(option);
             });
 
-            // Home scorer_teams
+            // Home teams
             const homeFilter = document.getElementById('adminHomeFilter');
             homeFilter.innerHTML = '<option value="">All Home teams</option>';
             allteams.forEach(team => {
@@ -1524,7 +1513,7 @@
                         <td>${escapeHtml(formattedTime)}</td>
                         <td>${escapeHtml(game.home_team || '-')}</td>
                         <td>${escapeHtml(game.away_team || '-')}</td>
-                        <td>${escapeHtml(game.halle_short || '-')}</td>
+                        <td>${escapeHtml(game.halle || '-')}</td>
                         <td class="status-indicator">${statusIcons.join('<br>')}</td>
                         <td>
                             <button class="btn btn-warning" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">View</button>
@@ -1661,7 +1650,8 @@
             document.getElementById('scorerTeamDisplay').textContent = game.scorer_team ? `(${escapeHtml(game.scorer_team)})` : '';
             
             // Check if this is a combined scorer/täfeler game
-            const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
+            const isCombinedGame = game.scorer_taefeler_id ||
+                       (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
             
             if (isCombinedGame) {
                 // Combined scorer/täfeler game
@@ -1693,7 +1683,7 @@
                 }
                 
                 // Set team display
-                document.getElementById('scorerTaefelerTeamDisplay').textContent = game.scorer_taefeler_team ? `(${game.scorer_taefeler_team})` : '';
+                document.getElementById('scorerTaefelerTeamDisplay').textContent = game.scorer_taefeler_team ? `(${escapeHtml(game.scorer_taefeler_team)})` : '';
                 
                 // Populate combined scorer/täfeler information
                 let scorerTaefelerName = '-';
@@ -1790,13 +1780,6 @@
             document.querySelector('.main-content').style.display = 'block';
             currentGame = null;
         }
-
-        // Close modal (for other modals)
-        function closeModal() {
-            document.getElementById('gameModal').style.display = 'none';
-            currentGame = null;
-        }
-
         // Generate a session ID that persists during the session
         function getSessionId() {
             let sessionId = sessionStorage.getItem('volleyball_session_id');
