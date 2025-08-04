@@ -777,6 +777,37 @@
                 font-size: 13px;
             }
             
+            .mobile-game-card .game-team-indicators {
+                display: flex;
+                gap: 6px;
+                margin-bottom: 10px;
+                flex-wrap: wrap;
+            }
+            
+            .mobile-game-card .team-indicator {
+                background: #28a745;
+                color: white;
+                padding: 3px 8px;
+                border-radius: 12px;
+                font-size: 10px;
+                font-weight: 600;
+            }
+            
+            .mobile-game-card .team-indicator.scorer-team {
+                background: #ffc107;
+                color: #333;
+            }
+            
+            .mobile-game-card .team-indicator.taefeler-team {
+                background: #17a2b8;
+                color: white;
+            }
+            
+            .mobile-game-card .team-indicator.scorer-taefeler-team {
+                background: #6f42c1;
+                color: white;
+            }
+            
             .mobile-game-card .game-details {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -1282,7 +1313,7 @@
                 .select('*')
                 .order('date', { ascending: true })
                 .order('time', { ascending: true })
-                .order('halle', { ascending: true });
+                .order('halle_short', { ascending: true });
 
             if (error) throw error;
             allGames = data || [];
@@ -1615,10 +1646,15 @@
                         <div class="game-date-time">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
                         <div class="game-teams">${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}</div>
                     </div>
+                    <div class="game-team-indicators">
+                        ${game.scorer_team && game.scorer_team.trim() !== '' ? `<div class="team-indicator scorer-team">${escapeHtml(game.scorer_team)}</div>` : ''}
+                        ${game.taefeler_team && game.taefeler_team.trim() !== '' ? `<div class="team-indicator taefeler-team">${escapeHtml(game.taefeler_team)}</div>` : ''}
+                        ${game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? `<div class="team-indicator scorer-taefeler-team">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
+                    </div>
                     <div class="game-details">
                         <div class="detail-item">
                             <div class="detail-label">Gym</div>
-                            <div class="detail-value">${escapeHtml(game.halle || '-')}</div>
+                            <div class="detail-value">${escapeHtml(game.halle_short || '-')}</div>
                         </div>
 
                         <div class="detail-item">
@@ -1652,7 +1688,7 @@
             // Populate game information
             document.getElementById('focusedGameDate').textContent = escapeHtml(formattedDate);
             document.getElementById('focusedGameTime').textContent = game.time ? game.time.substring(0, 5) : 'TBD';
-            document.getElementById('focusedGameGym').textContent = escapeHtml(game.halle || 'TBD');
+            document.getElementById('focusedGameGym').textContent = escapeHtml(game.halle_short || 'TBD');
             document.getElementById('focusedGameHomeTeam').textContent = escapeHtml(game.home_team || 'TBD');
             document.getElementById('focusedGameAwayTeam').textContent = escapeHtml(game.away_team || 'TBD');
             document.getElementById('focusedGameNumber').textContent = escapeHtml(game.gamen || 'TBD');
@@ -1821,7 +1857,7 @@
                             away_team: currentGame.away_team,
                             date: currentGame.date,
                             time: currentGame.time,
-                            halle: currentGame.halle
+                            halle_short: currentGame.halle_short
                         }
                     });
 
@@ -2315,7 +2351,7 @@
                         formattedTime,
                         game.home_team || '',
                         game.away_team || '',
-                        game.halle || '',
+                        game.halle_short || '',
                         game.scorer_team || '',
                         scorerName,
                         scorerPhone,
@@ -2446,7 +2482,7 @@
                                         <td>${formattedTime}</td>
                                         <td>${game.home_team || ''}</td>
                                         <td>${game.away_team || ''}</td>
-                                        <td>${game.halle || ''}</td>
+                                        <td>${game.halle_short || ''}</td>
                                         <td class="${scorerTeamClass}">${game.scorer_team || ''}</td>
                                         <td class="${scorerNameClass}">${scorerName}</td>
                                         <td class="${scorerPhoneClass}">${scorerPhone}</td>
@@ -2647,7 +2683,7 @@
                             <div class="team-game-time">${formattedTime}</div>
                         </div>
                         <div class="team-game-teams">${game.home_team} vs ${game.away_team}</div>
-                        <div class="team-game-location">📍 ${game.halle || 'TBD'}</div>
+                        <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team && game.scorer_team.trim() !== '' ? `
                                 <div class="team-role-item ${!game.scorer_id ? 'has-issue' : ''}">

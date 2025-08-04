@@ -305,6 +305,39 @@
             letter-spacing: 0.01em;
         }
 
+        .game-team-indicators {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .team-indicator {
+            background: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
+        }
+
+        .team-indicator.scorer-team {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .team-indicator.taefeler-team {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .team-indicator.scorer-taefeler-team {
+            background: #6f42c1;
+            color: white;
+        }
+
         .game-teams {
             margin-bottom: 12px;
         }
@@ -1819,8 +1852,14 @@
             const resultsContainer = document.getElementById('taefelerResults');
             
             if (allTaefelers && allTaefelers.length > 0) {
-                // Show all täfelers without team filtering for now
+                // Filter täfelers by team if currentGame has taefeler_team
                 let filteredTaefelers = allTaefelers;
+                if (currentGame && currentGame.taefeler_team) {
+                    console.log('Filtering täfelers by team:', currentGame.taefeler_team);
+                    console.log('Available täfelers:', allTaefelers.map(t => ({ name: `${t.fname} ${t.lname}`, team: t.team })));
+                    filteredTaefelers = allTaefelers.filter(person => person.team === currentGame.taefeler_team);
+                    console.log('Filtered täfelers:', filteredTaefelers.map(t => ({ name: `${t.fname} ${t.lname}`, team: t.team })));
+                }
                 
                 resultsContainer.innerHTML = '';
                 filteredTaefelers.forEach(person => {
@@ -1851,8 +1890,14 @@
             const resultsContainer = document.getElementById('scorerResults');
             
             if (allScorers && allScorers.length > 0) {
-                // Show all scorers without team filtering for now
+                // Filter scorers by team if currentGame has scorer_team
                 let filteredScorers = allScorers;
+                if (currentGame && currentGame.scorer_team) {
+                    console.log('Filtering scorers by team:', currentGame.scorer_team);
+                    console.log('Available scorers:', allScorers.map(s => ({ name: `${s.fname} ${s.lname}`, team: s.team })));
+                    filteredScorers = allScorers.filter(person => person.team === currentGame.scorer_team);
+                    console.log('Filtered scorers:', filteredScorers.map(s => ({ name: `${s.fname} ${s.lname}`, team: s.team })));
+                }
                 
                 resultsContainer.innerHTML = '';
                 filteredScorers.forEach(person => {
@@ -1878,6 +1923,41 @@
             }
         }
 
+        // Populate scorer/täfeler results
+        function populateScorerTaefelerResults() {
+            const resultsContainer = document.getElementById('scorerTaefelerResults');
+            
+            if (allTaefelers && allTaefelers.length > 0) {
+                // Filter täfelers by team if currentGame has scorer_taefeler_team
+                let filteredTaefelers = allTaefelers;
+                if (currentGame && currentGame.scorer_taefeler_team) {
+                    filteredTaefelers = allTaefelers.filter(person => person.team === currentGame.scorer_taefeler_team);
+                }
+                
+                resultsContainer.innerHTML = '';
+                filteredTaefelers.forEach(person => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    resultItem.style.cssText = 'padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.innerHTML = `
+                        <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
+                    `;
+                    
+                    resultItem.addEventListener('click', () => selectScorerTaefeler(person));
+                    resultItem.addEventListener('mouseenter', () => {
+                        resultItem.style.backgroundColor = '#f8f9fa';
+                    });
+                    resultItem.addEventListener('mouseleave', () => {
+                        resultItem.style.backgroundColor = 'white';
+                    });
+                    
+                    resultsContainer.appendChild(resultItem);
+                });
+            } else {
+                resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No täfelers found</div>';
+            }
+        }
+
         // Filter täfelers based on search input
         function filterTaefelers() {
             const searchTerm = document.getElementById('taefelerSearch').value.toLowerCase();
@@ -1888,8 +1968,14 @@
                 return;
             }
             
-            // Filter by search term only (no team filtering for now)
-            const filteredTaefelers = allTaefelers.filter(person => {
+            // First filter by team if currentGame has taefeler_team
+            let teamFilteredTaefelers = allTaefelers;
+            if (currentGame && currentGame.taefeler_team) {
+                teamFilteredTaefelers = allTaefelers.filter(person => person.team === currentGame.taefeler_team);
+            }
+            
+            // Then filter by search term
+            const filteredTaefelers = teamFilteredTaefelers.filter(person => {
                 const fullName = `${person.fname} ${person.lname}`.toLowerCase();
                 return fullName.includes(searchTerm);
             });
@@ -1936,8 +2022,14 @@
                 return;
             }
             
-            // Filter by search term only (no team filtering for now)
-            const filteredScorers = allScorers.filter(person => {
+            // First filter by team if currentGame has scorer_team
+            let teamFilteredScorers = allScorers;
+            if (currentGame && currentGame.scorer_team) {
+                teamFilteredScorers = allScorers.filter(person => person.team === currentGame.scorer_team);
+            }
+            
+            // Then filter by search term
+            const filteredScorers = teamFilteredScorers.filter(person => {
                 const fullName = `${person.fname} ${person.lname}`.toLowerCase();
                 return fullName.includes(searchTerm);
             });
@@ -1974,6 +2066,60 @@
             }
         }
 
+        // Filter scorer/täfeler based on search input
+        function filterScorerTaefelers() {
+            const searchTerm = document.getElementById('scorerTaefelerSearch').value.toLowerCase();
+            const resultsContainer = document.getElementById('scorerTaefelerResults');
+            
+            if (!allTaefelers || allTaefelers.length === 0) {
+                resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No täfelers available</div>';
+                return;
+            }
+            
+            // First filter by team if currentGame has scorer_taefeler_team
+            let teamFilteredTaefelers = allTaefelers;
+            if (currentGame && currentGame.scorer_taefeler_team) {
+                teamFilteredTaefelers = allTaefelers.filter(person => person.team === currentGame.scorer_taefeler_team);
+            }
+            
+            // Then filter by search term
+            const filteredTaefelers = teamFilteredTaefelers.filter(person => {
+                const fullName = `${person.fname} ${person.lname}`.toLowerCase();
+                return fullName.includes(searchTerm);
+            });
+            
+            if (filteredTaefelers.length === 0 && searchTerm.length > 0) {
+                resultsContainer.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #666;">
+                        <div>No results found</div>
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Contact Luca (luca.canepa@gmail.com)
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultsContainer.innerHTML = '';
+                filteredTaefelers.forEach(person => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    resultItem.style.cssText = 'padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;';
+                    resultItem.innerHTML = `
+                        <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
+                    `;
+                    
+                    resultItem.addEventListener('click', () => selectScorerTaefeler(person));
+                    resultItem.addEventListener('mouseenter', () => {
+                        resultItem.style.backgroundColor = '#f8f9fa';
+                    });
+                    resultItem.addEventListener('mouseleave', () => {
+                        resultItem.style.backgroundColor = 'white';
+                    });
+                    
+                    resultsContainer.appendChild(resultItem);
+                });
+            }
+        }
+
         // Show täfeler selector focused view
         function showTaefelerSelector() {
             populateTaefelerResults();
@@ -1988,16 +2134,26 @@
             document.getElementById('scorerSelectorView').style.display = 'block';
         }
 
+        // Show scorer/täfeler selector focused view
+        function showScorerTaefelerSelector() {
+            populateScorerTaefelerResults();
+            document.getElementById('focusedGameView').style.display = 'none';
+            document.getElementById('scorerTaefelerSelectorView').style.display = 'block';
+        }
+
         // Global confirmation state tracking
         window.taefelerConfirmed = false;
         window.scorerConfirmed = false;
+        window.scorerTaefelerConfirmed = false;
 
         // Reset confirmation states
         function resetConfirmationStates() {
             window.taefelerConfirmed = false;
             window.scorerConfirmed = false;
+            window.scorerTaefelerConfirmed = false;
             window.selectedTaefeler = null;
             window.selectedScorer = null;
+            window.selectedScorerTaefeler = null;
             window.confirmationType = null;
         }
 
@@ -2051,17 +2207,51 @@
             }
         }
 
+        // Close scorer/täfeler selector focused view
+        function closeScorerTaefelerSelector() {
+            const scorerTaefelerSelectorView = document.getElementById('scorerTaefelerSelectorView');
+            const focusedGameView = document.getElementById('focusedGameView');
+            const scorerTaefelerSearch = document.getElementById('scorerTaefelerSearch');
+            const confirmScorerTaefelerBtn = document.getElementById('confirmScorerTaefelerBtn');
+            
+            if (scorerTaefelerSelectorView) scorerTaefelerSelectorView.style.display = 'none';
+            if (focusedGameView) focusedGameView.style.display = 'block';
+            if (scorerTaefelerSearch) scorerTaefelerSearch.value = '';
+            if (confirmScorerTaefelerBtn) confirmScorerTaefelerBtn.style.display = 'none';
+            
+            // Only clear selection if not confirmed
+            if (!window.scorerTaefelerConfirmed) {
+                window.selectedScorerTaefeler = null;
+            }
+            if (typeof filterScorerTaefelers === 'function') filterScorerTaefelers(); // Reset filter
+            
+            // Update the focused game view to reflect any changes
+            if (currentGame) {
+                populateFocusedGameView(currentGame);
+            }
+        }
+
         // Show confirmation in focused view
         function showConfirmationInView(type) {
             // Validate input
-            if (!type || (type !== 'taefeler' && type !== 'scorer')) {
+            if (!type || (type !== 'taefeler' && type !== 'scorer' && type !== 'scorerTaefeler')) {
                 alert('Error: Invalid confirmation type');
                 return;
             }
             
             const isGerman = currentLanguage === 'de';
-            const roleName = type === 'taefeler' ? (isGerman ? 'Täfeler' : 'Täfeler') : (isGerman ? 'Schreiber' : 'Scorer');
-            const selectedPerson = type === 'taefeler' ? window.selectedTaefeler : window.selectedScorer;
+            let roleName, selectedPerson;
+            
+            if (type === 'taefeler') {
+                roleName = isGerman ? 'Täfeler' : 'Täfeler';
+                selectedPerson = window.selectedTaefeler;
+            } else if (type === 'scorer') {
+                roleName = isGerman ? 'Schreiber' : 'Scorer';
+                selectedPerson = window.selectedScorer;
+            } else if (type === 'scorerTaefeler') {
+                roleName = isGerman ? 'Schreiber/Täfeler' : 'Scorer/Täfeler';
+                selectedPerson = window.selectedScorerTaefeler;
+            }
             
             // Validate selected person
             if (!selectedPerson) {
@@ -2094,6 +2284,14 @@
                 const taefelerSelectorView = document.getElementById('taefelerSelectorView');
                 if (taefelerSelectorView && taefelerSelectorView.style.display !== 'none') {
                     actionButtons = taefelerSelectorView.querySelector('.action-buttons');
+                }
+            }
+            
+            // If not found in täfeler selector, check scorer/täfeler selector
+            if (!actionButtons) {
+                const scorerTaefelerSelectorView = document.getElementById('scorerTaefelerSelectorView');
+                if (scorerTaefelerSelectorView && scorerTaefelerSelectorView.style.display !== 'none') {
+                    actionButtons = scorerTaefelerSelectorView.querySelector('.action-buttons');
                 }
             }
             
@@ -2133,6 +2331,14 @@
                 const taefelerSelectorView = document.getElementById('taefelerSelectorView');
                 if (taefelerSelectorView && taefelerSelectorView.style.display !== 'none') {
                     actionButtons = taefelerSelectorView.querySelector('.action-buttons');
+                }
+            }
+            
+            // If not found in täfeler selector, check scorer/täfeler selector
+            if (!actionButtons) {
+                const scorerTaefelerSelectorView = document.getElementById('scorerTaefelerSelectorView');
+                if (scorerTaefelerSelectorView && scorerTaefelerSelectorView.style.display !== 'none') {
+                    actionButtons = scorerTaefelerSelectorView.querySelector('.action-buttons');
                 }
             }
             
@@ -2239,6 +2445,30 @@
                 window.confirmationType = null;
                 
                 // Return focus to game details (no alert)
+            } else if (window.confirmationType === 'scorerTaefeler' && window.selectedScorerTaefeler) {
+                const fullName = `${window.selectedScorerTaefeler.fname} ${window.selectedScorerTaefeler.lname}`;
+                
+                // Set confirmation state first
+                window.scorerTaefelerConfirmed = true;
+                
+                // Update focused view
+                const currentScorerTaefelerName = document.getElementById('currentScorerTaefelerName');
+                if (currentScorerTaefelerName) {
+                    currentScorerTaefelerName.textContent = fullName;
+                }
+                
+                // Update currentGame object with new scorer/täfeler information (store both name and ID)
+                if (currentGame) {
+                    currentGame.scorer_taefeler_name = fullName;
+                    currentGame.scorer_taefeler_id = window.selectedScorerTaefeler.id;
+                }
+                
+                // Close scorer/täfeler selector and save
+                closeScorerTaefelerSelector();
+                saveGameDetails();
+                window.confirmationType = null;
+                
+                // Return focus to game details (no alert)
             }
         }
 
@@ -2300,6 +2530,34 @@
             }
         }
 
+        // Select scorer/täfeler from results
+        function selectScorerTaefeler(person) {
+            // Don't allow selection if already confirmed
+            if (window.scorerTaefelerConfirmed) {
+                alert('Scorer/Täfeler has already been confirmed and cannot be changed.');
+                return;
+            }
+            
+            // Highlight the selected item
+            const resultItems = document.querySelectorAll('#scorerTaefelerResults .result-item');
+            resultItems.forEach(item => {
+                item.style.backgroundColor = 'white';
+                item.style.border = 'none';
+            });
+            event.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
+            event.target.closest('.result-item').style.border = '2px solid #2196f3';
+            
+            // Store the selected person
+            window.selectedScorerTaefeler = person;
+            
+            // Show confirm button
+            const confirmScorerTaefelerBtn = document.getElementById('confirmScorerTaefelerBtn');
+            if (confirmScorerTaefelerBtn) {
+                confirmScorerTaefelerBtn.textContent = 'Confirm Selection';
+                confirmScorerTaefelerBtn.style.display = 'inline-block';
+            }
+        }
+
         // Confirm täfeler selection
         function confirmTaefelerSelection() {
             // Check if already confirmed
@@ -2327,6 +2585,21 @@
                 showConfirmationInView('scorer');
             } else {
                 alert('Please select a scorer first');
+            }
+        }
+
+        // Confirm scorer/täfeler selection
+        function confirmScorerTaefelerSelection() {
+            // Check if already confirmed
+            if (window.scorerTaefelerConfirmed) {
+                alert('Scorer/Täfeler has already been confirmed and cannot be changed.');
+                return;
+            }
+            
+            if (window.selectedScorerTaefeler) {
+                showConfirmationInView('scorerTaefeler');
+            } else {
+                alert('Please select a scorer/täfeler first');
             }
         }
 
@@ -2445,7 +2718,7 @@
                             <span id="currentScorerTaefelerEmail">-</span>
                         </div>
                         <div id="scorerTaefelerSelectionControls" style="margin-top: 15px;">
-                            <button class="btn btn-primary" onclick="selectScorerTaefeler()">Select Scorer/Täfeler</button>
+                            <button class="btn btn-primary" onclick="showScorerTaefelerSelector()">Select Scorer/Täfeler</button>
                         </div>
                     `;
                     document.querySelector('.role-selection-section').appendChild(combinedSection);
@@ -2904,6 +3177,11 @@
                         ${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}
                     </div>
                     <div class="game-location">📍 ${escapeHtml(game.halle || 'TBD')}</div>
+                    <div class="game-team-indicators">
+                        ${game.scorer_team && game.scorer_team.trim() !== '' ? `<div class="team-indicator scorer-team">${escapeHtml(game.scorer_team)}</div>` : ''}
+                        ${game.taefeler_team && game.taefeler_team.trim() !== '' ? `<div class="team-indicator taefeler-team">${escapeHtml(game.taefeler_team)}</div>` : ''}
+                        ${game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? `<div class="team-indicator scorer-taefeler-team">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
+                    </div>
                     <div class="game-roles">
                         ${isCombinedGame ? `
                             <div class="role-item">
