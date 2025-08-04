@@ -2937,6 +2937,14 @@
                     }
                 }
                 
+                let scorerTaefelerName = '';
+                if (game.scorer_taefeler_id) {
+                    const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
+                    if (scorerTaefeler) {
+                        scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`;
+                    }
+                }
+                
                 gameCard.innerHTML = `
                     <div class="game-header">
                         <div class="game-date">${formattedDate}</div>
@@ -2947,16 +2955,23 @@
                     </div>
                     <div class="game-location">📍 ${game.halle || 'TBD'}</div>
                     <div class="game-roles">
-                        ${game.scorer_team && game.scorer_team.trim() !== '' && isEditable ? `
+                        ${isCombinedGame ? `
                             <div class="role-item">
-                                <div class="role-label">📝 Scorer: ${game.scorer_team}${scorerName ? ` (${scorerName})` : ''}</div>
-                                <div class="status-icon">${hasScorerIssue ? '⚠️' : '✅'}</div>
+                                <div class="role-label">📝 Scorer/Täfeler: ${game.scorer_taefeler_team}${scorerTaefelerName ? ` (${scorerTaefelerName})` : ''}</div>
+                                <div class="status-icon">${hasScorerTaefelerIssue ? '⚠️' : '✅'}</div>
                             </div>
-                        ` : ''}
-                        <div class="role-item">
-                            <div class="role-label">🏐 ${game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler'}: ${game.taefeler_team || 'TBD'}${taefelerName ? ` (${taefelerName})` : ''}</div>
-                            <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
-                        </div>
+                        ` : `
+                            ${game.scorer_team && game.scorer_team.trim() !== '' && isEditable ? `
+                                <div class="role-item">
+                                    <div class="role-label">📝 Scorer: ${game.scorer_team}${scorerName ? ` (${scorerName})` : ''}</div>
+                                    <div class="status-icon">${hasScorerIssue ? '⚠️' : '✅'}</div>
+                                </div>
+                            ` : ''}
+                            <div class="role-item">
+                                <div class="role-label">🏐 Täfeler: ${game.taefeler_team || 'TBD'}${taefelerName ? ` (${taefelerName})` : ''}</div>
+                                <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
+                            </div>
+                        `}
                     </div>
                     ${bothRolesConfirmed ? '<div style="text-align: center; margin-top: 10px; color: #28a745; font-weight: bold;">✅ Game ready</div>' : ''}
                 `;
