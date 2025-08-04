@@ -1345,16 +1345,34 @@
             });
         }
 
-        // Load teams from scorer_teams table
+        // Load teams from existing game data
         async function loadteams() {
             try {
-                const { data, error } = await supabase
-                    .from('scorer_teams')
-                    .select('team')
-                    .order('team');
-
-                if (error) throw error;
-                allteams = data.map(team => team.team).sort();
+                // Get unique team names from existing games data
+                const uniqueTeams = new Set();
+                
+                // Add teams from scorer_team column
+                allGames.forEach(game => {
+                    if (game.scorer_team && game.scorer_team.trim() !== '') {
+                        uniqueTeams.add(game.scorer_team);
+                    }
+                });
+                
+                // Add teams from taefeler_team column
+                allGames.forEach(game => {
+                    if (game.taefeler_team && game.taefeler_team.trim() !== '') {
+                        uniqueTeams.add(game.taefeler_team);
+                    }
+                });
+                
+                // Add teams from scorer_taefeler_team column
+                allGames.forEach(game => {
+                    if (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '') {
+                        uniqueTeams.add(game.scorer_taefeler_team);
+                    }
+                });
+                
+                allteams = Array.from(uniqueTeams).sort();
             } catch (error) {
                 console.error('Error loading teams:', error);
                 allteams = [];
