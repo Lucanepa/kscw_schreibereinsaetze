@@ -703,7 +703,6 @@
                 renderGames(getPastGames(allGames));
                 populateTeamFilter();
             } catch (error) {
-                console.error('Error loading games:', error);
                 document.getElementById('loading').innerHTML = 'Error loading games. Please try again.';
             } finally {
                 document.getElementById('loading').style.display = 'none';
@@ -724,7 +723,6 @@
                 if (error) throw error;
                 allScorers = data || [];
             } catch (error) {
-                console.error('Error loading scorers:', error);
                 allScorers = [];
             }
         }
@@ -741,7 +739,6 @@
                 if (error) throw error;
                 allTaefelers = data || [];
             } catch (error) {
-                console.error('Error loading täfelers:', error);
                 allTaefelers = [];
             }
         }
@@ -788,7 +785,6 @@
                     'Legends': 'KSC Wiedikon Legends'
                 };
             } catch (error) {
-                console.error('Error loading teams:', error);
                 allTeams = [];
                 teamNameMapping = {};
             }
@@ -998,12 +994,8 @@
                             halle_short: currentGame.halle_short
                         }
                     });
-
-                if (error) {
-                    console.error('Logging error:', error);
-                }
             } catch (error) {
-                console.error('Error logging change:', error);
+                // Silent error handling for logging
             }
         }
 
