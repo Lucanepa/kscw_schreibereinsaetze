@@ -1814,7 +1814,7 @@
             }
         }
 
-        // Load scorers from scorer_scorers table
+        // Load scorers from scorer_scorers table (only those with licence)
         async function loadScorers() {
             try {
                 const { data, error } = await supabase
@@ -2465,7 +2465,10 @@
             }
             
             // Check if this is a combined scorer/täfeler game
-            const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
+            // If both scorer_team and taefeler_team are null, it's a combined game
+            const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
+                                  (!game.taefeler_team || game.taefeler_team.trim() === '') &&
+                                  (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
             
             if (isCombinedGame) {
                 // Combined scorer/täfeler game
@@ -2828,7 +2831,9 @@
 
             if (attentionFilter === 'issues') {
                 filtered = filtered.filter(game => {
-                    const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
+                    const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
+                                          (!game.taefeler_team || game.taefeler_team.trim() === '') &&
+                                          (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
                     
                     if (isCombinedGame) {
                         return !game.scorer_taefeler_id;
@@ -2838,7 +2843,9 @@
                 });
             } else if (attentionFilter === 'no-issues') {
                 filtered = filtered.filter(game => {
-                    const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
+                    const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
+                                          (!game.taefeler_team || game.taefeler_team.trim() === '') &&
+                                          (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
                     
                     if (isCombinedGame) {
                         return game.scorer_taefeler_id;
@@ -2874,8 +2881,11 @@
                 const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
-                // Check for issues - only show green check if BOTH roles are confirmed
-                const isCombinedGame = game.scorer_taefeler_id || (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
+                            // Check for issues - only show green check if BOTH roles are confirmed
+            // If both scorer_team and taefeler_team are null, it's a combined game
+            const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
+                                  (!game.taefeler_team || game.taefeler_team.trim() === '') &&
+                                  (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
                 
                 let hasTaefelerIssue = false;
                 let hasScorerIssue = false;
