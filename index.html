@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSCW Schreibereinsätze</title>
+    <title>KSCW Game Assignments</title>
     <link rel="icon" type="image/x-icon" href="https://kscw.ch/clubdesk/fileservlet?type=file&id=1000716&s=djEt3z7ABYLi8hd4sWeb8Qisb2m20xnaKr4H9W6HvJnKgDU=">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -276,12 +276,12 @@
             background: #5a6268;
         }
 
-        .btn-info {
+        .btn-warning {
             background: #fbbf24;
             color: #000000;
         }
 
-        .btn-info:hover {
+        .btn-warning:hover {
             background: #f59e0b;
         }
 
@@ -1258,7 +1258,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <button id="infoButton" class="btn btn-info" onclick="openInfoModal()">⚠️ <span id="infoButtonText">Info</span></button>
+            <button id="infoButton" class="btn btn-warning" onclick="openInfoModal()">⚠️ <span id="infoButtonText">Info</span></button>
         </div>
 
         <div class="main-content" id="mainContent">
@@ -1582,7 +1582,7 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
+                    <button class="btn btn-warning" onclick="showAddTaefelerModal()">Add New Person</button>
                     <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
                     <button class="btn btn-primary" id="confirmTaefelerBtn" onclick="confirmTaefelerSelection()" style="display: none;">Confirm Selection</button>
                 </div>
@@ -2222,7 +2222,7 @@
                     <div style="padding: 20px; text-align: center; color: #666;">
                         <div>No results found</div>
                         <div style="margin-top: 10px;">
-                            <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
+                            <button class="btn btn-warning" onclick="showAddTaefelerModal()">Add New Person</button>
                         </div>
                     </div>
                 `;
@@ -2636,7 +2636,7 @@
                 if (taefelerSelectorView && taefelerSelectorView.style.display !== 'none') {
                     // We're in täfeler selector
                     actionButtons.innerHTML = `
-                        <button class="btn btn-info" onclick="showAddTaefelerModal()">Add New Person</button>
+                        <button class="btn btn-warning" onclick="showAddTaefelerModal()">Add New Person</button>
                         <button class="btn btn-secondary" onclick="closeTaefelerSelector()">Cancel</button>
                         <button class="btn btn-primary" id="confirmTaefelerBtn" onclick="confirmTaefelerSelection()" style="display: none;">Confirm Selection</button>
                     `;
@@ -3476,6 +3476,19 @@
             chipElement.classList.remove('deselected');
             chipElement.classList.add('selected');
             chipElement.setAttribute('aria-pressed', 'true');
+            
+            // If "All Roles" is selected, make all other buttons visible again
+            if (roleValue === '') {
+                roleChips.forEach(chip => {
+                    chip.classList.remove('deselected');
+                    chip.style.opacity = '1';
+                    chip.style.visibility = 'visible';
+                });
+                // Re-select the "All Roles" button
+                chipElement.classList.add('selected');
+                chipElement.classList.remove('deselected');
+            }
+            
             filterGames();
         }
 
@@ -3490,6 +3503,19 @@
             chipElement.classList.remove('deselected');
             chipElement.classList.add('selected');
             chipElement.setAttribute('aria-pressed', 'true');
+            
+            // If "All Games" is selected, make all other buttons visible again
+            if (issueValue === '') {
+                issuesChips.forEach(chip => {
+                    chip.classList.remove('deselected');
+                    chip.style.opacity = '1';
+                    chip.style.visibility = 'visible';
+                });
+                // Re-select the "All Games" button
+                chipElement.classList.add('selected');
+                chipElement.classList.remove('deselected');
+            }
+            
             filterGames();
         }
 
