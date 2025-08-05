@@ -4,6 +4,58 @@
 // This module contains shared functions for team name normalization
 // and person team checking that can be imported by both coaches.html and index.html
 
+// Color palette for team assignments
+const colorPalette = [
+    '#28a745', // Green
+    '#ffc107', // Yellow
+    '#17a2b8', // Cyan
+    '#6f42c1', // Purple
+    '#dc3545', // Red
+    '#fd7e14', // Orange
+    '#20c997', // Teal
+    '#e83e8c', // Pink
+    '#6c757d', // Gray
+    '#198754', // Dark Green
+    '#0d6efd', // Blue
+    '#6610f2', // Indigo
+    '#fd7e14', // Orange (duplicate for more teams)
+    '#20c997', // Teal (duplicate for more teams)
+    '#e83e8c', // Pink (duplicate for more teams)
+    '#6c757d', // Gray (duplicate for more teams)
+    '#198754', // Dark Green (duplicate for more teams)
+    '#0d6efd', // Blue (duplicate for more teams)
+    '#6610f2', // Indigo (duplicate for more teams)
+    '#28a745', // Green (duplicate for more teams)
+    '#ffc107', // Yellow (duplicate for more teams)
+    '#17a2b8', // Cyan (duplicate for more teams)
+    '#6f42c1'  // Purple (duplicate for more teams)
+];
+
+// Simple hash function for consistent team color assignment
+function hashString(str) {
+    let hash = 0;
+    if (str.length === 0) return hash;
+    
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    return Math.abs(hash);
+}
+
+// Get consistent color for a team using hash-based assignment
+function getTeamColor(teamName) {
+    if (!teamName) return '#6c757d'; // Default gray for empty teams
+    
+    const normalizedTeam = normalizeTeamName(teamName);
+    const hash = hashString(normalizedTeam);
+    const colorIndex = hash % colorPalette.length;
+    
+    return colorPalette[colorIndex];
+}
+
 // Normalize team names to handle various formats and variations
 // Examples: HU23-1, HU23-10, hu23-1, HU23 - 1, HU23–1 (en-dash), etc. -> HU23
 function normalizeTeamName(teamName) {
@@ -59,13 +111,17 @@ if (typeof module !== 'undefined' && module.exports) {
     // Node.js environment
     module.exports = {
         normalizeTeamName,
-        personHasTeam
+        personHasTeam,
+        getTeamColor,
+        colorPalette
     };
 } else if (typeof window !== 'undefined') {
     // Browser environment
     window.teamUtils = {
         normalizeTeamName,
-        personHasTeam
+        personHasTeam,
+        getTeamColor,
+        colorPalette
     };
 } else {
     // Fallback for unsupported environments
