@@ -35,12 +35,16 @@
         .text-3xl { font-size: 2.2rem; }
         .text-4xl { font-size: 28px; }
 
-        /* Team filter chips */
-        .team-chips-container {
+        /* Filter chips */
+        .team-chips-container,
+        .role-chips-container,
+        .issues-chips-container {
             margin-bottom: 20px;
         }
 
-        .team-chips {
+        .team-chips,
+        .role-chips,
+        .issues-chips {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -1251,20 +1255,19 @@
                     </div>
                     <div class="filter-group">
                         <label for="roleFilter">Filter by Role:</label>
-                        <select id="roleFilter" onchange="filterGames()">
-                            <option value="">All Roles</option>
-                            <option value="scorer">Scorer</option>
-                            <option value="taefeler">Täfeler</option>
-                            <option value="scorer-taefeler">Scorer/Täfeler</option>
-                        </select>
+                        <div class="role-chips-container">
+                            <div id="roleChips" class="role-chips">
+                                <!-- Role chips will be populated here -->
+                            </div>
+                        </div>
                     </div>
                     <div class="filter-group">
                         <label for="attentionFilter">Filter by Issues:</label>
-                        <select id="attentionFilter" onchange="filterGames()">
-                            <option value="">All Games</option>
-                            <option value="issues">Games with Issues</option>
-                            <option value="no-issues">Games without Issues</option>
-                        </select>
+                        <div class="issues-chips-container">
+                            <div id="issuesChips" class="issues-chips">
+                                <!-- Issues chips will be populated here -->
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="filter-buttons">
@@ -1745,6 +1748,43 @@
             console.log('UI updated');
         });
 
+        // Update chip labels for language changes
+        function updateChipLabels() {
+            // Update "Select None" chip
+            const selectNoneChip = document.querySelector('#teamChips .select-none-chip');
+            if (selectNoneChip) {
+                selectNoneChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
+            }
+
+            // Update role chips
+            const roleChips = document.querySelectorAll('#roleChips .team-chip');
+            roleChips.forEach(chip => {
+                const value = chip.dataset.value;
+                if (value === '') {
+                    chip.textContent = translations[currentLanguage].allRoles;
+                } else if (value === 'scorer') {
+                    chip.textContent = translations[currentLanguage].scorerRole;
+                } else if (value === 'taefeler') {
+                    chip.textContent = translations[currentLanguage].taefelerRole;
+                } else if (value === 'scorer-taefeler') {
+                    chip.textContent = currentLanguage === 'de' ? 'Schreiber/Täfeler' : 'Scorer/Täfeler';
+                }
+            });
+
+            // Update issues chips
+            const issuesChips = document.querySelectorAll('#issuesChips .team-chip');
+            issuesChips.forEach(chip => {
+                const value = chip.dataset.value;
+                if (value === '') {
+                    chip.textContent = translations[currentLanguage].allGames;
+                } else if (value === 'issues') {
+                    chip.textContent = translations[currentLanguage].gamesWithIssues;
+                } else if (value === 'no-issues') {
+                    chip.textContent = translations[currentLanguage].noIssues;
+                }
+            });
+        }
+
         // Update UI language
         function updateUILanguage() {
             console.log('updateUILanguage called with:', { translations, currentLanguage });
@@ -1766,39 +1806,22 @@
                 }
             });
             
-            // Update filter options
-            const teamChipsLabel = document.querySelector('.filter-group label');
-            if (teamChipsLabel && teamChipsLabel.textContent.includes('Filter by Team')) {
-                teamChipsLabel.textContent = translations[currentLanguage].filterByTeam;
-            }
+            // Update filter labels
+            const allFilterLabels = document.querySelectorAll('.filter-group label');
+            allFilterLabels.forEach(label => {
+                if (label.textContent.includes('Filter by Team')) {
+                    label.textContent = translations[currentLanguage].filterByTeam;
+                } else if (label.textContent.includes('Filter by Role')) {
+                    label.textContent = translations[currentLanguage].filterByRole;
+                } else if (label.textContent.includes('Filter by Issues')) {
+                    label.textContent = translations[currentLanguage].filterByIssues;
+                }
+            });
+
+            // Update chip labels
+            updateChipLabels();
             
-            const roleFilter = document.getElementById('roleFilter');
-            if (roleFilter) {
-                const options = roleFilter.querySelectorAll('option');
-                options.forEach((option, index) => {
-                    if (index === 0) {
-                        option.textContent = translations[currentLanguage].allRoles;
-                    } else if (option.value === 'scorer') {
-                        option.textContent = translations[currentLanguage].scorerRole;
-                    } else if (option.value === 'taefeler') {
-                        option.textContent = translations[currentLanguage].taefelerRole;
-                    }
-                });
-            }
-            
-            const attentionFilter = document.getElementById('attentionFilter');
-            if (attentionFilter) {
-                const options = attentionFilter.querySelectorAll('option');
-                options.forEach((option, index) => {
-                    if (index === 0) {
-                        option.textContent = translations[currentLanguage].allGames;
-                    } else if (option.value === 'issues') {
-                        option.textContent = translations[currentLanguage].gamesWithIssues;
-                    } else if (option.value === 'no-issues') {
-                        option.textContent = translations[currentLanguage].noIssues;
-                    }
-                });
-            }
+
             
             // Update buttons
             const buttons = document.querySelectorAll('.btn');
@@ -1822,27 +1845,28 @@
         // Team color management - using shared module
         // getTeamColor function is now available from teamUtils.js
 
-        // Helper function to safely get team color with validation and fallback
-        function getTeamColorSafe(teamName) {
-            if (!teamName || !teamName.trim()) return null;
-            
-            if (typeof window !== 'undefined' &&
-                window.teamUtils &&
-                typeof window.teamUtils.getTeamColor === 'function') {
-                try {
-                    const color = window.teamUtils.getTeamColor(teamName);
-                    // Validate color against hex pattern and handle falsy values
-                    if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
-                        return color;
-                    }
-                } catch (error) {
-                    console.error('Error getting team color for', teamName, ':', error);
-                }
-            } else {
-                console.warn('teamUtils or getTeamColor not available');
+// Helper function to safely get team color with validation and fallback
+function getTeamColorSafe(teamName) {
+    // Always return a valid colour string
+    if (!teamName || !teamName.trim()) return '#6c757d';
+    
+    if (typeof window !== 'undefined' &&
+        window.teamUtils &&
+        typeof window.teamUtils.getTeamColor === 'function') {
+        try {
+            const color = window.teamUtils.getTeamColor(teamName);
+            // Validate color against hex pattern and handle falsy values
+            if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
+                return color;
             }
-            return '#6c757d'; // Default gray fallback
+        } catch (error) {
+            console.error('Error getting team color for', teamName, ':', error);
         }
+    } else {
+        console.warn('teamUtils or getTeamColor not available');
+    }
+    return '#6c757d'; // Default gray fallback
+}
 
         // Format date with day of week
         function formatDate(dateString) {
@@ -1952,6 +1976,8 @@
                 await loadTaefelers();
                 renderGames(filterCurrentGames(allGames));
                 populateTeamFilter();
+                populateRoleFilter();
+                populateIssuesFilter();
             } catch (error) {
                 console.error('Error loading games:', error);
                 document.getElementById('loading').innerHTML = 'Error loading games. Please try again.';
@@ -3216,10 +3242,88 @@
             }
         }
 
+        // Populate role filter chips
+        function populateRoleFilter() {
+            const roleChipsContainer = document.getElementById('roleChips');
+            roleChipsContainer.innerHTML = '';
+            
+            const roles = [
+                { value: '', label: translations[currentLanguage]?.allRoles || 'All Roles' },
+                { value: 'scorer', label: translations[currentLanguage]?.scorerRole || 'Scorer' },
+                { value: 'taefeler', label: translations[currentLanguage]?.taefelerRole || 'Täfeler' },
+                { value: 'scorer-taefeler', label: currentLanguage === 'de' ? 'Schreiber/Täfeler' : 'Scorer/Täfeler' }
+            ];
+            
+            roles.forEach(role => {
+                const chip = document.createElement('div');
+                chip.className = 'team-chip selected';
+                chip.textContent = role.label;
+                chip.dataset.value = role.value;
+                chip.style.backgroundColor = role.value === '' ? '#28a745' : '#6c757d';
+                chip.setAttribute('role', 'button');
+                chip.setAttribute('tabindex', '0');
+                chip.onclick = () => toggleRoleFilter(role.value, chip);
+                chip.onkeydown = (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        toggleRoleFilter(role.value, chip);
+                    }
+                };
+                roleChipsContainer.appendChild(chip);
+            });
+        }
+
+        // Populate issues filter chips
+        function populateIssuesFilter() {
+            const issuesChipsContainer = document.getElementById('issuesChips');
+            issuesChipsContainer.innerHTML = '';
+            
+            const issues = [
+                { value: '', label: translations[currentLanguage]?.allGames || 'All Games' },
+                { value: 'issues', label: translations[currentLanguage]?.gamesWithIssues || 'Games with Issues' },
+                { value: 'no-issues', label: translations[currentLanguage]?.noIssues || 'Games without Issues' }
+            ];
+            
+            issues.forEach(issue => {
+                const chip = document.createElement('div');
+                chip.className = 'team-chip selected';
+                chip.textContent = issue.label;
+                chip.dataset.value = issue.value;
+                chip.style.backgroundColor = issue.value === '' ? '#28a745' : '#6c757d';
+                chip.setAttribute('role', 'button');
+                chip.setAttribute('tabindex', '0');
+                chip.onclick = () => toggleIssuesFilter(issue.value, chip);
+                chip.onkeydown = (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        toggleIssuesFilter(issue.value, chip);
+                    }
+                };
+                issuesChipsContainer.appendChild(chip);
+            });
+        }
+
         // Populate team filter chips
         function populateTeamFilter() {
             const teamChipsContainer = document.getElementById('teamChips');
             teamChipsContainer.innerHTML = '';
+            
+            // Add "Select None" chip
+            const selectNoneChip = document.createElement('div');
+            selectNoneChip.className = 'team-chip select-none-chip';
+            selectNoneChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
+            selectNoneChip.style.backgroundColor = '#6c757d';
+            selectNoneChip.style.border = '2px solid #dc3545';
+            selectNoneChip.setAttribute('role', 'button');
+            selectNoneChip.setAttribute('tabindex', '0');
+            selectNoneChip.onclick = () => selectNoneTeams();
+            selectNoneChip.onkeydown = (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    selectNoneTeams();
+                }
+            };
+            teamChipsContainer.appendChild(selectNoneChip);
             
             allTeams.forEach(team => {
                 const chip = document.createElement('div');
@@ -3253,6 +3357,45 @@
             });
         }
 
+        // Select none teams
+        function selectNoneTeams() {
+            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-none-chip)');
+            teamChips.forEach(chip => {
+                chip.classList.remove('selected');
+                chip.classList.add('deselected');
+                chip.setAttribute('aria-pressed', 'false');
+            });
+            filterGames();
+        }
+
+        // Toggle role filter selection
+        function toggleRoleFilter(roleValue, chipElement) {
+            const roleChips = document.querySelectorAll('#roleChips .team-chip');
+            roleChips.forEach(chip => {
+                chip.classList.remove('selected');
+                chip.classList.add('deselected');
+                chip.setAttribute('aria-pressed', 'false');
+            });
+            chipElement.classList.remove('deselected');
+            chipElement.classList.add('selected');
+            chipElement.setAttribute('aria-pressed', 'true');
+            filterGames();
+        }
+
+        // Toggle issues filter selection
+        function toggleIssuesFilter(issueValue, chipElement) {
+            const issuesChips = document.querySelectorAll('#issuesChips .team-chip');
+            issuesChips.forEach(chip => {
+                chip.classList.remove('selected');
+                chip.classList.add('deselected');
+                chip.setAttribute('aria-pressed', 'false');
+            });
+            chipElement.classList.remove('deselected');
+            chipElement.classList.add('selected');
+            chipElement.setAttribute('aria-pressed', 'true');
+            filterGames();
+        }
+
         // Toggle team filter selection
         function toggleTeamFilter(team, chipElement) {
             if (chipElement.classList.contains('selected')) {
@@ -3269,15 +3412,17 @@
 
         // Get selected teams
         function getSelectedTeams() {
-            const selectedChips = document.querySelectorAll('#teamChips .team-chip.selected');
+            const selectedChips = document.querySelectorAll('#teamChips .team-chip.selected:not(.select-none-chip)');
             return Array.from(selectedChips).map(chip => chip.textContent);
         }
 
         // Filter games
         function filterGames() {
             const selectedTeams = getSelectedTeams();
-            const roleFilter = document.getElementById('roleFilter').value;
-            const attentionFilter = document.getElementById('attentionFilter').value;
+            const selectedRoleChip = document.querySelector('#roleChips .team-chip.selected');
+            const selectedIssuesChip = document.querySelector('#issuesChips .team-chip.selected');
+            const roleFilter = selectedRoleChip ? selectedRoleChip.dataset.value : '';
+            const attentionFilter = selectedIssuesChip ? selectedIssuesChip.dataset.value : '';
 
             // If no teams are selected, return empty array
             if (selectedTeams.length === 0) {
@@ -3343,14 +3488,36 @@
         // Clear filters
         function clearFilters() {
             // Reset team chips to all selected
-            const teamChips = document.querySelectorAll('#teamChips .team-chip');
+            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-none-chip)');
             teamChips.forEach(chip => {
                 chip.classList.remove('deselected');
                 chip.classList.add('selected');
             });
             
-            document.getElementById('roleFilter').value = '';
-            document.getElementById('attentionFilter').value = '';
+            // Reset role chips to "All Roles" selected
+            const roleChips = document.querySelectorAll('#roleChips .team-chip');
+            roleChips.forEach(chip => {
+                chip.classList.remove('selected');
+                chip.classList.add('deselected');
+            });
+            const allRolesChip = document.querySelector('#roleChips .team-chip[data-value=""]');
+            if (allRolesChip) {
+                allRolesChip.classList.remove('deselected');
+                allRolesChip.classList.add('selected');
+            }
+            
+            // Reset issues chips to "All Games" selected
+            const issuesChips = document.querySelectorAll('#issuesChips .team-chip');
+            issuesChips.forEach(chip => {
+                chip.classList.remove('selected');
+                chip.classList.add('deselected');
+            });
+            const allGamesChip = document.querySelector('#issuesChips .team-chip[data-value=""]');
+            if (allGamesChip) {
+                allGamesChip.classList.remove('deselected');
+                allGamesChip.classList.add('selected');
+            }
+            
             filterGames();
         }
 

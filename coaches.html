@@ -1340,6 +1340,20 @@
     </div>
 
     <script>
+          const urlParams = new URLSearchParams(window.location.search);
+  const rawZoom = parseFloat(urlParams.get("zoom"));
+  const zoom = Number.isFinite(rawZoom) && rawZoom > 0.2 && rawZoom < 4 ? rawZoom : 1.0;
+
+  // Apply the zoom to the whole page (body or html)
+  document.addEventListener("DOMContentLoaded", () => {
+    // Chrome / Edge / Safari
+    document.body.style.zoom = zoom;
+    // Firefox & others
+    if (document.body.style.zoom === '') {
+      document.body.style.transformOrigin = '0 0';
+      document.body.style.transform = `scale(${zoom})`;
+    }
+  });
         let allGames = [];
         let allteams = [];
 
