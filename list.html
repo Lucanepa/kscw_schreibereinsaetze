@@ -139,8 +139,7 @@ font-size: 1rem; /* ≈16px */
         <table id="gamesTable" style="display: none;">
             <thead>
                 <tr>
-                    <th>Date & Time</th>
-                    <th>Home vs Away</th>
+                    <th>Match</th>
                     <th>Duty</th>
                 </tr>
             </thead>
@@ -356,9 +355,7 @@ font-size: 1rem; /* ≈16px */
                     <td style="vertical-align: top;">
                         <div style="font-weight: bold;">${escapeHtml(formattedDate)}</div>
                         <div style="color: #666; font-size: 0.7rem;">${escapeHtml(formattedTime)}</div>
-                    </td>
-                    <td style="vertical-align: top; font-weight: 600;">
-                        ${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}
+                        <div style="font-weight: 600; margin-top: 4px;">${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}</div>
                     </td>
                     <td class="duty-info">${dutyInfo}</td>
                 `;

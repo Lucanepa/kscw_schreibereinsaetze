@@ -184,30 +184,7 @@
             backdrop-filter: blur(10px);
         }
 
-        .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #fbbf24 100%);
-            color: white;
-            padding: 25px 20px;
-            text-align: center;
-            border-radius: 0 0 25px 25px;
-            margin-bottom: 30px;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.3);
-        }
 
-        .header h1 {
-            font-size: 2.2rem;
-            margin-bottom: 8px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1rem;
-            font-weight: 400;
-            letter-spacing: 0.01em;
-        }
 
         .language-switcher {
             position: absolute;
@@ -365,11 +342,7 @@
             background: #c82333;
         }
 
-        #infoButton {
-            font-size: 1.1rem;
-            padding: 12px 20px;
-            font-weight: 600;
-        }
+
 
         .dropdown-container {
             position: relative;
@@ -913,19 +886,7 @@
                 border-radius: 15px;
             }
             
-            .header {
-                padding: 20px 15px;
-                margin-bottom: 20px;
-            }
-            
-            .header h1 {
-                font-size: 1.6rem;
-                margin-bottom: 6px;
-            }
-            
-            .header p {
-                font-size: 0.85rem;
-            }
+
             
             /* Reduce font sizes on mobile */
             body {
@@ -1353,10 +1314,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <button id="infoButton" class="btn btn-warning" onclick="openInfoModal()">⚠️ <span id="infoButtonText">Info</span></button>
-        </div>
-
         <div class="main-content" id="mainContent">
             <div class="admin-access">
                 <button class="btn btn-info" onclick="showSummary()">📊 Summary</button>
@@ -1751,77 +1708,8 @@
         </div>
     </div>
 
-    <!-- Info Focused View -->
-    <div id="infoFocusedView" class="focused-game-view" style="display: none;">
-        <div class="focused-game-container">
-            <div class="focused-game-header">
-                <button class="btn btn-outline" onclick="backToMainView()">← Back to Games</button>
-                <h2 id="infoModalTitle">Important Information</h2>
-                <div class="language-toggle">
-                    <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
-                     <button class="lang-btn" onclick="switchLanguage('de')">DE</button>
-                </div>
-            </div>
-            
-            <div class="info-content">
-                <div id="info-en">
-                    <div class="info-section">
-                        <h4>⏰ Arrival Times</h4>
-                        <p><strong><span class="highlight">Scorer</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
-                        <p><strong><span class="highlight">Täfeler</span> must be in the hall at least 10 minutes before the start of play.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>⚠️ Warning!</h4>
-                        <p><strong>Late arrival or failure to appear will result in a fine (50.- CHF).</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📋 Game Requirements</h4>
-                        <p>Games from 4L and under only need a <span class="highlight">Scorer</span>, without licence. It is indicated as the only "Scorer/Täfeler" in the game details.</p>
-                        <p><strong>In this case, the Scorer/Täfeler must be in the hall at least 30 minutes before the start of play.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📞 Contact Information</h4>
-                        <p>Your phone number can be seen by the team's coach only. It is used to contact you in case of emergency.</p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📅 Edit Deadlines</h4>
-                        <p><strong>Please note you can sign up or edit your information until 2 days before the game.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>💡 How to Use</h4>
-                        <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
-                    </div>
-                </div>
-                <div id="info-de" style="display: none;">
-                    <div class="info-section">
-                        <h4>⏰ Ankunftszeiten</h4>
-                        <p><strong><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                        <p><strong><span class="highlight">Täfler:in</span> muss mindestens 10 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>⚠️ Wichtig!</h4>
-                        <p><strong>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📋 Spielanforderungen</h4>
-                        <p>Für 4L, 5L und DU23-2 Spiele wird nur ein/e <span class="highlight">Schreiber:in</span> ohne Lizenz benötigt. Es ist als einziger "Scorer/Täfeler" in den Spieldetails angegeben.</p>
-                        <p><strong>In diesem Fall muss der Schreiber:in/Täfeler:in mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📞 Kontaktinformationen</h4>
-                        <p>Deine Telefonnummer kann nur vom Teamcoach gesehen werden. Sie wird verwendet, um du im Notfall zu kontaktieren.</p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📅 Bearbeitungsfristen</h4>
-                        <p><strong>Bitte beachte, dass du deine Informationen bis 2 Tage vor dem Spiel bearbeiten kannst.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>💡 Verwendung</h4>
-                        <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+
 
     <script>
         let allGames = [];
@@ -4088,16 +3976,7 @@
             }
         };
 
-        // Info focused view functions
-        function openInfoModal() {
-            document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('infoFocusedView').style.display = 'block';
-        }
 
-        function closeInfoModal() {
-            document.getElementById('infoFocusedView').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-        }
 </script>
 </body>
 </html>
