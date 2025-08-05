@@ -140,6 +140,7 @@ font-size: 1rem; /* ≈16px */
             <thead>
                 <tr>
                     <th>Date & Time</th>
+                    <th>Home vs Away</th>
                     <th>Duty</th>
                 </tr>
             </thead>
@@ -356,6 +357,9 @@ font-size: 1rem; /* ≈16px */
                         <div style="font-weight: bold;">${escapeHtml(formattedDate)}</div>
                         <div style="color: #666; font-size: 0.7rem;">${escapeHtml(formattedTime)}</div>
                     </td>
+                    <td style="vertical-align: top; font-weight: 600;">
+                        ${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}
+                    </td>
                     <td class="duty-info">${dutyInfo}</td>
                 `;
                 tbody.appendChild(row);
@@ -363,8 +367,14 @@ font-size: 1rem; /* ≈16px */
 
             // Add "Show More" button if there are more games to show
             if (currentGames.length > gamesToShow) {
+                // Remove any existing show more button first
+                const existingButton = document.querySelector('.show-more-button');
+                if (existingButton) {
+                    existingButton.remove();
+                }
+                
                 const showMoreButton = document.createElement('button');
-                showMoreButton.className = 'btn btn-primary';
+                showMoreButton.className = 'btn btn-primary show-more-button';
                 showMoreButton.style.cssText = 'margin: 20px auto; display: block; padding: 12px 24px; font-size: 1rem;';
                 showMoreButton.textContent = 'Show More Games';
                 showMoreButton.onclick = () => {
@@ -375,6 +385,12 @@ font-size: 1rem; /* ≈16px */
                 // Add the button after the table
                 const container = document.querySelector('.container');
                 container.appendChild(showMoreButton);
+            } else {
+                // Remove any existing show more button if no more games to show
+                const existingButton = document.querySelector('.show-more-button');
+                if (existingButton) {
+                    existingButton.remove();
+                }
             }
 
             document.getElementById('gamesTable').style.display = 'table';

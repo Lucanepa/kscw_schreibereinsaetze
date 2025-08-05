@@ -22,6 +22,7 @@
             font-feature-settings: "liga" 1, "kern" 1;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
 
         /* Utility classes for common font sizes to reduce duplication */
@@ -275,6 +276,10 @@
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .filters-grid {
@@ -408,6 +413,12 @@
             .form-row {
                 grid-template-columns: 1fr;
             }
+        }
+
+        .games-container {
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            padding-right: 10px;
         }
 
         .games-grid {
@@ -1065,6 +1076,16 @@
             .info-section p {
                 font-size: 0.9rem;
             }
+            
+            .filters {
+                position: relative;
+                top: auto;
+            }
+            
+            .games-container {
+                max-height: none;
+                overflow-y: visible;
+            }
         }
 
         .issue-details {
@@ -1380,8 +1401,10 @@
             </div>
 
             <div id="loading" class="loading">Loading games...</div>
-            <div id="gamesGrid" class="games-grid" style="display: none;">
-                <!-- Games will be populated here -->
+            <div class="games-container">
+                <div id="gamesGrid" class="games-grid" style="display: none;">
+                    <!-- Games will be populated here -->
+                </div>
             </div>
         </div>
     </div>
