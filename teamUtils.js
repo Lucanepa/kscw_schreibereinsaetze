@@ -23,6 +23,7 @@ const colorPalette = [
 
 // Improved hash function for better color distribution
 function hashString(str) {
+    console.log('hashString called with:', str);
     let hash = 0;
     if (str.length === 0) return hash;
     
@@ -39,18 +40,25 @@ function hashString(str) {
     hash = hash * 0xc2b2ae35;
     hash = hash ^ (hash >>> 16);
     
-    return Math.abs(hash);
+    const result = Math.abs(hash);
+    console.log('hashString result:', result);
+    return result;
 }
 
 // Get consistent color for a team using hash-based assignment
 function getTeamColor(teamName) {
     if (!teamName) return '#6c757d'; // Default gray for empty teams
     
-    const normalizedTeam = normalizeTeamName(teamName);
-    const hash = hashString(normalizedTeam);
-    const colorIndex = hash % colorPalette.length;
-    
-    return colorPalette[colorIndex];
+    try {
+        const normalizedTeam = normalizeTeamName(teamName);
+        const hash = hashString(normalizedTeam);
+        const colorIndex = hash % colorPalette.length;
+        
+        return colorPalette[colorIndex];
+    } catch (error) {
+        console.error('Error in getTeamColor for', teamName, ':', error);
+        return '#6c757d'; // Default gray fallback
+    }
 }
 
 // Normalize team names to handle various formats and variations
@@ -122,6 +130,7 @@ if (typeof module !== 'undefined' && module.exports) {
         getTeamColor,
         colorPalette
     };
+    console.log('teamUtils loaded successfully:', window.teamUtils);
 } else {
     // Fallback for unsupported environments
     const errorMessage = 'teamUtils: Unsupported environment detected. Neither Node.js (module.exports) nor browser (window) globals are available.';
