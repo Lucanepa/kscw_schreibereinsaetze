@@ -372,38 +372,7 @@
             letter-spacing: 0.01em;
         }
 
-        .game-team-indicators {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
 
-        .team-indicator {
-            background: #28a745;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            letter-spacing: 0.01em;
-        }
-
-        .team-indicator.scorer-team {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .team-indicator.taefeler-team {
-            background: #17a2b8;
-            color: white;
-        }
-
-        .team-indicator.scorer-taefeler-team {
-            background: #6f42c1;
-            color: white;
-        }
 
         .game-teams {
             margin-bottom: 12px;
@@ -3687,19 +3656,7 @@
                         ${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}
                     </div>
                     <div class="game-location">📍 ${escapeHtml(game.halle || 'TBD')}</div>
-                    <div class="game-team-indicators">
-                        ${(() => {
-                            const scorerColor = getTeamColorSafe(game.scorer_team);
-                            const taefelerColor = getTeamColorSafe(game.taefeler_team);
-                            const scorerTaefelerColor = getTeamColorSafe(game.scorer_taefeler_team);
-                            
-                            return `
-                                ${scorerColor ? `<div class="team-indicator" style="background-color: ${scorerColor}; color: ${scorerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_team)}</div>` : ''}
-                                ${taefelerColor ? `<div class="team-indicator" style="background-color: ${taefelerColor}; color: ${taefelerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.taefeler_team)}</div>` : ''}
-                                ${scorerTaefelerColor ? `<div class="team-indicator" style="background-color: ${scorerTaefelerColor}; color: ${scorerTaefelerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
-                            `;
-                        })()}
-                    </div>
+
                     <div class="game-roles">
                         ${isCombinedGame && game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? `
                             <div class="role-item">

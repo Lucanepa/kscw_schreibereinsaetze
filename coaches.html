@@ -868,36 +868,7 @@
                 font-size: 13px;
             }
             
-            .mobile-game-card .game-team-indicators {
-                display: flex;
-                gap: 6px;
-                margin-bottom: 10px;
-                flex-wrap: wrap;
-            }
-            
-            .mobile-game-card .team-indicator {
-                background: #28a745;
-                color: white;
-                padding: 3px 8px;
-                border-radius: 12px;
-                font-size: 10px;
-                font-weight: 600;
-            }
-            
-            .mobile-game-card .team-indicator.scorer-team {
-                background: #ffc107;
-                color: #333;
-            }
-            
-            .mobile-game-card .team-indicator.taefeler-team {
-                background: #17a2b8;
-                color: white;
-            }
-            
-            .mobile-game-card .team-indicator.scorer-taefeler-team {
-                background: #6f42c1;
-                color: white;
-            }
+
             
             .mobile-game-card .game-details {
                 display: grid;
@@ -1792,19 +1763,7 @@
                         <div class="game-date-time">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
                         <div class="game-teams">${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}</div>
                     </div>
-                    <div class="game-team-indicators">
-                        ${(() => {
-                            const scorerColor = getTeamColorSafe(game.scorer_team);
-                            const taefelerColor = getTeamColorSafe(game.taefeler_team);
-                            const scorerTaefelerColor = getTeamColorSafe(game.scorer_taefeler_team);
-                            
-                            return `
-                                ${scorerColor ? `<div class="team-indicator" style="background-color: ${scorerColor}; color: ${scorerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_team)}</div>` : ''}
-                                ${taefelerColor ? `<div class="team-indicator" style="background-color: ${taefelerColor}; color: ${taefelerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.taefeler_team)}</div>` : ''}
-                                ${scorerTaefelerColor ? `<div class="team-indicator" style="background-color: ${scorerTaefelerColor}; color: ${scorerTaefelerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
-                            `;
-                        })()}
-                    </div>
+
                     <div class="game-details">
                         <div class="detail-item">
                             <div class="detail-label">Gym</div>
