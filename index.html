@@ -1879,10 +1879,22 @@
 
         // Use shared team utilities from teamUtils.js
         function normalizeTeamName(teamName) {
+            // Check if teamUtils is available before calling its methods
+            if (typeof window.teamUtils === 'undefined' || !window.teamUtils) {
+                console.error('teamUtils is not loaded. Please ensure teamUtils.js is properly loaded.');
+                // Return original teamName as fallback
+                return teamName;
+            }
             return window.teamUtils.normalizeTeamName(teamName);
         }
 
         function personHasTeam(person, targetTeam) {
+            // Check if teamUtils is available before calling its methods
+            if (typeof window.teamUtils === 'undefined' || !window.teamUtils) {
+                console.error('teamUtils is not loaded. Please ensure teamUtils.js is properly loaded.');
+                // Return false as fallback to prevent false positives
+                return false;
+            }
             return window.teamUtils.personHasTeam(person, targetTeam);
         }
 
