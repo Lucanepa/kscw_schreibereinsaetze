@@ -23,11 +23,10 @@ const colorPalette = [
 
 // Improved hash function for better color distribution
 function hashString(str) {
-    console.log('hashString called with:', str);
     let hash = 0;
     if (str.length === 0) return hash;
     
-    // Use a better hash algorithm (djb2)
+    // Use a more robust hash algorithm with better distribution
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);
         hash = ((hash << 5) + hash) + char; // hash * 33 + char
@@ -40,9 +39,12 @@ function hashString(str) {
     hash = hash * 0xc2b2ae35;
     hash = hash ^ (hash >>> 16);
     
-    const result = Math.abs(hash);
-    console.log('hashString result:', result);
-    return result;
+    // Add more mixing to ensure better distribution
+    hash = hash ^ (hash >>> 7);
+    hash = hash * 0x9e3779b9;
+    hash = hash ^ (hash >>> 11);
+    
+    return Math.abs(hash);
 }
 
 // Get consistent color for a team using hash-based assignment
