@@ -24,6 +24,17 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
+        /* Utility classes for common font sizes to reduce duplication */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.8rem; }
+        .text-base { font-size: 0.9rem; }
+        .text-md { font-size: 1rem; }
+        .text-lg { font-size: 1.1rem; }
+        .text-xl { font-size: 1.2rem; }
+        .text-2xl { font-size: 1.8rem; }
+        .text-3xl { font-size: 2.2rem; }
+        .text-4xl { font-size: 28px; }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -747,12 +758,71 @@
             }
             
             .header h1 {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
                 margin-bottom: 6px;
             }
             
             .header p {
+                font-size: 0.85rem;
+            }
+            
+            /* Reduce font sizes on mobile */
+            body {
                 font-size: 0.9rem;
+            }
+            
+            .btn {
+                font-size: 0.85rem;
+                padding: 10px 16px;
+            }
+            
+            .form-group label {
+                font-size: 0.9rem;
+            }
+            
+            .form-group input {
+                font-size: 0.9rem;
+            }
+            
+            .team-indicator {
+                font-size: 0.75rem;
+                padding: 3px 8px;
+            }
+            
+            .role-label {
+                font-size: 0.8rem;
+            }
+            
+            .team-label {
+                font-size: 0.8rem;
+            }
+            
+            .location-label {
+                font-size: 0.8rem;
+            }
+            
+            .modal-title {
+                font-size: 1.3rem;
+            }
+            
+            .modal-subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .detail-label {
+                font-size: 0.8rem;
+            }
+            
+            .detail-value {
+                font-size: 0.9rem;
+            }
+            
+            .game-date {
+                font-size: 1.1rem;
+            }
+            
+            .game-time {
+                font-size: 0.8rem;
             }
             
             .language-switcher {
@@ -1612,7 +1682,8 @@
         }
 
         // Set German as default on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadTranslations();
             switchLanguage('de');
         });
 
@@ -1685,6 +1756,9 @@
         }
 
         let currentLanguage = 'en';
+        
+        // Team color management - using shared module
+        // getTeamColor function is now available from teamUtils.js
 
         // Format date with day of week
         function formatDate(dateString) {
@@ -1698,70 +1772,26 @@
         }
 
         // German translations
-        const translations = {
-            en: {
-                summary: 'Game Issues Summary',
-                overview: 'Overview of missing information',
-                issuesSummary: 'Issues Summary by Team',
-                gamesWithIssues: 'Games with Issues',
-                issues: 'issues',
-                taefeler: 'Täfeler',
-                scorer: 'Scorer',
-                close: 'Close',
-                teamGames: 'Games',
-                allGamesForTeam: 'All games for this team',
-                missingTaefeler: 'Missing Täfeler name',
-                missingScorer: 'Missing Scorer name',
-                location: 'Location',
-                vs: 'vs',
-                at: 'at',
-                filterByTeam: 'Filter by Team',
-                filterByRole: 'Filter by Role',
-                filterByIssues: 'Filter by Issues',
-                allTeams: 'All Teams',
-                allRoles: 'All Roles',
-                allGames: 'All Games',
-                gamesWithIssues: 'Games with Issues',
-                noIssues: 'No Issues',
-                scorerRole: 'Scorer',
-                taefelerRole: 'Täfeler',
-                clearFilters: 'Clear Filters',
-                noGamesFound: 'No games found',
-                loading: 'Loading games...',
-                errorLoading: 'Error loading games. Please try again.'
-            },
-            de: {
-                summary: 'Spielprobleme Zusammenfassung',
-                overview: 'Übersicht fehlender Informationen',
-                issuesSummary: 'Probleme nach Team',
-                gamesWithIssues: 'Spiele mit Problemen',
-                issues: 'Probleme',
-                taefeler: 'Täfeler',
-                scorer: 'Schreiber',
-                close: 'Schließen',
-                teamGames: 'Spiele',
-                allGamesForTeam: 'Alle Spiele für dieses Team',
-                missingTaefeler: 'Fehlender Täfeler Name',
-                missingScorer: 'Fehlender Schreiber Name',
-                location: 'Ort',
-                vs: 'gegen',
-                at: 'in',
-                filterByTeam: 'Nach Team filtern',
-                filterByRole: 'Nach Rolle filtern',
-                filterByIssues: 'Nach Problemen filtern',
-                allTeams: 'Alle Teams',
-                allRoles: 'Alle Rollen',
-                allGames: 'Alle Spiele',
-                gamesWithIssues: 'Spiele mit Problemen',
-                noIssues: 'Keine Probleme',
-                scorerRole: 'Schreiber',
-                taefelerRole: 'Täfeler',
-                clearFilters: 'Filter löschen',
-                noGamesFound: 'Keine Spiele gefunden',
-                loading: 'Spiele werden geladen...',
-                errorLoading: 'Fehler beim Laden der Spiele. Bitte versuchen Sie es erneut.'
+        // Translations loaded from external JSON file
+        let translations = {};
+        
+        // Load translations from JSON file
+        async function loadTranslations() {
+            try {
+                const response = await fetch('translations.json');
+                if (!response.ok) {
+                    throw new Error(`Failed to load translations: ${response.status}`);
+                }
+                translations = await response.json();
+            } catch (error) {
+                console.error('Error loading translations:', error);
+                // Fallback to basic translations if JSON loading fails
+                translations = {
+                    en: { loading: 'Loading games...', errorLoading: 'Error loading games. Please try again.' },
+                    de: { loading: 'Spiele werden geladen...', errorLoading: 'Fehler beim Laden der Spiele. Bitte versuchen Sie es erneut.' }
+                };
             }
-        };
+        }
 
         // Download ICS file
         function downloadICS() {
@@ -3269,9 +3299,17 @@
                     </div>
                     <div class="game-location">📍 ${escapeHtml(game.halle || 'TBD')}</div>
                     <div class="game-team-indicators">
-                        ${game.scorer_team && game.scorer_team.trim() !== '' ? `<div class="team-indicator scorer-team">${escapeHtml(game.scorer_team)}</div>` : ''}
-                        ${game.taefeler_team && game.taefeler_team.trim() !== '' ? `<div class="team-indicator taefeler-team">${escapeHtml(game.taefeler_team)}</div>` : ''}
-                        ${game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? `<div class="team-indicator scorer-taefeler-team">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
+                        ${(() => {
+                            const scorerColor = game.scorer_team && game.scorer_team.trim() !== '' ? teamUtils.getTeamColor(game.scorer_team) : null;
+                            const taefelerColor = game.taefeler_team && game.taefeler_team.trim() !== '' ? teamUtils.getTeamColor(game.taefeler_team) : null;
+                            const scorerTaefelerColor = game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? teamUtils.getTeamColor(game.scorer_taefeler_team) : null;
+                            
+                            return `
+                                ${scorerColor ? `<div class="team-indicator" style="background-color: ${scorerColor}; color: ${scorerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_team)}</div>` : ''}
+                                ${taefelerColor ? `<div class="team-indicator" style="background-color: ${taefelerColor}; color: ${taefelerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.taefeler_team)}</div>` : ''}
+                                ${scorerTaefelerColor ? `<div class="team-indicator" style="background-color: ${scorerTaefelerColor}; color: ${scorerTaefelerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
+                            `;
+                        })()}
                     </div>
                     <div class="game-roles">
                         ${isCombinedGame ? `

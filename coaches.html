@@ -767,12 +767,51 @@
             }
             
             .header h1 {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
                 margin-bottom: 6px;
             }
             
             .main-content {
                 padding: 20px;
+            }
+            
+            /* Reduce font sizes on mobile */
+            body {
+                font-size: 0.9rem;
+            }
+            
+            .btn {
+                font-size: 0.85rem;
+                padding: 10px 16px;
+            }
+            
+            .form-group label {
+                font-size: 0.9rem;
+            }
+            
+            .form-group input {
+                font-size: 0.9rem;
+            }
+            
+            .team-indicator {
+                font-size: 0.75rem;
+                padding: 3px 8px;
+            }
+            
+            .modal-title {
+                font-size: 1.3rem;
+            }
+            
+            .modal-subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .detail-label {
+                font-size: 0.8rem;
+            }
+            
+            .detail-value {
+                font-size: 0.9rem;
             }
             
             .auth-form {
@@ -1308,6 +1347,9 @@
 
         let allScorers = []; // All scorers from scorer_scorers table
         let allTaefelers = []; // All täfelers from scorer_scorers table
+        
+        // Team color management - using shared module
+        // getTeamColor function is now available from teamUtils.js
 
         // Helper function to determine if a game is a combined scorer/täfeler game
         function isCombined(game) {
@@ -1789,9 +1831,9 @@
                         <div class="game-teams">${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}</div>
                     </div>
                     <div class="game-team-indicators">
-                        ${game.scorer_team && game.scorer_team.trim() !== '' ? `<div class="team-indicator scorer-team">${escapeHtml(game.scorer_team)}</div>` : ''}
-                        ${game.taefeler_team && game.taefeler_team.trim() !== '' ? `<div class="team-indicator taefeler-team">${escapeHtml(game.taefeler_team)}</div>` : ''}
-                        ${game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? `<div class="team-indicator scorer-taefeler-team">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
+                        ${game.scorer_team && game.scorer_team.trim() !== '' ? `<div class="team-indicator" style="background-color: ${teamUtils.getTeamColor(game.scorer_team)}; color: ${teamUtils.getTeamColor(game.scorer_team) === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_team)}</div>` : ''}
+                        ${game.taefeler_team && game.taefeler_team.trim() !== '' ? `<div class="team-indicator" style="background-color: ${teamUtils.getTeamColor(game.taefeler_team)}; color: ${teamUtils.getTeamColor(game.taefeler_team) === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.taefeler_team)}</div>` : ''}
+                        ${game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? `<div class="team-indicator" style="background-color: ${teamUtils.getTeamColor(game.scorer_taefeler_team)}; color: ${teamUtils.getTeamColor(game.scorer_taefeler_team) === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
                     </div>
                     <div class="game-details">
                         <div class="detail-item">
