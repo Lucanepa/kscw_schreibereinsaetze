@@ -1350,29 +1350,24 @@
             try {
                 const { data, error } = await supabase
                     .from('scorer_teams')
-                    .select('team')
-                    .order('team');
+                    .select('teams')
+                    .order('teams');
 
                 if (error) throw error;
                 // unique & sorted list
-                allteams = [...new Set(data.map(row => row.team))].sort();
+                window.allteams = [...new Set(data.map(row => row.team))].sort();
             } catch (error) {
                 console.error('Error loading teams:', error);
-                allteams = [];
+                window.allteams = [];
             }
         }
 
         // Helper function to safely escape HTML
         function escapeHtml(text) {
+            if (text == null) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
-        }
-
-        // Filter by taefeler team
-        if (taefelerTeam) {
-            // keep using the short field OR migrate every other call site
-            filtered = filtered.filter(game => game.taefeler_team === taefelerTeam);
         }
         
 
