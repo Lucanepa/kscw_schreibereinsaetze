@@ -17,7 +17,7 @@
 
         body {
             font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             min-height: 100vh;
             font-feature-settings: "liga" 1, "kern" 1;
             -webkit-font-smoothing: antialiased;
@@ -52,14 +52,15 @@
         }
 
         .team-chip {
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.9rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 2px solid transparent;
-            color: white;
+            border: 2px solid #000000;
+            background-color: #ffffff;
+            color: #000000;
             font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             letter-spacing: 0.01em;
         }
@@ -70,18 +71,23 @@
         }
 
         .team-chip.selected {
-            border-color: rgba(255,255,255,0.8);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border-color: #000000;
+            background-color: #ffffff;
+            color: #000000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .team-chip.deselected {
-            opacity: 0.4;
-            filter: grayscale(0.5);
+            opacity: 0.3;
+            background-color: #f5f5f5;
+            color: #666666;
+            border-color: #cccccc;
         }
 
         .team-chip.deselected:hover {
-            opacity: 0.7;
-            filter: grayscale(0.3);
+            opacity: 0.6;
+            background-color: #f0f0f0;
+            color: #444444;
         }
 
         .team-chip:focus {
@@ -103,7 +109,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #fbbf24 100%);
             color: white;
             padding: 25px 20px;
             text-align: center;
@@ -271,12 +277,12 @@
         }
 
         .btn-info {
-            background: #17a2b8;
-            color: white;
+            background: #fbbf24;
+            color: #000000;
         }
 
         .btn-info:hover {
-            background: #138496;
+            background: #f59e0b;
         }
 
         #infoButton {
@@ -313,7 +319,7 @@
         }
 
         .dropdown-container select option:checked {
-            background-color: #667eea;
+            background-color: #1e3a8a;
             color: white;
         }
 
@@ -349,7 +355,7 @@
         .game-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-            border-color: #1e3a8a;
+            border-color: #fbbf24;
         }
 
         .game-header {
@@ -541,6 +547,32 @@
         .language-toggle .lang-btn {
             padding: 5px 10px;
             font-size: 0.8rem;
+        }
+
+        #infoFocusedView .language-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        #infoFocusedView .language-toggle .lang-btn {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #infoFocusedView .language-toggle .lang-btn:hover {
+            background: #1e40af;
+        }
+
+        #infoFocusedView .language-toggle .lang-btn.active {
+            background: #fbbf24;
+            color: #000000;
+            font-weight: 600;
         }
 
         .modal-title {
@@ -1074,6 +1106,16 @@
             margin-bottom: 30px;
             border-bottom: 2px solid #f0f0f0;
             padding-bottom: 20px;
+            gap: 20px;
+        }
+
+        #infoFocusedView .focused-game-header {
+            flex-wrap: wrap;
+        }
+
+        #infoFocusedView .focused-game-header h2 {
+            flex: 1;
+            min-width: 200px;
         }
 
         .focused-game-header h2 {
@@ -1102,7 +1144,7 @@
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #1e3a8a;
         }
 
         .info-item label {
@@ -1133,7 +1175,7 @@
         }
 
         .role-section h3 {
-            color: #667eea;
+            color: #1e3a8a;
             margin-bottom: 15px;
             font-size: 1.2rem;
             display: flex;
@@ -1613,8 +1655,8 @@
                 <button class="btn btn-outline" onclick="backToMainView()">← Back to Games</button>
                 <h2 id="infoModalTitle">Important Information</h2>
                 <div class="language-toggle">
-                    <button class="lang-btn" onclick="switchLanguage('en')">EN</button>
-                    <button class="lang-btn active" onclick="switchLanguage('de')">DE</button>
+                    <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
+                     <button class="lang-btn" onclick="switchLanguage('de')">DE</button>
                 </div>
             </div>
             
@@ -1700,8 +1742,8 @@
             const infoDe = document.getElementById('info-de');
             const infoButtonText = document.getElementById('infoButtonText');
             const infoModalTitle = document.getElementById('infoModalTitle');
-            const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
-            const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
+            const enBtn = document.querySelector('#infoFocusedView .lang-btn[onclick="switchLanguage(\'en\')"]');
+            const deBtn = document.querySelector('#infoFocusedView .lang-btn[onclick="switchLanguage(\'de\')"]');
             
             // Update current language
             currentLanguage = lang;
