@@ -7,6 +7,7 @@
     <link rel="icon" type="image/x-icon" href="https://kscw.ch/clubdesk/fileservlet?type=file&id=1000716&s=djEt3z7ABYLi8hd4sWeb8Qisb2m20xnaKr4H9W6HvJnKgDU=">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="teamUtils.js"></script>
     <style>
         * {
             margin: 0;
@@ -1869,28 +1870,13 @@
             }
         }
 
-        // Normalize team names (e.g., HU23-1 -> HU23)
+        // Use shared team utilities from teamUtils.js
         function normalizeTeamName(teamName) {
-            if (!teamName) return teamName;
-            
-            // Trim whitespace first
-            teamName = teamName.trim();
-            
-            // Use case-insensitive regex to match HU23 followed by dash and digits
-            // This will match patterns like HU23-1, HU23-10, hu23-1, etc.
-            const hu23Pattern = /^hu23-\d+$/i;
-            if (hu23Pattern.test(teamName)) {
-                return 'HU23';
-            }
-            
-            return teamName;
+            return window.teamUtils.normalizeTeamName(teamName);
         }
 
-        // Check if a person's teams array includes a specific team (with normalization)
         function personHasTeam(person, targetTeam) {
-            if (!Array.isArray(person.teams) || !targetTeam) return false;
-            const normalizedTargetTeam = normalizeTeamName(targetTeam);
-            return person.teams.some(team => normalizeTeamName(team) === normalizedTargetTeam);
+            return window.teamUtils.personHasTeam(person, targetTeam);
         }
 
         // Populate täfeler dropdown
