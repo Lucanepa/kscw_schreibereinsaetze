@@ -1346,15 +1346,15 @@
                 <div class="filter-section">
                     <label class="filter-label">Filter by:</label>
                     <div class="filter-chips">
-                        <div class="filter-chip selected" data-filter="team" onclick="selectFilterChip('team')">
+                        <button type="button" class="filter-chip selected" data-filter="team" onclick="selectFilterChip('team')">
                             Team
-                        </div>
-                        <div class="filter-chip" data-filter="role" onclick="selectFilterChip('role')">
+                        </button>
+                        <button type="button" class="filter-chip" data-filter="role" onclick="selectFilterChip('role')">
                             Role
-                        </div>
-                        <div class="filter-chip" data-filter="issues" onclick="selectFilterChip('issues')">
+                        </button>
+                        <button type="button" class="filter-chip" data-filter="issues" onclick="selectFilterChip('issues')">
                             Issues
-                        </div>
+                        </button>
                     </div>
                 </div>
                 <div class="dynamic-filter-container">
@@ -3448,12 +3448,18 @@
 
         // Select filter chip and show appropriate dropdown
         function selectFilterChip(filterType) {
+            const selectedChip = document.querySelector(`[data-filter="${filterType}"]`);
+            const targetContainer = document.getElementById(`${filterType}FilterContainer`);
+            if (!selectedChip || !targetContainer) {
+                console.warn(`Unknown filter type: ${filterType}`);
+                return;
+            }
+
             // Remove selected class from all chips
             const allChips = document.querySelectorAll('.filter-chip');
             allChips.forEach(chip => chip.classList.remove('selected'));
             
             // Add selected class to clicked chip
-            const selectedChip = document.querySelector(`[data-filter="${filterType}"]`);
             selectedChip.classList.add('selected');
             
             // Hide all filter containers
@@ -3461,7 +3467,6 @@
             allContainers.forEach(container => container.style.display = 'none');
             
             // Show the appropriate filter container
-            const targetContainer = document.getElementById(`${filterType}FilterContainer`);
             targetContainer.style.display = 'block';
             
             // Clear other filters when switching
