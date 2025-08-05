@@ -279,6 +279,12 @@
             background: #138496;
         }
 
+        #infoButton {
+            font-size: 1.1rem;
+            padding: 12px 20px;
+            font-weight: 600;
+        }
+
         .dropdown-container {
             position: relative;
         }
@@ -1213,7 +1219,7 @@
             <button id="infoButton" class="btn btn-info" onclick="openInfoModal()">⚠️ <span id="infoButtonText">Info</span></button>
         </div>
 
-        <div class="main-content">
+        <div class="main-content" id="mainContent">
             <div class="admin-access">
                 <button class="btn btn-info" onclick="showSummary()">📊 Summary</button>
                 <button class="btn btn-secondary" onclick="openCoachAccess()">Coach Access</button>
@@ -1600,19 +1606,20 @@
         </div>
     </div>
 
-    <!-- Info Modal -->
-    <div id="infoModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeInfoModal()">&times;</span>
-            <div class="modal-header">
-                <div class="modal-title" id="infoModalTitle">Wichtige Informationen</div>
+    <!-- Info Focused View -->
+    <div id="infoFocusedView" class="focused-game-view" style="display: none;">
+        <div class="focused-game-container">
+            <div class="focused-game-header">
+                <button class="btn btn-outline" onclick="backToMainView()">← Back to Games</button>
+                <h2 id="infoModalTitle">Important Information</h2>
                 <div class="language-toggle">
                     <button class="lang-btn" onclick="switchLanguage('en')">EN</button>
                     <button class="lang-btn active" onclick="switchLanguage('de')">DE</button>
                 </div>
             </div>
+            
             <div class="info-content">
-                <div id="info-en" style="display: none;">
+                <div id="info-en">
                     <div class="info-section">
                         <h4>⏰ Arrival Times</h4>
                         <p><strong><span class="highlight">Scorer</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
@@ -1640,7 +1647,7 @@
                         <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
                     </div>
                 </div>
-                <div id="info-de">
+                <div id="info-de" style="display: none;">
                     <div class="info-section">
                         <h4>⏰ Ankunftszeiten</h4>
                         <p><strong><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
@@ -1669,9 +1676,6 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" onclick="closeInfoModal()" id="gotItButton">Got it!</button>
-            </div>
         </div>
 
     <script>
@@ -1696,7 +1700,6 @@
             const infoDe = document.getElementById('info-de');
             const infoButtonText = document.getElementById('infoButtonText');
             const infoModalTitle = document.getElementById('infoModalTitle');
-            const gotItButton = document.getElementById('gotItButton');
             const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
             const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
             
@@ -1710,7 +1713,6 @@
                 if (infoDe) infoDe.style.display = 'none';
                 if (infoButtonText) infoButtonText.textContent = 'Info';
                 if (infoModalTitle) infoModalTitle.textContent = 'Important Information';
-                if (gotItButton) gotItButton.textContent = 'Got it!';
                 enBtn.classList.add('active');
                 deBtn.classList.remove('active');
             } else {
@@ -1720,7 +1722,6 @@
                 if (infoDe) infoDe.style.display = 'block';
                 if (infoButtonText) infoButtonText.textContent = 'Info';
                 if (infoModalTitle) infoModalTitle.textContent = 'Wichtige Informationen';
-                if (gotItButton) gotItButton.textContent = 'Verstanden!';
                 deBtn.classList.add('active');
                 enBtn.classList.remove('active');
             }
@@ -1793,7 +1794,7 @@
             }
         }
 
-        let currentLanguage = 'de';
+        let currentLanguage = 'en';
         
         // Team color management - using shared module
         // getTeamColor function is now available from teamUtils.js
@@ -1944,8 +1945,8 @@
         document.addEventListener('DOMContentLoaded', async function() {
             // Load translations first
             await loadTranslations();
-            // Switch to German as default
-            switchLanguage('de');
+            // Switch to English as default
+            switchLanguage('en');
             // Then load games and update UI
             loadGames();
             // Update UI language when page loads
@@ -3085,7 +3086,8 @@
         // Back to main view
         function backToMainView() {
             document.getElementById('focusedGameView').style.display = 'none';
-            document.querySelector('.main-content').style.display = 'block';
+            document.getElementById('infoFocusedView').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
             currentGame = null;
             // Reset confirmation states when going back to main view
             resetConfirmationStates();
@@ -4051,7 +4053,6 @@
             const gameModal = document.getElementById('gameModal');
             const summaryModal = document.getElementById('summaryModal');
             const teamGamesModal = document.getElementById('teamGamesModal');
-            const infoModal = document.getElementById('infoModal');
             if (event.target === gameModal) {
                 closeModal();
             }
@@ -4061,18 +4062,17 @@
             if (event.target === teamGamesModal) {
                 closeTeamGamesModal();
             }
-            if (event.target === infoModal) {
-                closeInfoModal();
-            }
         };
 
-        // Info modal functions
+        // Info focused view functions
         function openInfoModal() {
-            document.getElementById('infoModal').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('infoFocusedView').style.display = 'block';
         }
 
         function closeInfoModal() {
-            document.getElementById('infoModal').style.display = 'none';
+            document.getElementById('infoFocusedView').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
         }
 </script>
 </body>
