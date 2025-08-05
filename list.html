@@ -32,16 +32,16 @@ font-size: 1rem; /* ≈16px */
             margin-top: 20px;
         }
         th, td {
-            padding: 12px;
+            padding: 8px 6px;
             text-align: left;
             border-bottom: 1px solid #ddd;
-            font-size: 1rem;
+            font-size: 0.8rem;
         }
         th {
             background-color: #f8f9fa;
             font-weight: bold;
             color: #333;
-            font-size: 1rem;
+            font-size: 0.8rem;
         }
         tr:hover {
             background-color: #f5f5f5;
@@ -59,7 +59,7 @@ font-size: 1rem; /* ≈16px */
             font-size: 1rem;
         }
         .duty-info {
-            font-size: 1rem;
+            font-size: 0.8rem;
             color: #666;
         }
         .scorer {
@@ -86,6 +86,27 @@ font-size: 1rem; /* ≈16px */
             color: #000000;
             font-weight: normal;
         }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+                margin: 10px;
+            }
+            
+            table {
+                font-size: 0.7rem;
+            }
+            
+            th, td {
+                padding: 6px 4px;
+                font-size: 0.7rem;
+            }
+            
+            .duty-info {
+                font-size: 0.7rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -95,10 +116,7 @@ font-size: 1rem; /* ≈16px */
         <table id="gamesTable" style="display: none;">
             <thead>
                 <tr>
-                    <th>Day</th>
-                    <th>Time</th>
-                    <th>Home</th>
-                    <th>Away</th>
+                    <th>Date & Time</th>
                     <th>Duty</th>
                 </tr>
             </thead>
@@ -281,10 +299,10 @@ font-size: 1rem; /* ≈16px */
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${escapeHtml(formattedDate)}</td>
-                    <td>${escapeHtml(formattedTime)}</td>
-                    <td>${escapeHtml(game.home_team)}</td>
-                    <td>${escapeHtml(game.away_team)}</td>
+                    <td style="vertical-align: top;">
+                        <div style="font-weight: bold;">${escapeHtml(formattedDate)}</div>
+                        <div style="color: #666; font-size: 0.7rem;">${escapeHtml(formattedTime)}</div>
+                    </td>
                     <td class="duty-info">${dutyInfo}</td>
                 `;
                 tbody.appendChild(row);
