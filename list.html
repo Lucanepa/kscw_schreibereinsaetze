@@ -7,7 +7,8 @@
     <script src="config.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 10px;
             margin: 20px;
             background-color: #f5f5f5;
         }
@@ -23,6 +24,7 @@
             text-align: center;
             color: #333;
             margin-bottom: 30px;
+            font-size: 10px;
         }
         table {
             width: 100%;
@@ -33,11 +35,13 @@
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
+            font-size: 10px;
         }
         th {
             background-color: #f8f9fa;
             font-weight: bold;
             color: #333;
+            font-size: 10px;
         }
         tr:hover {
             background-color: #f5f5f5;
@@ -46,24 +50,41 @@
             text-align: center;
             padding: 20px;
             color: #666;
+            font-size: 10px;
         }
         .error {
             text-align: center;
             padding: 20px;
             color: #dc3545;
+            font-size: 10px;
         }
         .duty-info {
-            font-size: 0.9em;
+            font-size: 10px;
             color: #666;
         }
         .scorer {
-            color: #007bff;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .scorer.null {
+            color: #000000;
+            font-weight: normal;
         }
         .taefeler {
-            color:  #007bff;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .taefeler.null {
+            color: #000000;
+            font-weight: normal;
         }
         .scorer-taefeler {
-            color: #007bff;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .scorer-taefeler.null {
+            color: #000000;
+            font-weight: normal;
         }
     </style>
 </head>
@@ -217,7 +238,9 @@
                 if (isCombinedGame) {
                     // Combined scorer/täfeler game
                     if (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '') {
-                        dutyInfo = `<span class="scorer-taefeler">Scorer/Täfeler: ${escapeHtml(game.scorer_taefeler_team)}</span>`;
+                        const hasScorerTaefelerId = game.scorer_taefeler_id != null;
+                        const cssClass = hasScorerTaefelerId ? 'scorer-taefeler' : 'scorer-taefeler null';
+                        dutyInfo = `<span class="${cssClass}">Scorer/Täfeler: ${escapeHtml(game.scorer_taefeler_team)}</span>`;
                     } else {
                         dutyInfo = '<span class="no-duty">No duty assigned</span>';
                     }
@@ -227,19 +250,25 @@
                     
                     if (game.scorer_team && game.scorer_team.trim() !== '') {
                         const scorerText = `Scorer: ${escapeHtml(game.scorer_team)}`;
+                        const hasScorerId = game.scorer_id != null;
+                        const scorerCssClass = hasScorerId ? 'scorer' : 'scorer null';
+                        
                         if (scorerName) {
-                            dutyParts.push(`<span class="scorer">${scorerText} - ${escapeHtml(scorerName)}</span>`);
+                            dutyParts.push(`<span class="${scorerCssClass}">${scorerText} - ${escapeHtml(scorerName)}</span>`);
                         } else {
-                            dutyParts.push(`<span class="scorer">${scorerText}</span>`);
+                            dutyParts.push(`<span class="${scorerCssClass}">${scorerText}</span>`);
                         }
                     }
                     
                     if (game.taefeler_team && game.taefeler_team.trim() !== '') {
                         const taefelerText = `Täfeler: ${escapeHtml(game.taefeler_team)}`;
+                        const hasTaefelerId = game.taefeler_id != null;
+                        const taefelerCssClass = hasTaefelerId ? 'taefeler' : 'taefeler null';
+                        
                         if (taefelerName) {
-                            dutyParts.push(`<span class="taefeler">${taefelerText} - ${escapeHtml(taefelerName)}</span>`);
+                            dutyParts.push(`<span class="${taefelerCssClass}">${taefelerText} - ${escapeHtml(taefelerName)}</span>`);
                         } else {
-                            dutyParts.push(`<span class="taefeler">${taefelerText}</span>`);
+                            dutyParts.push(`<span class="${taefelerCssClass}">${taefelerText}</span>`);
                         }
                     }
                     
