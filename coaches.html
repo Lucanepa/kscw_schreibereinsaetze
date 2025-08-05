@@ -1345,74 +1345,36 @@
   const zoom = Number.isFinite(rawZoom) && rawZoom > 0.2 && rawZoom < 4 ? rawZoom : 1.0;
 
   // Apply the zoom to the whole page (body or html)
-  document.addEventListener("DOMContentLoaded", () => {
-    // Chrome / Edge / Safari
-    document.body.style.zoom = zoom;
-    // Firefox & others
-    if (document.body.style.zoom === '') {
-      document.body.style.transformOrigin = '0 0';
-      document.body.style.transform = `scale(${zoom})`;
-    }
-  });
-        let allGames = [];
-        let allteams = [];
+        // Load teams from scorer_teams table
+        async function loadTeams() {
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_teams')
+                    .select('team')
+                    .order('team');
 
-        let currentGame = null;
-
-        let allScorers = []; // All scorers from scorer_scorers table
-        let allTaefelers = []; // All täfelers from scorer_scorers table
-        
-        // Team color management - using shared module
-        // getTeamColor function is now available from teamUtils.js
-
-        // Helper function to determine if a game is a combined scorer/täfeler game
-        function isCombined(game) {
-            return (!game.scorer_team || game.scorer_team.trim() === '') && 
-                   (!game.taefeler_team || game.taefeler_team.trim() === '') &&
-                   (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
-        }
-
-        // Helper function to determine if a game has issues
-        function hasIssues(game) {
-            if (isCombined(game)) {
-                return !game.scorer_taefeler_id;
-            } else {
-                return (!game.taefeler_id || (game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id));
+                if (error) throw error;
+                // unique & sorted list
+                allteams = [...new Set(data.map(row => row.team))].sort();
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                allteams = [];
             }
         }
 
-        // Helper function to safely get team color with validation and fallback
-        function getTeamColorSafe(teamName) {
-            if (!teamName || !teamName.trim()) return null;
-            
-            if (teamUtils && typeof teamUtils.getTeamColor === 'function') {
-                const color = teamUtils.getTeamColor(teamName);
-                // Validate color against hex pattern and handle falsy values
-                if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
-                    return color;
-                }
-            }
-            return '#6c757d'; // Default gray fallback
-        }
-
-        // Escape HTML to prevent XSS attacks
+        // Helper function to safely escape HTML
         function escapeHtml(text) {
-            if (text == null) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Initialize Supabase
-        const supabase = window.supabase.createClient(
-            SUPABASE_CONFIG.url,
-            SUPABASE_CONFIG.anonKey
-        );
-
-        // Initialize coaches content
-        function initializeCoachesContent() {
-            loadAdminData();
+        // Filter by taefeler team
+        if (taefelerTeam) {
+            // keep using the short field OR migrate every other call site
+            filtered = filtered.filter(game => game.taefeler_team === taefelerTeam);
         }
+        
 
         // Go to main page
         function goToMainPage() {
@@ -1506,7 +1468,7 @@
                 await loadGames();
                 await loadScorers();
                 await loadTaefelers();
-                await loadteams();
+                await loadTeams();
                 populateAdminFilters();
                 renderAdminTable(filterCurrentGames(allGames));
             } catch (error) {
@@ -1588,39 +1550,7 @@
             });
         }
 
-        // Load teams from existing game data
-        async function loadteams() {
-            try {
-                // Get unique team names from existing games data
-                const uniqueTeams = new Set();
-                
-                // Add teams from scorer_team column
-                allGames.forEach(game => {
-                    if (game.scorer_team && game.scorer_team.trim() !== '') {
-                        uniqueTeams.add(game.scorer_team);
-                    }
-                });
-                
-                // Add teams from taefeler_team column
-                allGames.forEach(game => {
-                    if (game.taefeler_team && game.taefeler_team.trim() !== '') {
-                        uniqueTeams.add(game.taefeler_team);
-                    }
-                });
-                
-                // Add teams from scorer_taefeler_team column
-                allGames.forEach(game => {
-                    if (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '') {
-                        uniqueTeams.add(game.scorer_taefeler_team);
-                    }
-                });
-                
-                allteams = Array.from(uniqueTeams).sort();
-            } catch (error) {
-                console.error('Error loading teams:', error);
-                allteams = [];
-            }
-        }
+
 
         // Populate admin filters
         function populateAdminFilters() {

@@ -1271,7 +1271,7 @@
                     </div>
                 </div>
                 <div class="filter-buttons">
-                    <button class="btn btn-primary" onclick="clearFilters()">Clear Filters</button>
+                    <button class="btn btn-primary" onclick="clearFilters()" id="clearFiltersBtn">Clear Filters</button>
                 </div>
             </div>
 
@@ -1772,35 +1772,8 @@
                     toggleChip.style.border = '2px solid #28a745';
                 }
             }
-
-            // Update role chips
-            const roleChips = document.querySelectorAll('#roleChips .team-chip');
-            roleChips.forEach(chip => {
-                const value = chip.dataset.value;
-                if (value === '') {
-                    chip.textContent = translations[currentLanguage].allRoles;
-                } else if (value === 'scorer') {
-                    chip.textContent = translations[currentLanguage].scorerRole;
-                } else if (value === 'taefeler') {
-                    chip.textContent = translations[currentLanguage].taefelerRole;
-                } else if (value === 'scorer-taefeler') {
-                    chip.textContent = currentLanguage === 'de' ? 'Schreiber/Täfeler' : 'Scorer/Täfeler';
-                }
-            });
-
-            // Update issues chips
-            const issuesChips = document.querySelectorAll('#issuesChips .team-chip');
-            issuesChips.forEach(chip => {
-                const value = chip.dataset.value;
-                if (value === '') {
-                    chip.textContent = translations[currentLanguage].allGames;
-                } else if (value === 'issues') {
-                    chip.textContent = translations[currentLanguage].gamesWithIssues;
-                } else if (value === 'no-issues') {
-                    chip.textContent = translations[currentLanguage].noIssues;
-                }
-            });
         }
+        
 
         // Update UI language
         function updateUILanguage() {
@@ -1810,18 +1783,6 @@
                 console.warn('Translations not loaded yet, skipping UI language update');
                 return;
             }
-            
-            // Update filter labels
-            const filterLabels = document.querySelectorAll('label');
-            filterLabels.forEach(label => {
-                if (label.textContent.includes('Filter by Team')) {
-                    label.textContent = translations[currentLanguage].filterByTeam;
-                } else if (label.textContent.includes('Filter by Role')) {
-                    label.textContent = translations[currentLanguage].filterByRole;
-                } else if (label.textContent.includes('Filter by Issues')) {
-                    label.textContent = translations[currentLanguage].filterByIssues;
-                }
-            });
             
             // Update filter labels
             const allFilterLabels = document.querySelectorAll('.filter-group label');
@@ -1837,8 +1798,6 @@
 
             // Update chip labels
             updateChipLabels();
-            
-
             
             // Update buttons
             const buttons = document.querySelectorAll('.btn');
@@ -1862,28 +1821,28 @@
         // Team color management - using shared module
         // getTeamColor function is now available from teamUtils.js
 
-// Helper function to safely get team color with validation and fallback
-function getTeamColorSafe(teamName) {
-    // Always return a valid colour string
-    if (!teamName || !teamName.trim()) return '#6c757d';
-    
-    if (typeof window !== 'undefined' &&
-        window.teamUtils &&
-        typeof window.teamUtils.getTeamColor === 'function') {
-        try {
-            const color = window.teamUtils.getTeamColor(teamName);
-            // Validate color against hex pattern and handle falsy values
-            if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
-                return color;
+        // Helper function to safely get team color with validation and fallback
+        function getTeamColorSafe(teamName) {
+            // Always return a valid colour string
+            if (!teamName || !teamName.trim()) return '#6c757d';
+            
+            if (typeof window !== 'undefined' &&
+                window.teamUtils &&
+                typeof window.teamUtils.getTeamColor === 'function') {
+                try {
+                    const color = window.teamUtils.getTeamColor(teamName);
+                    // Validate color against hex pattern and handle falsy values
+                    if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
+                        return color;
+                    }
+                } catch (error) {
+                    console.error('Error getting team color for', teamName, ':', error);
+                }
+            } else {
+                console.warn('teamUtils or getTeamColor not available');
             }
-        } catch (error) {
-            console.error('Error getting team color for', teamName, ':', error);
+            return '#6c757d'; // Default gray fallback
         }
-    } else {
-        console.warn('teamUtils or getTeamColor not available');
-    }
-    return '#6c757d'; // Default gray fallback
-}
 
         // Format date with day of week
         function formatDate(dateString) {
@@ -1900,26 +1859,62 @@ function getTeamColorSafe(teamName) {
         // Translations loaded from external JSON file
         let translations = {};
         
-        // Load translations from JSON file
+        // Load translations function
         async function loadTranslations() {
             try {
-                console.log('Loading translations...');
                 const response = await fetch('translations.json');
                 if (!response.ok) {
-                    throw new Error(`Failed to load translations: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 translations = await response.json();
-                console.log('Translations loaded successfully:', translations);
+                console.log('Translations loaded:', translations);
             } catch (error) {
                 console.error('Error loading translations:', error);
-                // Fallback to basic translations if JSON loading fails
+                // Fallback translations
                 translations = {
-                    en: { loading: 'Loading games...', errorLoading: 'Error loading games. Please try again.' },
-                    de: { loading: 'Spiele werden geladen...', errorLoading: 'Fehler beim Laden der Spiele. Bitte versuchen Sie es erneut.' }
+                    de: {
+                        filterByTeam: 'Filter nach Team',
+                        filterByRole: 'Filter nach Rolle',
+                        filterByIssues: 'Filter nach Problemen',
+                        clearFilters: 'Filter löschen',
+                        summary: 'Zusammenfassung',
+                        loading: 'Spiele werden geladen...',
+                        allRoles: 'Alle Rollen',
+                        scorerRole: 'Schreiber',
+                        taefelerRole: 'Täfeler',
+                        allGames: 'Alle Spiele',
+                        gamesWithIssues: 'Spiele mit Problemen',
+                        noIssues: 'Spiele ohne Probleme',
+                        overview: 'Übersicht fehlender Informationen',
+                        close: 'Schließen',
+                        teamGames: 'Team Spiele',
+                        allGamesForTeam: 'Alle Spiele für dieses Team',
+                        vs: 'gegen'
+                    },
+                    en: {
+                        filterByTeam: 'Filter by Team',
+                        filterByRole: 'Filter by Role',
+                        filterByIssues: 'Filter by Issues',
+                        clearFilters: 'Clear Filters',
+                        summary: 'Summary',
+                        loading: 'Loading games...',
+                        allRoles: 'All Roles',
+                        scorerRole: 'Scorer',
+                        taefelerRole: 'Täfeler',
+                        allGames: 'All Games',
+                        gamesWithIssues: 'Games with Issues',
+                        noIssues: 'Games without Issues',
+                        overview: 'Overview of missing information',
+                        close: 'Close',
+                        teamGames: 'Team Games',
+                        allGamesForTeam: 'All games for this team',
+                        vs: 'vs'
+                    }
                 };
-                console.log('Using fallback translations:', translations);
             }
         }
+        
+
 
         // Download ICS file
         function downloadICS() {
@@ -2422,11 +2417,8 @@ function getTeamColorSafe(teamName) {
             const titleElement = document.querySelector('#taefelerSelectorView h2');
             if (titleElement) {
                 titleElement.textContent = 'Select Täfeler';
-            }
-            
-            // Only clear selection if not confirmed
-            if (!window.taefelerConfirmed) {
-                window.selectedTaefeler = null;
+            // Combined scorer / täfeler game helper
+            const isCombinedGame = isCombinedGameMatch(currentGame);
             }
             if (typeof filterTaefelers === 'function') filterTaefelers(); // Reset filter
             
@@ -2711,31 +2703,46 @@ function getTeamColorSafe(teamName) {
                 
                 // Return focus to game details (no alert)
             } else if (window.confirmationType === 'scorerTaefeler' && window.selectedScorerTaefeler) {
-                const fullName = `${window.selectedScorerTaefeler.fname} ${window.selectedScorerTaefeler.lname}`;
-                
-                // Set confirmation state first
+                 const fullName = `${window.selectedScorerTaefeler.fname} ${window.selectedScorerTaefeler.lname}`;
+    
+    // Set confirmation state first
                 window.scorerTaefelerConfirmed = true;
-                
-                // Update focused view
+    
+    // Update focused view
                 const currentScorerTaefelerName = document.getElementById('currentScorerTaefelerName');
-                if (currentScorerTaefelerName) {
-                    currentScorerTaefelerName.textContent = fullName;
-                }
-                
-                // Update currentGame object with new scorer/täfeler information (store both name and ID)
-                if (currentGame) {
-                    currentGame.scorer_taefeler_name = fullName;
-                    currentGame.scorer_taefeler_id = window.selectedScorerTaefeler.id;
-                }
-                
-                // Close scorer/täfeler selector and save
-                closeScorerTaefelerSelector();
-                saveGameDetails();
-                window.confirmationType = null;
-                
-                // Return focus to game details (no alert)
+    if (currentScorerTaefelerName) {
+        currentScorerTaefelerName.textContent = fullName;
+    }
+    
+    // Update currentGame object with new scorer/täfeler information (store both name and ID)
+    if (currentGame) {
+        currentGame.scorer_taefeler_name = fullName;
+        currentGame.scorer_taefeler_id = window.selectedScorerTaefeler.id;
+    }
+
+    // Close scorer/täfeler selector and save
+    closeScorerTaefelerSelector();
+    saveGameDetails();
+    window.confirmationType = null;
+    }
+          // Return focus to game details (no alert)
+            }
+        // Load teams from scorer_teams table
+        async function loadTeams() {
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_teams')
+                    .select('team')
+                    .order('team');
+
+                if (error) throw error;
+                allTeams = [...new Set((data ?? []).map(row => row.team))].sort();
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                allTeams = [];
             }
         }
+        
 
         // Select täfeler from results
         function selectTaefeler(person) {
@@ -2882,6 +2889,7 @@ function getTeamColorSafe(teamName) {
             const newPersonFname = document.getElementById('newPersonFname');
             const newPersonLname = document.getElementById('newPersonLname');
             const newPersonPhone = document.getElementById('newPersonPhone');
+            const newPersonEmail = document.getElementById('newPersonEmail');
             
             if (addPersonModal) {
                 addPersonModal.style.display = 'none';
@@ -3225,39 +3233,7 @@ function getTeamColorSafe(teamName) {
             });
         }
 
-        // Load teams from existing game data
-        async function loadTeams() {
-            try {
-                // Get unique team names from existing games data
-                const uniqueTeams = new Set();
-                
-                // Add teams from scorer_team column
-                allGames.forEach(game => {
-                    if (game.scorer_team && game.scorer_team.trim() !== '') {
-                        uniqueTeams.add(game.scorer_team);
-                    }
-                });
-                
-                // Add teams from taefeler_team column
-                allGames.forEach(game => {
-                    if (game.taefeler_team && game.taefeler_team.trim() !== '') {
-                        uniqueTeams.add(game.taefeler_team);
-                    }
-                });
-                
-                // Add teams from scorer_taefeler_team column
-                allGames.forEach(game => {
-                    if (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '') {
-                        uniqueTeams.add(game.scorer_taefeler_team);
-                    }
-                });
-                
-                allTeams = Array.from(uniqueTeams).sort();
-            } catch (error) {
-                console.error('Error loading teams:', error);
-                allTeams = [];
-            }
-        }
+
 
         // Populate role filter chips
         function populateRoleFilter() {
@@ -3357,21 +3333,35 @@ function getTeamColorSafe(teamName) {
                 if (teamUtils && typeof teamUtils.getTeamColor === 'function') {
                     teamColor = teamUtils.getTeamColor(team);
                 }
+                
                 chip.style.backgroundColor = teamColor;
+                chip.style.color = teamColor === '#ffc107' ? '#333' : 'white';
                 
-                // Add click handler
                 chip.onclick = () => toggleTeamFilter(team, chip);
-                
-                // Add keyboard event handlers for accessibility
                 chip.onkeydown = (event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
                         toggleTeamFilter(team, chip);
                     }
                 };
-                
                 teamChipsContainer.appendChild(chip);
             });
+        }
+        
+        // Select none teams
+        function selectNoneTeams() {
+            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-none-chip)');
+            teamChips.forEach(chip => {
+                chip.classList.remove('selected');
+                chip.classList.add('deselected');
+                chip.setAttribute('aria-pressed', 'false');
+            });
+            const noneChip = document.querySelector('#teamChips .select-none-chip');
+            if (noneChip) {
+                noneChip.classList.add('selected');
+                noneChip.setAttribute('aria-pressed', 'true');
+            }
+            filterGames();
         }
 
         // Update toggle chip state based on current team selection
@@ -3720,6 +3710,19 @@ function getTeamColorSafe(teamName) {
             div.textContent = text;
             return div.innerHTML;
         }
+        
+        // Escape ICS content
+        function escapeICS(text) {
+            if (text == null) return '';
+            return text.replace(/[\\;,]/g, '\\$&');
+        }
+
+        // Helper function to check if a game is a combined scorer/täfeler game
+        function isCombinedGameMatch(g) {
+            return (!g.scorer_team  || g.scorer_team.trim()  === '') &&
+                   (!g.taefeler_team || g.taefeler_team.trim() === '') &&
+                   (g.scorer_taefeler_team && g.scorer_taefeler_team.trim() !== '');
+        }
 
         // Check if game is within 2 days of start time (editable)
         function isGameEditable(game) {
@@ -4062,7 +4065,7 @@ function getTeamColorSafe(teamName) {
             if (event.target === infoModal) {
                 closeInfoModal();
             }
-        }
+        };
 
         // Info modal functions
         function openInfoModal() {
