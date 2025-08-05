@@ -95,7 +95,7 @@ font-size: 1rem; /* ≈16px */
             }
             
             table {
-                font-size: 0.7rem;
+                font-size: 0.875rem;
             }
             
             th, td {
@@ -106,8 +106,7 @@ font-size: 1rem; /* ≈16px */
             .duty-info {
                 font-size: 0.7rem;
             }
-        }
-    </style>
+        }    </style>
 </head>
 <body>
     <div class="container">
@@ -223,12 +222,37 @@ font-size: 1rem; /* ≈16px */
             }
         }
 
+        // Filter out past games (games more than 3 hours past their scheduled time)
+        function filterCurrentGames(games) {
+            const now = new Date();
+            
+            return games.filter(game => {
+                const gameDate = new Date(game.date);
+                const gameTime = game.time ? game.time.substring(0, 5) : '19:00'; // Default to 19:00 if no time
+                const [hours, minutes] = gameTime.split(':').map(Number);
+                
+                // Create the game datetime
+                const gameDateTime = new Date(gameDate);
+                gameDateTime.setHours(hours, minutes, 0, 0);
+                
+                // Add 3 hours to the game time
+                const threeHoursAfterGame = new Date(gameDateTime);
+                threeHoursAfterGame.setHours(threeHoursAfterGame.getHours() + 3);
+                
+                // Game is current if it's not more than 3 hours past its scheduled time
+                return now < threeHoursAfterGame;
+            });
+        }
+
         // Render games table
         function renderGamesTable() {
             const tbody = document.getElementById('gamesTableBody');
             tbody.innerHTML = '';
 
-            allGames.forEach(game => {
+            // Filter games to only show current ones (not more than 3 hours past)
+            const currentGames = filterCurrentGames(allGames);
+
+            currentGames.forEach(game => {
                 const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
                 
