@@ -1744,16 +1744,7 @@
             updateUILanguage();
         }
 
-        // Set German as default on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOMContentLoaded event fired');
-            await loadTranslations();
-            console.log('Translations loaded, switching language');
-            switchLanguage('de');
-            console.log('Language switched, updating UI');
-            updateUILanguage();
-            console.log('UI updated');
-        });
+
 
         // Update chip labels for language changes
         function updateChipLabels() {
@@ -1964,7 +1955,12 @@
         }
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Load translations first
+            await loadTranslations();
+            // Switch to German as default
+            switchLanguage('de');
+            // Then load games and update UI
             loadGames();
             // Update UI language when page loads
             updateUILanguage();
@@ -3318,6 +3314,16 @@
             const teamChipsContainer = document.getElementById('teamChips');
             teamChipsContainer.innerHTML = '';
             
+            // Filter teams to only show scorer/taefeler/scorer_taefeler teams
+            const relevantTeams = allTeams.filter(team => {
+                // Check if this team appears in any scorer, taefeler, or scorer_taefeler fields
+                return allGames.some(game => 
+                    (game.scorer_team && teamUtils.normalizeTeamName(game.scorer_team) === team) ||
+                    (game.taefeler_team && teamUtils.normalizeTeamName(game.taefeler_team) === team) ||
+                    (game.scorer_taefeler_team && teamUtils.normalizeTeamName(game.scorer_taefeler_team) === team)
+                );
+            });
+            
             // Add "Select All/None" toggle chip
             const toggleChip = document.createElement('div');
             toggleChip.className = 'team-chip select-toggle-chip';
@@ -3326,7 +3332,7 @@
             toggleChip.style.border = '2px solid #dc3545';
             toggleChip.setAttribute('role', 'button');
             toggleChip.setAttribute('tabindex', '0');
-+            toggleChip.setAttribute('aria-pressed', 'true');   // all teams initially selected
+            toggleChip.setAttribute('aria-pressed', 'true');   // all teams initially selected
             toggleChip.onclick = () => toggleAllTeams();
             toggleChip.onkeydown = (event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
@@ -3335,7 +3341,7 @@
                 }
             };
             teamChipsContainer.appendChild(toggleChip);
-            allTeams.forEach(team => {
+            relevantTeams.forEach(team => {
                 const chip = document.createElement('div');
                 chip.className = 'team-chip selected';
                 chip.textContent = team;
@@ -3707,10 +3713,12 @@
                                     <div class="status-icon">${hasScorerIssue ? '⚠️' : '✅'}</div>
                                 </div>
                             ` : ''}
-                            <div class="role-item">
-                                <div class="role-label">🏐 Täfeler: ${escapeHtml(game.taefeler_team || 'TBD')}${taefelerName ? ` (${escapeHtml(taefelerName)})` : ''}</div>
-                                <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
-                            </div>
+                            ${game.taefeler_team && game.taefeler_team.trim() !== '' ? `
+                                <div class="role-item">
+                                    <div class="role-label">🏐 Täfeler: ${escapeHtml(game.taefeler_team)}${taefelerName ? ` (${escapeHtml(taefelerName)})` : ''}</div>
+                                    <div class="status-icon">${hasTaefelerIssue ? '⚠️' : '✅'}</div>
+                                </div>
+                            ` : ''}
                         `}
                     </div>
                     ${bothRolesConfirmed ? '<div style="text-align: center; margin-top: 10px; color: #28a745; font-weight: bold;">✅ Game ready</div>' : ''}
