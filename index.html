@@ -1725,10 +1725,10 @@
                 const allSelected = Array.from(teamChips).every(chip => chip.classList.contains('selected'));
                 
                 if (allSelected) {
-                    toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
+                    'Alle abwählen';
                     toggleChip.style.border = '2px solid #dc3545';
                 } else {
-                    toggleChip.textContent = currentLanguage === 'de' ? 'Alle auswählen' : 'Select All';
+                   'Alle auswählen';
                     toggleChip.style.border = '2px solid #28a745';
                 }
             }
