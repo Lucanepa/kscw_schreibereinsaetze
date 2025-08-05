@@ -1345,17 +1345,26 @@
   const zoom = Number.isFinite(rawZoom) && rawZoom > 0.2 && rawZoom < 4 ? rawZoom : 1.0;
 
   // Apply the zoom to the whole page (body or html)
-        // Load teams from scorer_teams table
+        // Load teams from games data
         async function loadTeams() {
             try {
                 const { data, error } = await supabase
-                    .from('scorer_teams')
-                    .select('teams')
-                    .order('teams');
+                    .from('scorer_matches')
+                    .select('home_team, away_team, scorer_team, taefeler_team, scorer_taefeler_team');
 
                 if (error) throw error;
-                // unique & sorted list
-                window.allteams = [...new Set(data.map(row => row.team))].sort();
+                
+                // Extract all unique teams from all team fields
+                const allTeamValues = [];
+                (data ?? []).forEach(game => {
+                    if (game.home_team) allTeamValues.push(teamUtils.normalizeTeamName(game.home_team));
+                    if (game.away_team) allTeamValues.push(teamUtils.normalizeTeamName(game.away_team));
+                    if (game.scorer_team) allTeamValues.push(teamUtils.normalizeTeamName(game.scorer_team));
+                    if (game.taefeler_team) allTeamValues.push(teamUtils.normalizeTeamName(game.taefeler_team));
+                    if (game.scorer_taefeler_team) allTeamValues.push(teamUtils.normalizeTeamName(game.scorer_taefeler_team));
+                });
+                
+                window.allteams = [...new Set(allTeamValues)].sort();
             } catch (error) {
                 console.error('Error loading teams:', error);
                 window.allteams = [];
