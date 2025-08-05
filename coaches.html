@@ -1869,6 +1869,30 @@
             }
         }
 
+        // Normalize team names (e.g., HU23-1 -> HU23)
+        function normalizeTeamName(teamName) {
+            if (!teamName) return teamName;
+            
+            // Trim whitespace first
+            teamName = teamName.trim();
+            
+            // Use case-insensitive regex to match HU23 followed by dash and digits
+            // This will match patterns like HU23-1, HU23-10, hu23-1, etc.
+            const hu23Pattern = /^hu23-\d+$/i;
+            if (hu23Pattern.test(teamName)) {
+                return 'HU23';
+            }
+            
+            return teamName;
+        }
+
+        // Check if a person's teams array includes a specific team (with normalization)
+        function personHasTeam(person, targetTeam) {
+            if (!Array.isArray(person.teams) || !targetTeam) return false;
+            const normalizedTargetTeam = normalizeTeamName(targetTeam);
+            return person.teams.some(team => normalizeTeamName(team) === normalizedTargetTeam);
+        }
+
         // Populate täfeler dropdown
         function populateTaefelerDropdown() {
             const dropdown = document.getElementById('taefelerDropdown');
@@ -1878,12 +1902,8 @@
             let filteredTaefelers = allTaefelers;
             if (currentGame && currentGame.taefeler_team) {
                 filteredTaefelers = allTaefelers.filter(person => {
-                    // Check if person has teams array and if it includes the current team
-                    if (Array.isArray(person.teams)) {
-                        return person.teams.includes(currentGame.taefeler_team);
-                    }
-                    // Fallback for existing single team field
-                    return person.team === currentGame.taefeler_team;
+                    // Check if person has teams array and if it includes the current team (with normalization)
+                    return personHasTeam(person, currentGame.taefeler_team);
                 });
             }
             
@@ -1922,12 +1942,8 @@
             let filteredScorers = allScorers;
             if (currentGame && currentGame.scorer_team) {
                 filteredScorers = allScorers.filter(person => {
-                    // Check if person has teams array and if it includes the current team
-                    if (Array.isArray(person.teams)) {
-                        return person.teams.includes(currentGame.scorer_team);
-                    }
-                    // Fallback for existing single team field
-                    return person.team === currentGame.scorer_team;
+                    // Check if person has teams array and if it includes the current team (with normalization)
+                    return personHasTeam(person, currentGame.scorer_team);
                 });
             }
             
@@ -1961,26 +1977,33 @@
         function filterTaefelers() {
             const searchTerm = document.getElementById('taefelerSearch').value.toLowerCase();
             const dropdown = document.getElementById('taefelerDropdown');
-            const options = dropdown.querySelectorAll('option');
             let visibleCount = 0;
             
             // First filter by team if currentGame has taefeler_team
             let teamFilteredTaefelers = allTaefelers;
             if (currentGame && currentGame.taefeler_team) {
                 teamFilteredTaefelers = allTaefelers.filter(person => {
-                    // Check if person has teams array and if it includes the current team
-                    if (Array.isArray(person.teams)) {
-                        return person.teams.includes(currentGame.taefeler_team);
-                    }
-                    // Fallback for existing single team field
-                    return person.team === currentGame.taefeler_team;
+                    // Check if person has teams array and if it includes the current team (with normalization)
+                    return personHasTeam(person, currentGame.taefeler_team);
                 });
             }
             
+            // Get all options and filter based on team-filtered list first, then apply text search
+            const options = dropdown.querySelectorAll('option');
+            const teamFilteredIds = new Set(teamFilteredTaefelers.map(person => person.id.toString()));
+            
             options.forEach(option => {
                 if (option.value === '') return; // Skip the placeholder option
+                
+                // First check if this option is in the team-filtered list
+                const isInTeamFiltered = teamFilteredIds.has(option.value);
+                
+                // Then apply text search filter
                 const text = option.textContent.toLowerCase();
-                const isVisible = text.includes(searchTerm);
+                const matchesSearch = text.includes(searchTerm);
+                
+                // Show only if both team filter and search filter pass
+                const isVisible = isInTeamFiltered && matchesSearch;
                 option.style.display = isVisible ? '' : 'none';
                 if (isVisible) visibleCount++;
             });
@@ -2009,26 +2032,33 @@
         function filterScorers() {
             const searchTerm = document.getElementById('scorerSearch').value.toLowerCase();
             const dropdown = document.getElementById('scorerDropdown');
-            const options = dropdown.querySelectorAll('option');
             let visibleCount = 0;
             
             // First filter by team if currentGame has scorer_team
             let teamFilteredScorers = allScorers;
             if (currentGame && currentGame.scorer_team) {
                 teamFilteredScorers = allScorers.filter(person => {
-                    // Check if person has teams array and if it includes the current team
-                    if (Array.isArray(person.teams)) {
-                        return person.teams.includes(currentGame.scorer_team);
-                    }
-                    // Fallback for existing single team field
-                    return person.team === currentGame.scorer_team;
+                    // Check if person has teams array and if it includes the current team (with normalization)
+                    return personHasTeam(person, currentGame.scorer_team);
                 });
             }
             
+            // Get all options and filter based on team-filtered list first, then apply text search
+            const options = dropdown.querySelectorAll('option');
+            const teamFilteredIds = new Set(teamFilteredScorers.map(person => person.id.toString()));
+            
             options.forEach(option => {
                 if (option.value === '') return; // Skip the placeholder option
+                
+                // First check if this option is in the team-filtered list
+                const isInTeamFiltered = teamFilteredIds.has(option.value);
+                
+                // Then apply text search filter
                 const text = option.textContent.toLowerCase();
-                const isVisible = text.includes(searchTerm);
+                const matchesSearch = text.includes(searchTerm);
+                
+                // Show only if both team filter and search filter pass
+                const isVisible = isInTeamFiltered && matchesSearch;
                 option.style.display = isVisible ? '' : 'none';
                 if (isVisible) visibleCount++;
             });
