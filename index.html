@@ -3317,10 +3317,10 @@
             // Filter teams to only show scorer/taefeler/scorer_taefeler teams
             const relevantTeams = allTeams.filter(team => {
                 // Check if this team appears in any scorer, taefeler, or scorer_taefeler fields
-                return allGames.some(game => 
-                    (game.scorer_team && teamUtils.normalizeTeamName(game.scorer_team) === team) ||
-                    (game.taefeler_team && teamUtils.normalizeTeamName(game.taefeler_team) === team) ||
-                    (game.scorer_taefeler_team && teamUtils.normalizeTeamName(game.scorer_taefeler_team) === team)
+                return allGames.some(game =>
+                    (game.scorer_team         && normalizeTeamName(game.scorer_team)         === team) ||
+                    (game.taefeler_team       && normalizeTeamName(game.taefeler_team)       === team) ||
+                    (game.scorer_taefeler_team&& normalizeTeamName(game.scorer_taefeler_team)=== team)
                 );
             });
             
@@ -3701,7 +3701,7 @@
                         })()}
                     </div>
                     <div class="game-roles">
-                        ${isCombinedGame ? `
+                        ${isCombinedGame && game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? `
                             <div class="role-item">
                                 <div class="role-label">📝 Scorer/Täfeler: ${escapeHtml(game.scorer_taefeler_team)}${scorerTaefelerName ? ` (${escapeHtml(scorerTaefelerName)})` : ''}</div>
                                 <div class="status-icon">${hasScorerTaefelerIssue ? '⚠️' : '✅'}</div>
