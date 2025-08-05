@@ -227,13 +227,15 @@ font-size: 1rem; /* ≈16px */
             const now = new Date();
             
             return games.filter(game => {
-                const gameDate = new Date(game.date);
+                // Parse YYYY-MM-DD in a timezone-agnostic way (same approach as formatDate)
+                const [y, m, d] = game.date.split('-').map(Number);
+                const gameDate = new Date(Date.UTC(y, m - 1, d));
                 const gameTime = game.time ? game.time.substring(0, 5) : '19:00'; // Default to 19:00 if no time
                 const [hours, minutes] = gameTime.split(':').map(Number);
                 
                 // Create the game datetime
                 const gameDateTime = new Date(gameDate);
-                gameDateTime.setHours(hours, minutes, 0, 0);
+                gameDateTime.setUTCHours(hours, minutes, 0, 0);
                 
                 // Add 3 hours to the game time
                 const threeHoursAfterGame = new Date(gameDateTime);
@@ -243,7 +245,6 @@ font-size: 1rem; /* ≈16px */
                 return now < threeHoursAfterGame;
             });
         }
-
         // Render games table
         function renderGamesTable() {
             const tbody = document.getElementById('gamesTableBody');
