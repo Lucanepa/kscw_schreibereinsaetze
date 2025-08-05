@@ -417,6 +417,57 @@
             margin-bottom: 25px;
         }
 
+        /* Login Modal Styles */
+        .login-form {
+            padding: 20px 0;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .login-form .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .login-form .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            color: #28a745;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+            display: none;
+        }
+
         .form-section h3 {
             color: #667eea;
             margin-bottom: 15px;
@@ -918,8 +969,35 @@
             <h1>Schreibereinsätze Coaches Panel</h1>
         </div>
 
-                         <!-- Coaches Content -->
-        <div id="adminContent" class="main-content">
+        <!-- Login Modal -->
+        <div id="loginModal" class="modal" style="display: block;">
+            <div class="modal-content" style="max-width: 400px; margin: 100px auto;">
+                <div class="modal-header">
+                    <h2>Coaches Login</h2>
+                    <p>Access the coaches panel</p>
+                </div>
+                
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" placeholder="Enter your password" required>
+                    </div>
+                    <button class="btn btn-primary" onclick="login()">Login</button>
+                    <button class="btn btn-secondary" onclick="goBack()">← Back to Main Page</button>
+                    
+                    <div id="errorMessage" class="error-message"></div>
+                    <div id="successMessage" class="success-message"></div>
+                    <div id="loading" class="loading">Logging in...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coaches Content -->
+        <div id="adminContent" class="main-content" style="display: none;">
             <div class="user-info">
                 <div>
                     <strong>Coaches Panel</strong>
@@ -929,6 +1007,7 @@
                     <button class="btn btn-success" onclick="downloadExcel()">📊 Download Excel</button>
                     <button class="btn btn-info" onclick="downloadPDF()">📄 Download PDF</button>
                     <button class="btn btn-outline" onclick="goBack()">← Back</button>
+                    <button class="btn btn-danger" onclick="logout()">🚪 Logout</button>
                 </div>
             </div>
 
@@ -1226,7 +1305,7 @@
         let allteams = [];
 
         let currentGame = null;
-        let currentUser = null;
+
         let allScorers = []; // All scorers from scorer_scorers table
         let allTaefelers = []; // All täfelers from scorer_scorers table
 
@@ -1265,13 +1344,6 @@
             loadAdminData();
         }
 
-        // Logout
-        async function logout() {
-            await supabase.auth.signOut();
-            currentUser = null;
-            window.location.href = 'index.html';
-        }
-
         // Go to main page
         function goToMainPage() {
             window.location.href = 'index.html';
@@ -1284,6 +1356,75 @@
             } else {
                 window.location.href = 'index.html';
             }
+        }
+
+        // Login function
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            const loadingDiv = document.getElementById('loading');
+
+            if (!email || !password) {
+                showError('Please enter both email and password.');
+                return;
+            }
+
+            // Show loading
+            loadingDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    showError(error.message);
+                } else {
+                    showSuccess('Login successful!');
+                    setTimeout(() => {
+                        // Hide login modal and show coaches content
+                        document.getElementById('loginModal').style.display = 'none';
+                        document.getElementById('adminContent').style.display = 'block';
+                        initializeCoachesContent();
+                    }, 1000);
+                }
+            } catch (error) {
+                showError('An unexpected error occurred. Please try again.');
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Logout function
+        async function logout() {
+            await supabase.auth.signOut();
+            // Show login modal and hide coaches content
+            document.getElementById('loginModal').style.display = 'block';
+            document.getElementById('adminContent').style.display = 'none';
+            // Clear form
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
         }
 
         // Load admin data
@@ -1314,7 +1455,7 @@
                 .select('*')
                 .order('date', { ascending: true })
                 .order('time', { ascending: true })
-                .order('halle_short', { ascending: true });
+                .order('halle', { ascending: true });
 
             if (error) throw error;
             allGames = data || [];
@@ -1655,7 +1796,7 @@
                     <div class="game-details">
                         <div class="detail-item">
                             <div class="detail-label">Gym</div>
-                            <div class="detail-value">${escapeHtml(game.halle_short || '-')}</div>
+                            <div class="detail-value">${escapeHtml(game.halle || '-')}</div>
                         </div>
 
                         <div class="detail-item">
@@ -1689,7 +1830,7 @@
             // Populate game information
             document.getElementById('focusedGameDate').textContent = escapeHtml(formattedDate);
             document.getElementById('focusedGameTime').textContent = game.time ? game.time.substring(0, 5) : 'TBD';
-            document.getElementById('focusedGameGym').textContent = escapeHtml(game.halle_short || 'TBD');
+            document.getElementById('focusedGameGym').textContent = escapeHtml(game.halle || 'TBD');
             document.getElementById('focusedGameHomeTeam').textContent = escapeHtml(game.home_team || 'TBD');
             document.getElementById('focusedGameAwayTeam').textContent = escapeHtml(game.away_team || 'TBD');
             document.getElementById('focusedGameNumber').textContent = escapeHtml(game.gamen || 'TBD');
@@ -1858,7 +1999,7 @@
                             away_team: currentGame.away_team,
                             date: currentGame.date,
                             time: currentGame.time,
-                            halle_short: currentGame.halle_short
+                            halle: currentGame.halle
                         }
                     });
 
@@ -2285,8 +2426,21 @@
             }
         }
 
-        // Initialize coaches content on page load
+
+
+        // Check authentication status on page load
         async function checkAuthStatus() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                // User is not authenticated, show login modal
+                document.getElementById('loginModal').style.display = 'block';
+                document.getElementById('adminContent').style.display = 'none';
+                return;
+            }
+            
+            // User is authenticated, hide login modal and show coaches content
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
             initializeCoachesContent();
         }
 
@@ -2367,7 +2521,7 @@
                         formattedTime,
                         game.home_team || '',
                         game.away_team || '',
-                        game.halle_short || '',
+                        game.halle || '',
                         game.scorer_team || '',
                         scorerName,
                         scorerPhone,
@@ -2498,7 +2652,7 @@
                                         <td>${formattedTime}</td>
                                         <td>${game.home_team || ''}</td>
                                         <td>${game.away_team || ''}</td>
-                                        <td>${game.halle_short || ''}</td>
+                                        <td>${game.halle || ''}</td>
                                         <td class="${scorerTeamClass}">${game.scorer_team || ''}</td>
                                         <td class="${scorerNameClass}">${scorerName}</td>
                                         <td class="${scorerPhoneClass}">${scorerPhone}</td>
@@ -2699,7 +2853,7 @@
                             <div class="team-game-time">${formattedTime}</div>
                         </div>
                         <div class="team-game-teams">${game.home_team} vs ${game.away_team}</div>
-                        <div class="team-game-location">📍 ${game.halle_short || 'TBD'}</div>
+                        <div class="team-game-location">📍 ${game.halle || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team && game.scorer_team.trim() !== '' ? `
                                 <div class="team-role-item ${!game.scorer_id ? 'has-issue' : ''}">
@@ -2808,7 +2962,20 @@
         }
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', checkAuthStatus);
+        // Handle Enter key in password field
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            
+            // Add event listener for Enter key in password field
+            const passwordField = document.getElementById('password');
+            if (passwordField) {
+                passwordField.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        login();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html> 
