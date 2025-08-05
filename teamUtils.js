@@ -4,95 +4,8 @@
 // This module contains shared functions for team name normalization
 // and person team checking that can be imported by both coaches.html and index.html
 
-// Color palette for team assignments - expanded to reduce collisions
-const colorPalette = [
-    '#28a745', // Green
-    '#ffc107', // Yellow
-    '#17a2b8', // Cyan
-    '#6f42c1', // Purple
-    '#dc3545', // Red
-    '#fd7e14', // Orange
-    '#20c997', // Teal
-    '#e83e8c', // Pink
-    '#6c757d', // Gray
-    '#198754', // Dark Green
-    '#0d6efd', // Blue
-    '#6610f2', // Indigo
-    '#34495e', // Dark Blue Gray
-    '#f39c12', // Orange (different shade)
-    '#e74c3c', // Red (different shade)
-    '#9b59b6', // Purple (different shade)
-    '#3498db', // Blue (different shade)
-    '#1abc9c', // Teal (different shade)
-    '#f1c40f', // Yellow (different shade)
-    '#e67e22', // Orange (different shade)
-    '#95a5a6', // Gray (different shade)
-    '#16a085', // Teal (different shade)
-    '#8e44ad', // Purple (different shade)
-    '#2980b9', // Blue (different shade)
-    '#c0392b', // Red (different shade)
-    '#27ae60', // Green (different shade)
-    '#d35400', // Orange (different shade)
-    '#7f8c8d', // Gray (different shade)
-    '#2c3e50', // Dark Blue Gray (different shade)
-    '#e74c3c', // Red (different shade)
-    '#3498db', // Blue (different shade)
-    '#f39c12', // Orange (different shade)
-    '#1abc9c', // Teal (different shade)
-    '#9b59b6', // Purple (different shade)
-    '#f1c40f', // Yellow (different shade)
-    '#e67e22', // Orange (different shade)
-    '#95a5a6', // Gray (different shade)
-    '#16a085', // Teal (different shade)
-    '#8e44ad', // Purple (different shade)
-    '#2980b9', // Blue (different shade)
-    '#c0392b', // Red (different shade)
-    '#27ae60', // Green (different shade)
-    '#d35400', // Orange (different shade)
-    '#7f8c8d', // Gray (different shade)
-    '#2c3e50', // Dark Blue Gray (different shade)
-];
-
-// Improved hash function for better color distribution
-function hashString(str) {
-    let hash = 0;
-    if (str.length === 0) return hash;
-    
-    // Use a more robust hash algorithm with better distribution
-    // This algorithm is specifically designed to handle similar team names better
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        // Use different multipliers for different positions to create more variation
-        const multiplier = (i % 3 === 0) ? 31 : (i % 3 === 1) ? 37 : 41;
-        hash = ((hash << 5) + hash) + (char * multiplier);
-    }
-    
-    // Additional mixing for better distribution
-    hash = hash ^ (hash >>> 16);
-    hash = hash * 0x85ebca6b;
-    hash = hash ^ (hash >>> 13);
-    hash = hash * 0xc2b2ae35;
-    hash = hash ^ (hash >>> 16);
-    
-    // Add more mixing to ensure better distribution
-    hash = hash ^ (hash >>> 7);
-    hash = hash * 0x9e3779b9;
-    hash = hash ^ (hash >>> 11);
-    
-    // Add position-based mixing for similar team names
-    if (str.includes('D')) {
-        hash = hash ^ (str.indexOf('D') * 0xdeadbeef);
-    }
-    if (str.includes('H')) {
-        hash = hash ^ (str.indexOf('H') * 0xbeefdead);
-    }
-    
-    return Math.abs(hash);
-}
-
-// Get consistent color for a team using hash-based assignment
+// Get consistent color for a team - always grey
 function getTeamColor(teamName) {
-    // Always return grey for all teams
     return '#6c757d';
 }
 
@@ -154,16 +67,14 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         normalizeTeamName,
         personHasTeam,
-        getTeamColor,
-        colorPalette
+        getTeamColor
     };
 } else if (typeof window !== 'undefined') {
     // Browser environment
     window.teamUtils = {
         normalizeTeamName,
         personHasTeam,
-        getTeamColor,
-        colorPalette
+        getTeamColor
     };
     console.log('teamUtils loaded successfully:', window.teamUtils);
 } else {
