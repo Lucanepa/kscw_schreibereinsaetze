@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volleyball Games List</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #dc3545;
+        }
+        .duty-info {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .scorer {
+            color: #007bff;
+        }
+        .taefeler {
+            color: #28a745;
+        }
+        .scorer-taefeler {
+            color: #ffc107;
+        }
+        .no-duty {
+            color: #dc3545;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Volleyball Games List</h1>
+        <div id="loading" class="loading">Loading games...</div>
+        <div id="error" class="error" style="display: none;">Error loading games. Please try again.</div>
+        <table id="gamesTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Home</th>
+                    <th>Away</th>
+                    <th>Duty</th>
+                </tr>
+            </thead>
+            <tbody id="gamesTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(
+            SUPABASE_CONFIG.url,
+            SUPABASE_CONFIG.anonKey
+        );
+
+        let allGames = [];
+        let allScorers = [];
+        let allTaefelers = [];
+
+        // Format date with day of week
+        function formatDate(dateString) {
+            // "YYYY-MM-DD" → stable, timezone-agnostic date
+            const [y, m, d] = dateString.split('-').map(Number);
+            const date = new Date(Date.UTC(y, m - 1, d));
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dayName = days[date.getDay()];
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${dayName}, ${day}/${month}/${year}`;
+        }
+
+        // Helper function to safely escape HTML
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Helper function to check if a game is a combined scorer/täfeler game
+        function isCombinedGameMatch(g) {
+            return (!g.scorer_team  || g.scorer_team.trim()  === '') &&
+                   (!g.taefeler_team || g.taefeler_team.trim() === '') &&
+                   (g.scorer_taefeler_team && g.scorer_taefeler_team.trim() !== '');
+        }
+
+        // Load persons from database
+        async function loadPersons() {
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_scorers')
+                    .select('*')
+                    .order('fname')
+                    .order('lname');
+
+                if (error) throw error;
+                allScorers = data ?? [];
+                allTaefelers = data ?? [];
+            } catch (error) {
+                console.error('Error loading persons:', error);
+                allScorers = [];
+                allTaefelers = [];
+            }
+        }
+
+        // Load games from database
+        async function loadGames() {
+            try {
+                const { data, error } = await supabase
+                    .from('scorer_matches')
+                    .select('*')
+                    .order('date', { ascending: true })
+                    .order('time', { ascending: true })
+                    .order('halle', { ascending: true });
+
+                if (error) throw error;
+                allGames = data || [];
+
+                await loadPersons();
+                renderGamesTable();
+            } catch (error) {
+                console.error('Error loading games:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Render games table
+        function renderGamesTable() {
+            const tbody = document.getElementById('gamesTableBody');
+            tbody.innerHTML = '';
+
+            allGames.forEach(game => {
+                const formattedDate = formatDate(game.date);
+                const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
+                
+                // Get person names from IDs
+                let scorerName = '';
+                if (game.scorer_id) {
+                    const scorer = allScorers.find(s => s.id === game.scorer_id);
+                    if (scorer) {
+                        scorerName = `${scorer.fname} ${scorer.lname}`;
+                    }
+                }
+                
+                let taefelerName = '';
+                if (game.taefeler_id) {
+                    const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                    if (taefeler) {
+                        taefelerName = `${taefeler.fname} ${taefeler.lname}`;
+                    }
+                }
+
+                // Determine duty information
+                let dutyInfo = '';
+                const isCombinedGame = isCombinedGameMatch(game);
+                
+                if (isCombinedGame) {
+                    // Combined scorer/täfeler game
+                    if (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '') {
+                        dutyInfo = `<span class="scorer-taefeler">Scorer/Täfeler: ${escapeHtml(game.scorer_taefeler_team)}</span>`;
+                    } else {
+                        dutyInfo = '<span class="no-duty">No duty assigned</span>';
+                    }
+                } else {
+                    // Separate scorer and täfeler
+                    const dutyParts = [];
+                    
+                    if (game.scorer_team && game.scorer_team.trim() !== '') {
+                        const scorerText = `Scorer: ${escapeHtml(game.scorer_team)}`;
+                        if (scorerName) {
+                            dutyParts.push(`<span class="scorer">${scorerText} - ${escapeHtml(scorerName)}</span>`);
+                        } else {
+                            dutyParts.push(`<span class="scorer">${scorerText}</span>`);
+                        }
+                    }
+                    
+                    if (game.taefeler_team && game.taefeler_team.trim() !== '') {
+                        const taefelerText = `Täfeler: ${escapeHtml(game.taefeler_team)}`;
+                        if (taefelerName) {
+                            dutyParts.push(`<span class="taefeler">${taefelerText} - ${escapeHtml(taefelerName)}</span>`);
+                        } else {
+                            dutyParts.push(`<span class="taefeler">${taefelerText}</span>`);
+                        }
+                    }
+                    
+                    if (dutyParts.length > 0) {
+                        dutyInfo = dutyParts.join('<br>');
+                    } else {
+                        dutyInfo = '<span class="no-duty">No duty assigned</span>';
+                    }
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${escapeHtml(formattedDate)}</td>
+                    <td>${escapeHtml(formattedTime)}</td>
+                    <td>${escapeHtml(game.home_team)}</td>
+                    <td>${escapeHtml(game.away_team)}</td>
+                    <td class="duty-info">${dutyInfo}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('gamesTable').style.display = 'table';
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGames();
+        });
+    </script>
+</body>
+</html> 
