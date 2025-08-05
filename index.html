@@ -1736,13 +1736,18 @@
 
         // Set German as default on page load
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOMContentLoaded event fired');
             await loadTranslations();
+            console.log('Translations loaded, switching language');
             switchLanguage('de');
+            console.log('Language switched, updating UI');
             updateUILanguage();
+            console.log('UI updated');
         });
 
         // Update UI language
         function updateUILanguage() {
+            console.log('updateUILanguage called with:', { translations, currentLanguage });
             // Check if translations and currentLanguage are available
             if (!translations || !currentLanguage || !translations[currentLanguage]) {
                 console.warn('Translations not loaded yet, skipping UI language update');
@@ -1817,6 +1822,28 @@
         // Team color management - using shared module
         // getTeamColor function is now available from teamUtils.js
 
+        // Helper function to safely get team color with validation and fallback
+        function getTeamColorSafe(teamName) {
+            if (!teamName || !teamName.trim()) return null;
+            
+            if (typeof window !== 'undefined' &&
+                window.teamUtils &&
+                typeof window.teamUtils.getTeamColor === 'function') {
+                try {
+                    const color = window.teamUtils.getTeamColor(teamName);
+                    // Validate color against hex pattern and handle falsy values
+                    if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
+                        return color;
+                    }
+                } catch (error) {
+                    console.error('Error getting team color for', teamName, ':', error);
+                }
+            } else {
+                console.warn('teamUtils or getTeamColor not available');
+            }
+            return '#6c757d'; // Default gray fallback
+        }
+
         // Format date with day of week
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -1835,11 +1862,13 @@
         // Load translations from JSON file
         async function loadTranslations() {
             try {
+                console.log('Loading translations...');
                 const response = await fetch('translations.json');
                 if (!response.ok) {
                     throw new Error(`Failed to load translations: ${response.status}`);
                 }
                 translations = await response.json();
+                console.log('Translations loaded successfully:', translations);
             } catch (error) {
                 console.error('Error loading translations:', error);
                 // Fallback to basic translations if JSON loading fails
@@ -1847,6 +1876,7 @@
                     en: { loading: 'Loading games...', errorLoading: 'Error loading games. Please try again.' },
                     de: { loading: 'Spiele werden geladen...', errorLoading: 'Fehler beim Laden der Spiele. Bitte versuchen Sie es erneut.' }
                 };
+                console.log('Using fallback translations:', translations);
             }
         }
 
@@ -3414,15 +3444,6 @@
                     <div class="game-location">📍 ${escapeHtml(game.halle || 'TBD')}</div>
                     <div class="game-team-indicators">
                         ${(() => {
-                            // Helper function to safely get team color with fallback
-                            const getTeamColorSafe = (teamName) => {
-                                if (!teamName || !teamName.trim()) return null;
-                                if (teamUtils && typeof teamUtils.getTeamColor === 'function') {
-                                    return teamUtils.getTeamColor(teamName);
-                                }
-                                return '#6c757d'; // Default gray fallback
-                            };
-                            
                             const scorerColor = getTeamColorSafe(game.scorer_team);
                             const taefelerColor = getTeamColorSafe(game.taefeler_team);
                             const scorerTaefelerColor = getTeamColorSafe(game.scorer_taefeler_team);
