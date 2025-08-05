@@ -92,18 +92,8 @@ function hashString(str) {
 
 // Get consistent color for a team using hash-based assignment
 function getTeamColor(teamName) {
-    if (!teamName) return '#6c757d'; // Default gray for empty teams
-    
-    try {
-        const normalizedTeam = normalizeTeamName(teamName);
-        const hash = hashString(normalizedTeam);
-        const colorIndex = hash % colorPalette.length;
-        
-        return colorPalette[colorIndex];
-    } catch (error) {
-        console.error('Error in getTeamColor for', teamName, ':', error);
-        return '#6c757d'; // Default gray fallback
-    }
+    // Always return grey for all teams
+    return '#6c757d';
 }
 
 // Normalize team names to handle various formats and variations
