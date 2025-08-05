@@ -87,6 +87,30 @@ font-size: 1rem; /* ≈16px */
             font-weight: normal;
         }
 
+        /* Button styles */
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
         /* Mobile optimizations */
         @media (max-width: 768px) {
             .container {
@@ -140,6 +164,7 @@ font-size: 1rem; /* ≈16px */
         let allGames = [];
         let allScorers = [];
         let allTaefelers = [];
+        let gamesToShow = 6; // Number of games to show initially
 
         // Format date with day of week
         function formatDate(dateString) {
@@ -253,7 +278,10 @@ font-size: 1rem; /* ≈16px */
             // Filter games to only show current ones (not more than 3 hours past)
             const currentGames = filterCurrentGames(allGames);
 
-            currentGames.forEach(game => {
+            // Limit the number of games to show
+            const gamesToDisplay = currentGames.slice(0, gamesToShow);
+
+            gamesToDisplay.forEach(game => {
                 const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
                 
@@ -332,6 +360,22 @@ font-size: 1rem; /* ≈16px */
                 `;
                 tbody.appendChild(row);
             });
+
+            // Add "Show More" button if there are more games to show
+            if (currentGames.length > gamesToShow) {
+                const showMoreButton = document.createElement('button');
+                showMoreButton.className = 'btn btn-primary';
+                showMoreButton.style.cssText = 'margin: 20px auto; display: block; padding: 12px 24px; font-size: 1rem;';
+                showMoreButton.textContent = 'Show More Games';
+                showMoreButton.onclick = () => {
+                    gamesToShow += 6;
+                    renderGamesTable();
+                };
+                
+                // Add the button after the table
+                const container = document.querySelector('.container');
+                container.appendChild(showMoreButton);
+            }
 
             document.getElementById('gamesTable').style.display = 'table';
         }

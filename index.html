@@ -35,20 +35,28 @@
         .text-3xl { font-size: 2.2rem; }
         .text-4xl { font-size: 28px; }
 
-        /* Filter chips */
-        .team-chips-container,
-        .role-chips-container,
-        .issues-chips-container {
-            margin-bottom: 20px;
+        /* Filter dropdowns */
+        .filter-dropdown {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: white;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .team-chips,
-        .role-chips,
-        .issues-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
+        .filter-dropdown:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .filter-dropdown:hover {
+            border-color: #3b82f6;
         }
 
         .team-chip {
@@ -1270,28 +1278,22 @@
             <div class="filters">
                 <div class="filters-grid">
                     <div class="filter-group">
-                        <label>Filter by Team:</label>
-                        <div class="team-chips-container">
-                            <div id="teamChips" class="team-chips">
-                                <!-- Team chips will be populated here -->
-                            </div>
-                        </div>
+                        <label for="teamFilter">Filter by Team:</label>
+                        <select id="teamFilter" class="filter-dropdown" onchange="filterByTeam()">
+                            <option value="">All Teams</option>
+                        </select>
                     </div>
                     <div class="filter-group">
-                        <label for="roleChips">Filter by Role:</label>
-                        <div class="role-chips-container">
-                            <div id="roleChips" class="role-chips">
-                                <!-- Role chips will be populated here -->
-                            </div>
-                        </div>
+                        <label for="roleFilter">Filter by Role:</label>
+                        <select id="roleFilter" class="filter-dropdown" onchange="filterByRole()">
+                            <option value="">All Roles</option>
+                        </select>
                     </div>
                     <div class="filter-group">
-                        <label for="issuesChips">Filter by Issues:</label>
-                        <div class="issues-chips-container">
-                            <div id="issuesChips" class="issues-chips">
-                                <!-- Issues chips will be populated here -->
-                            </div>
-                        </div>
+                        <label for="issuesFilter">Filter by Issues:</label>
+                        <select id="issuesFilter" class="filter-dropdown" onchange="filterByIssues()">
+                            <option value="">All Games</option>
+                        </select>
                     </div>
                 </div>
                 <div class="filter-buttons">
@@ -3280,10 +3282,10 @@
 
 
 
-        // Populate role filter chips
+        // Populate role filter dropdown
         function populateRoleFilter() {
-            const roleChipsContainer = document.getElementById('roleChips');
-            roleChipsContainer.innerHTML = '';
+            const roleFilter = document.getElementById('roleFilter');
+            roleFilter.innerHTML = '';
             
             const roles = [
                 { value: '', label: translations[currentLanguage]?.allRoles || 'All Roles' },
@@ -3293,28 +3295,17 @@
             ];
             
             roles.forEach(role => {
-                const chip = document.createElement('div');
-                chip.className = 'team-chip selected';
-                chip.textContent = role.label;
-                chip.dataset.value = role.value;
-                chip.style.backgroundColor = role.value === '' ? '#28a745' : '#6c757d';
-                chip.setAttribute('role', 'button');
-                chip.setAttribute('tabindex', '0');
-                chip.onclick = () => toggleRoleFilter(role.value, chip);
-                chip.onkeydown = (event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        toggleRoleFilter(role.value, chip);
-                    }
-                };
-                roleChipsContainer.appendChild(chip);
+                const option = document.createElement('option');
+                option.value = role.value;
+                option.textContent = role.label;
+                roleFilter.appendChild(option);
             });
         }
 
-        // Populate issues filter chips
+        // Populate issues filter dropdown
         function populateIssuesFilter() {
-            const issuesChipsContainer = document.getElementById('issuesChips');
-            issuesChipsContainer.innerHTML = '';
+            const issuesFilter = document.getElementById('issuesFilter');
+            issuesFilter.innerHTML = '';
             
             const issues = [
                 { value: '', label: translations[currentLanguage]?.allGames || 'All Games' },
@@ -3323,28 +3314,23 @@
             ];
             
             issues.forEach(issue => {
-                const chip = document.createElement('div');
-                chip.className = 'team-chip selected';
-                chip.textContent = issue.label;
-                chip.dataset.value = issue.value;
-                chip.style.backgroundColor = issue.value === '' ? '#28a745' : '#6c757d';
-                chip.setAttribute('role', 'button');
-                chip.setAttribute('tabindex', '0');
-                chip.onclick = () => toggleIssuesFilter(issue.value, chip);
-                chip.onkeydown = (event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        toggleIssuesFilter(issue.value, chip);
-                    }
-                };
-                issuesChipsContainer.appendChild(chip);
+                const option = document.createElement('option');
+                option.value = issue.value;
+                option.textContent = issue.label;
+                issuesFilter.appendChild(option);
             });
         }
 
-        // Populate team filter chips
+        // Populate team filter dropdown
         function populateTeamFilter() {
-            const teamChipsContainer = document.getElementById('teamChips');
-            teamChipsContainer.innerHTML = '';
+            const teamFilter = document.getElementById('teamFilter');
+            teamFilter.innerHTML = '';
+            
+            // Add default "All Teams" option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = translations[currentLanguage]?.allTeams || 'All Teams';
+            teamFilter.appendChild(defaultOption);
             
             // Filter teams to only show scorer/taefeler/scorer_taefeler teams
             const relevantTeams = allTeams.filter(team => {
@@ -3356,221 +3342,49 @@
                 );
             });
             
-            // Add "Select All/None" toggle chip
-            const toggleChip = document.createElement('div');
-            toggleChip.className = 'team-chip select-toggle-chip';
-            toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
-            toggleChip.style.backgroundColor = '#6c757d';
-            toggleChip.style.border = '2px solid #dc3545';
-            toggleChip.setAttribute('role', 'button');
-            toggleChip.setAttribute('tabindex', '0');
-            toggleChip.setAttribute('aria-pressed', 'true');   // all teams initially selected
-            toggleChip.onclick = () => toggleAllTeams();
-            toggleChip.onkeydown = (event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    toggleAllTeams();
-                }
-            };
-            teamChipsContainer.appendChild(toggleChip);
             relevantTeams.forEach(team => {
-                const chip = document.createElement('div');
-                chip.className = 'team-chip selected';
-                chip.textContent = team;
-                
-                // Add accessibility attributes
-                chip.setAttribute('role', 'button');
-                chip.setAttribute('tabindex', '0');
-                chip.setAttribute('aria-pressed', 'true');
-                
-                // Add guard for teamUtils.getTeamColor with fallback
-                let teamColor = '#6c757d'; // Default gray fallback
-                if (window.teamUtils && typeof window.teamUtils.getTeamColor === 'function') {
-                    teamColor = window.teamUtils.getTeamColor(team);
-                }
-                
-                chip.style.backgroundColor = teamColor;
-                chip.style.color = teamColor === '#ffc107' ? '#333' : 'white';
-                
-                chip.onclick = () => toggleTeamFilter(team, chip);
-                chip.onkeydown = (event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        toggleTeamFilter(team, chip);
-                    }
-                };
-                teamChipsContainer.appendChild(chip);
+                const option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                teamFilter.appendChild(option);
             });
         }
-        
-        // Select none teams
-        function selectNoneTeams() {
-            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
-            teamChips.forEach(chip => {
-                chip.classList.remove('selected');
-                chip.classList.add('deselected');
-                chip.setAttribute('aria-pressed', 'false');
-            });
-            const noneChip = document.querySelector('#teamChips .select-toggle-chip');
-            if (noneChip) {
-                noneChip.classList.add('selected');
-                noneChip.setAttribute('aria-pressed', 'true');
-            }
+
+        // Filter by team dropdown
+        function filterByTeam() {
             filterGames();
         }
 
-        // Update toggle chip state based on current team selection
-        function updateToggleChipState() {
-            const toggleChip = document.querySelector('#teamChips .select-toggle-chip');
-            if (!toggleChip) return;
-            
-            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
-            const allSelected = Array.from(teamChips).every(chip => chip.classList.contains('selected'));
-            
-            if (allSelected) {
-                toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
-                toggleChip.style.border = '2px solid #dc3545';
-            } else {
-                toggleChip.textContent = currentLanguage === 'de' ? 'Alle auswählen' : 'Select All';
-                toggleChip.style.border = '2px solid #28a745';
-            }
-        }
-
-        // Toggle all teams (Select All / Select None)
-        function toggleAllTeams() {
-            const toggleChip = document.querySelector('#teamChips .select-toggle-chip');
-            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
-            
-            // Check if all teams are currently selected
-            const allSelected = Array.from(teamChips).every(chip => chip.classList.contains('selected'));
-            
-            if (allSelected) {
-                // If all are selected, deselect all
-                teamChips.forEach(chip => {
-                    chip.classList.remove('selected');
-                    chip.classList.add('deselected');
-                    chip.setAttribute('aria-pressed', 'false');
-                });
-                toggleChip.textContent = currentLanguage === 'de' ? 'Alle auswählen' : 'Select All';
-                toggleChip.style.border = '2px solid #28a745';
-            } else {
-                // If some or none are selected, select all
-                teamChips.forEach(chip => {
-                    chip.classList.remove('deselected');
-                    chip.classList.add('selected');
-                    chip.setAttribute('aria-pressed', 'true');
-                });
-                toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
-                toggleChip.style.border = '2px solid #dc3545';
-            }
-            
+        // Filter by role dropdown
+        function filterByRole() {
             filterGames();
         }
 
-        // Toggle role filter selection
-        function toggleRoleFilter(roleValue, chipElement) {
-            const roleChips = document.querySelectorAll('#roleChips .team-chip');
-            roleChips.forEach(chip => {
-                chip.classList.remove('selected');
-                chip.classList.add('deselected');
-                chip.setAttribute('aria-pressed', 'false');
-            });
-            chipElement.classList.remove('deselected');
-            chipElement.classList.add('selected');
-            chipElement.setAttribute('aria-pressed', 'true');
-            
-            // If "All Roles" is selected, make all other buttons visible again
-            if (roleValue === '') {
-                roleChips.forEach(chip => {
-                    chip.classList.remove('deselected');
-                    chip.style.opacity = '1';
-                    chip.style.visibility = 'visible';
-                });
-                // Re-select the "All Roles" button
-                chipElement.classList.add('selected');
-                chipElement.classList.remove('deselected');
-            }
-            
+        // Filter by issues dropdown
+        function filterByIssues() {
             filterGames();
         }
 
-        // Toggle issues filter selection
-        function toggleIssuesFilter(issueValue, chipElement) {
-            const issuesChips = document.querySelectorAll('#issuesChips .team-chip');
-            issuesChips.forEach(chip => {
-                chip.classList.remove('selected');
-                chip.classList.add('deselected');
-                chip.setAttribute('aria-pressed', 'false');
-            });
-            chipElement.classList.remove('deselected');
-            chipElement.classList.add('selected');
-            chipElement.setAttribute('aria-pressed', 'true');
-            
-            // If "All Games" is selected, make all other buttons visible again
-            if (issueValue === '') {
-                issuesChips.forEach(chip => {
-                    chip.classList.remove('deselected');
-                    chip.style.opacity = '1';
-                    chip.style.visibility = 'visible';
-                });
-                // Re-select the "All Games" button
-                chipElement.classList.add('selected');
-                chipElement.classList.remove('deselected');
-            }
-            
-            filterGames();
-        }
-
-        // Toggle team filter selection
-        function toggleTeamFilter(team, chipElement) {
-            if (chipElement.classList.contains('selected')) {
-                chipElement.classList.remove('selected');
-                chipElement.classList.add('deselected');
-                chipElement.setAttribute('aria-pressed', 'false');
-            } else {
-                chipElement.classList.remove('deselected');
-                chipElement.classList.add('selected');
-                chipElement.setAttribute('aria-pressed', 'true');
-            }
-            
-            // Update toggle chip state based on current selection
-            updateToggleChipState();
-            
-            filterGames();
-        }
-
-        // Get selected teams
-        function getSelectedTeams() {
-            const selectedChips = document.querySelectorAll('#teamChips .team-chip.selected:not(.select-toggle-chip)');
-            return Array.from(selectedChips).map(chip => chip.textContent);
-        }
-
-        // Filter games
+        // Filter games using dropdown values
         function filterGames() {
-            const selectedTeams = getSelectedTeams();
-            const selectedRoleChip = document.querySelector('#roleChips .team-chip.selected');
-            const selectedIssuesChip = document.querySelector('#issuesChips .team-chip.selected');
-            const roleFilter = selectedRoleChip ? selectedRoleChip.dataset.value : '';
-            const attentionFilter = selectedIssuesChip ? selectedIssuesChip.dataset.value : '';
-
-            // If no teams are selected, return empty array
-            if (selectedTeams.length === 0) {
-                renderGames([]);
-                return;
-            }
+            const teamFilter = document.getElementById('teamFilter').value;
+            const roleFilter = document.getElementById('roleFilter').value;
+            const issuesFilter = document.getElementById('issuesFilter').value;
 
             let filtered = filterCurrentGames(allGames);
 
-            if (selectedTeams.length > 0 && selectedTeams.length < allTeams.length) {
+            // Filter by team
+            if (teamFilter && teamFilter !== '') {
                 filtered = filtered.filter(game => 
-                    selectedTeams.includes(game.home_team) || 
-                    selectedTeams.includes(game.away_team) ||
-                    selectedTeams.includes(game.scorer_team) ||
-                    selectedTeams.includes(game.taefeler_team) ||
-                    selectedTeams.includes(game.scorer_taefeler_team)
+                    game.home_team === teamFilter || 
+                    game.away_team === teamFilter ||
+                    game.scorer_team === teamFilter ||
+                    game.taefeler_team === teamFilter ||
+                    game.scorer_taefeler_team === teamFilter
                 );
             }
 
+            // Filter by role
             if (roleFilter === 'scorer') {
                 filtered = filtered.filter(game => 
                     game.scorer_team && game.scorer_team.trim() !== ''
@@ -3585,7 +3399,8 @@
                 );
             }
 
-            if (attentionFilter === 'issues') {
+            // Filter by issues
+            if (issuesFilter === 'issues') {
                 filtered = filtered.filter(game => {
                     const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
                                           (!game.taefeler_team || game.taefeler_team.trim() === '') &&
@@ -3597,7 +3412,7 @@
                         return (!game.taefeler_id || (game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id));
                     }
                 });
-            } else if (attentionFilter === 'no-issues') {
+            } else if (issuesFilter === 'no-issues') {
                 filtered = filtered.filter(game => {
                     const isCombinedGame = (!game.scorer_team || game.scorer_team.trim() === '') && 
                                           (!game.taefeler_team || game.taefeler_team.trim() === '') &&
@@ -3616,43 +3431,10 @@
 
         // Clear filters
         function clearFilters() {
-            // Reset team chips to all selected
-            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
-            teamChips.forEach(chip => {
-                chip.classList.remove('deselected');
-                chip.classList.add('selected');
-            });
-            
-            // Reset toggle chip to "Select None" state
-            const toggleChip = document.querySelector('#teamChips .select-toggle-chip');
-            if (toggleChip) {
-                toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
-                toggleChip.style.border = '2px solid #dc3545';
-            }
-            
-            // Reset role chips to "All Roles" selected
-            const roleChips = document.querySelectorAll('#roleChips .team-chip');
-            roleChips.forEach(chip => {
-                chip.classList.remove('selected');
-                chip.classList.add('deselected');
-            });
-            const allRolesChip = document.querySelector('#roleChips .team-chip[data-value=""]');
-            if (allRolesChip) {
-                allRolesChip.classList.remove('deselected');
-                allRolesChip.classList.add('selected');
-            }
-            
-            // Reset issues chips to "All Games" selected
-            const issuesChips = document.querySelectorAll('#issuesChips .team-chip');
-            issuesChips.forEach(chip => {
-                chip.classList.remove('selected');
-                chip.classList.add('deselected');
-            });
-            const allGamesChip = document.querySelector('#issuesChips .team-chip[data-value=""]');
-            if (allGamesChip) {
-                allGamesChip.classList.remove('deselected');
-                allGamesChip.classList.add('selected');
-            }
+            // Reset dropdowns to default values
+            document.getElementById('teamFilter').value = '';
+            document.getElementById('roleFilter').value = '';
+            document.getElementById('issuesFilter').value = '';
             
             filterGames();
         }
@@ -3778,7 +3560,14 @@
 
             // Add "Show More" button if there are more games to show
             if (games.length > gamesToShow) {
+                // Remove any existing "Show More" button first
+                const existingButton = document.getElementById('showMoreButton');
+                if (existingButton) {
+                    existingButton.remove();
+                }
+                
                 const showMoreButton = document.createElement('button');
+                showMoreButton.id = 'showMoreButton';
                 showMoreButton.className = 'btn btn-primary';
                 showMoreButton.style.cssText = 'margin: 20px auto; display: block; padding: 12px 24px; font-size: 1rem;';
                 showMoreButton.textContent = 'Show More Games';
@@ -3786,7 +3575,10 @@
                     gamesToShow += 6;
                     renderGames(games);
                 };
-                gamesContainer.appendChild(showMoreButton);
+                
+                // Add the button after the games container
+                const gamesContainerParent = gamesContainer.parentElement;
+                gamesContainerParent.appendChild(showMoreButton);
             }
         }
 
