@@ -1727,6 +1727,7 @@
         let currentGame = null;
         let allScorers = []; // All scorers from scorer_scorers table
         let allTaefelers = []; // All täfelers from scorer_scorers table
+        let gamesToShow = 6; // Number of games to show initially
 
         // Initialize Supabase
         const supabase = window.supabase.createClient(
@@ -3239,20 +3240,25 @@
             }
         }
 
-        // Filter out past games (games older than the day after their scheduled date)
+        // Filter out past games (games more than 3 hours past their scheduled time)
         function filterCurrentGames(games) {
             const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
             return games.filter(game => {
                 const gameDate = new Date(game.date);
-                // Set time to 00:01 of the day after the game
-                const dayAfterGame = new Date(gameDate);
-                dayAfterGame.setDate(dayAfterGame.getDate() + 1);
-                dayAfterGame.setHours(0, 1, 0, 0); // 00:01
+                const gameTime = game.time ? game.time.substring(0, 5) : '19:00'; // Default to 19:00 if no time
+                const [hours, minutes] = gameTime.split(':').map(Number);
                 
-                // Game is current if it's not older than 00:01 the day after
-                return now < dayAfterGame;
+                // Create the game datetime
+                const gameDateTime = new Date(gameDate);
+                gameDateTime.setHours(hours, minutes, 0, 0);
+                
+                // Add 3 hours to the game time
+                const threeHoursAfterGame = new Date(gameDateTime);
+                threeHoursAfterGame.setHours(threeHoursAfterGame.getHours() + 3);
+                
+                // Game is current if it's not more than 3 hours past its scheduled time
+                return now < threeHoursAfterGame;
             });
         }
 
@@ -3661,7 +3667,10 @@
                 return;
             }
 
-            games.forEach(game => {
+            // Limit the number of games to show
+            const gamesToDisplay = games.slice(0, gamesToShow);
+
+            gamesToDisplay.forEach(game => {
                 const gameDate = new Date(game.date);
                 const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
@@ -3766,6 +3775,19 @@
 
                 gamesContainer.appendChild(gameCard);
             });
+
+            // Add "Show More" button if there are more games to show
+            if (games.length > gamesToShow) {
+                const showMoreButton = document.createElement('button');
+                showMoreButton.className = 'btn btn-primary';
+                showMoreButton.style.cssText = 'margin: 20px auto; display: block; padding: 12px 24px; font-size: 1rem;';
+                showMoreButton.textContent = 'Show More Games';
+                showMoreButton.onclick = () => {
+                    gamesToShow += 6;
+                    renderGames(games);
+                };
+                gamesContainer.appendChild(showMoreButton);
+            }
         }
 
         // Escape HTML to prevent XSS attacks
