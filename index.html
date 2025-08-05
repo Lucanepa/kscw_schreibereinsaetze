@@ -1254,7 +1254,7 @@
                         </div>
                     </div>
                     <div class="filter-group">
-                        <label for="roleFilter">Filter by Role:</label>
+                        <label for="roleChips">Filter by Role:</label>
                         <div class="role-chips-container">
                             <div id="roleChips" class="role-chips">
                                 <!-- Role chips will be populated here -->
@@ -1262,7 +1262,7 @@
                         </div>
                     </div>
                     <div class="filter-group">
-                        <label for="attentionFilter">Filter by Issues:</label>
+                        <label for="issuesChips">Filter by Issues:</label>
                         <div class="issues-chips-container">
                             <div id="issuesChips" class="issues-chips">
                                 <!-- Issues chips will be populated here -->
@@ -1718,6 +1718,9 @@
             const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
             const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
             
+            // Update current language
+            currentLanguage = lang;
+            
             if (lang === 'en') {
                 if (enText) enText.style.display = 'block';
                 if (deText) deText.style.display = 'none';
@@ -1735,6 +1738,10 @@
                 deBtn.classList.add('active');
                 enBtn.classList.remove('active');
             }
+            
+            // Update UI language after switching
+            console.log('Language switched to:', lang, 'currentLanguage:', currentLanguage);
+            updateUILanguage();
         }
 
         // Set German as default on page load
@@ -1750,10 +1757,20 @@
 
         // Update chip labels for language changes
         function updateChipLabels() {
-            // Update "Select None" chip
-            const selectNoneChip = document.querySelector('#teamChips .select-none-chip');
-            if (selectNoneChip) {
-                selectNoneChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
+            console.log('updateChipLabels called with currentLanguage:', currentLanguage);
+            // Update toggle chip based on current state
+            const toggleChip = document.querySelector('#teamChips .select-toggle-chip');
+            if (toggleChip) {
+                const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
+                const allSelected = Array.from(teamChips).every(chip => chip.classList.contains('selected'));
+                
+                if (allSelected) {
+                    toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
+                    toggleChip.style.border = '2px solid #dc3545';
+                } else {
+                    toggleChip.textContent = currentLanguage === 'de' ? 'Alle auswählen' : 'Select All';
+                    toggleChip.style.border = '2px solid #28a745';
+                }
             }
 
             // Update role chips
@@ -3308,22 +3325,22 @@ function getTeamColorSafe(teamName) {
             const teamChipsContainer = document.getElementById('teamChips');
             teamChipsContainer.innerHTML = '';
             
-            // Add "Select None" chip
-            const selectNoneChip = document.createElement('div');
-            selectNoneChip.className = 'team-chip select-none-chip';
-            selectNoneChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
-            selectNoneChip.style.backgroundColor = '#6c757d';
-            selectNoneChip.style.border = '2px solid #dc3545';
-            selectNoneChip.setAttribute('role', 'button');
-            selectNoneChip.setAttribute('tabindex', '0');
-            selectNoneChip.onclick = () => selectNoneTeams();
-            selectNoneChip.onkeydown = (event) => {
+            // Add "Select All/None" toggle chip
+            const toggleChip = document.createElement('div');
+            toggleChip.className = 'team-chip select-toggle-chip';
+            toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
+            toggleChip.style.backgroundColor = '#6c757d';
+            toggleChip.style.border = '2px solid #dc3545';
+            toggleChip.setAttribute('role', 'button');
+            toggleChip.setAttribute('tabindex', '0');
+            toggleChip.onclick = () => toggleAllTeams();
+            toggleChip.onkeydown = (event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    selectNoneTeams();
+                    toggleAllTeams();
                 }
             };
-            teamChipsContainer.appendChild(selectNoneChip);
+            teamChipsContainer.appendChild(toggleChip);
             
             allTeams.forEach(team => {
                 const chip = document.createElement('div');
@@ -3357,14 +3374,51 @@ function getTeamColorSafe(teamName) {
             });
         }
 
-        // Select none teams
-        function selectNoneTeams() {
-            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-none-chip)');
-            teamChips.forEach(chip => {
-                chip.classList.remove('selected');
-                chip.classList.add('deselected');
-                chip.setAttribute('aria-pressed', 'false');
-            });
+        // Update toggle chip state based on current team selection
+        function updateToggleChipState() {
+            const toggleChip = document.querySelector('#teamChips .select-toggle-chip');
+            if (!toggleChip) return;
+            
+            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
+            const allSelected = Array.from(teamChips).every(chip => chip.classList.contains('selected'));
+            
+            if (allSelected) {
+                toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
+                toggleChip.style.border = '2px solid #dc3545';
+            } else {
+                toggleChip.textContent = currentLanguage === 'de' ? 'Alle auswählen' : 'Select All';
+                toggleChip.style.border = '2px solid #28a745';
+            }
+        }
+
+        // Toggle all teams (Select All / Select None)
+        function toggleAllTeams() {
+            const toggleChip = document.querySelector('#teamChips .select-toggle-chip');
+            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
+            
+            // Check if all teams are currently selected
+            const allSelected = Array.from(teamChips).every(chip => chip.classList.contains('selected'));
+            
+            if (allSelected) {
+                // If all are selected, deselect all
+                teamChips.forEach(chip => {
+                    chip.classList.remove('selected');
+                    chip.classList.add('deselected');
+                    chip.setAttribute('aria-pressed', 'false');
+                });
+                toggleChip.textContent = currentLanguage === 'de' ? 'Alle auswählen' : 'Select All';
+                toggleChip.style.border = '2px solid #28a745';
+            } else {
+                // If some or none are selected, select all
+                teamChips.forEach(chip => {
+                    chip.classList.remove('deselected');
+                    chip.classList.add('selected');
+                    chip.setAttribute('aria-pressed', 'true');
+                });
+                toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
+                toggleChip.style.border = '2px solid #dc3545';
+            }
+            
             filterGames();
         }
 
@@ -3407,12 +3461,16 @@ function getTeamColorSafe(teamName) {
                 chipElement.classList.add('selected');
                 chipElement.setAttribute('aria-pressed', 'true');
             }
+            
+            // Update toggle chip state based on current selection
+            updateToggleChipState();
+            
             filterGames();
         }
 
         // Get selected teams
         function getSelectedTeams() {
-            const selectedChips = document.querySelectorAll('#teamChips .team-chip.selected:not(.select-none-chip)');
+            const selectedChips = document.querySelectorAll('#teamChips .team-chip.selected:not(.select-toggle-chip)');
             return Array.from(selectedChips).map(chip => chip.textContent);
         }
 
@@ -3488,11 +3546,18 @@ function getTeamColorSafe(teamName) {
         // Clear filters
         function clearFilters() {
             // Reset team chips to all selected
-            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-none-chip)');
+            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
             teamChips.forEach(chip => {
                 chip.classList.remove('deselected');
                 chip.classList.add('selected');
             });
+            
+            // Reset toggle chip to "Select None" state
+            const toggleChip = document.querySelector('#teamChips .select-toggle-chip');
+            if (toggleChip) {
+                toggleChip.textContent = currentLanguage === 'de' ? 'Alle abwählen' : 'Select None';
+                toggleChip.style.border = '2px solid #dc3545';
+            }
             
             // Reset role chips to "All Roles" selected
             const roleChips = document.querySelectorAll('#roleChips .team-chip');
