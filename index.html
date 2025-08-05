@@ -3333,6 +3333,7 @@ function getTeamColorSafe(teamName) {
             toggleChip.style.border = '2px solid #dc3545';
             toggleChip.setAttribute('role', 'button');
             toggleChip.setAttribute('tabindex', '0');
++            toggleChip.setAttribute('aria-pressed', 'true');   // all teams initially selected
             toggleChip.onclick = () => toggleAllTeams();
             toggleChip.onkeydown = (event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
@@ -3341,7 +3342,6 @@ function getTeamColorSafe(teamName) {
                 }
             };
             teamChipsContainer.appendChild(toggleChip);
-            
             allTeams.forEach(team => {
                 const chip = document.createElement('div');
                 chip.className = 'team-chip selected';
