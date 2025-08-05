@@ -1367,6 +1367,20 @@
             }
         }
 
+        // Helper function to safely get team color with validation and fallback
+        function getTeamColorSafe(teamName) {
+            if (!teamName || !teamName.trim()) return null;
+            
+            if (teamUtils && typeof teamUtils.getTeamColor === 'function') {
+                const color = teamUtils.getTeamColor(teamName);
+                // Validate color against hex pattern and handle falsy values
+                if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
+                    return color;
+                }
+            }
+            return '#6c757d'; // Default gray fallback
+        }
+
         // Escape HTML to prevent XSS attacks
         function escapeHtml(text) {
             if (text == null) return '';
@@ -1831,9 +1845,17 @@
                         <div class="game-teams">${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}</div>
                     </div>
                     <div class="game-team-indicators">
-                        ${game.scorer_team && game.scorer_team.trim() !== '' ? `<div class="team-indicator" style="background-color: ${teamUtils.getTeamColor(game.scorer_team)}; color: ${teamUtils.getTeamColor(game.scorer_team) === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_team)}</div>` : ''}
-                        ${game.taefeler_team && game.taefeler_team.trim() !== '' ? `<div class="team-indicator" style="background-color: ${teamUtils.getTeamColor(game.taefeler_team)}; color: ${teamUtils.getTeamColor(game.taefeler_team) === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.taefeler_team)}</div>` : ''}
-                        ${game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? `<div class="team-indicator" style="background-color: ${teamUtils.getTeamColor(game.scorer_taefeler_team)}; color: ${teamUtils.getTeamColor(game.scorer_taefeler_team) === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
+                        ${(() => {
+                            const scorerColor = getTeamColorSafe(game.scorer_team);
+                            const taefelerColor = getTeamColorSafe(game.taefeler_team);
+                            const scorerTaefelerColor = getTeamColorSafe(game.scorer_taefeler_team);
+                            
+                            return `
+                                ${scorerColor ? `<div class="team-indicator" style="background-color: ${scorerColor}; color: ${scorerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_team)}</div>` : ''}
+                                ${taefelerColor ? `<div class="team-indicator" style="background-color: ${taefelerColor}; color: ${taefelerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.taefeler_team)}</div>` : ''}
+                                ${scorerTaefelerColor ? `<div class="team-indicator" style="background-color: ${scorerTaefelerColor}; color: ${scorerTaefelerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_taefeler_team)}</div>` : ''}
+                            `;
+                        })()}
                     </div>
                     <div class="game-details">
                         <div class="detail-item">

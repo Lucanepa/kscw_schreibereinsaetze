@@ -17,8 +17,9 @@ const colorPalette = [
     '#6c757d', // Gray
     '#198754', // Dark Green
     '#0d6efd', // Blue
-    '#6610f2'  // Indigo
-];    '#34495e', // Dark Blue Gray
+    '#6610f2', // Indigo
+    '#34495e', // Dark Blue Gray
+];
 
 // Improved hash function for better color distribution
 function hashString(str) {

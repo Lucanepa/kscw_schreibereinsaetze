@@ -35,6 +35,57 @@
         .text-3xl { font-size: 2.2rem; }
         .text-4xl { font-size: 28px; }
 
+        /* Team filter chips */
+        .team-chips-container {
+            margin-bottom: 20px;
+        }
+
+        .team-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .team-chip {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            color: white;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
+        }
+
+        .team-chip:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .team-chip.selected {
+            border-color: rgba(255,255,255,0.8);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .team-chip.deselected {
+            opacity: 0.4;
+            filter: grayscale(0.5);
+        }
+
+        .team-chip.deselected:hover {
+            opacity: 0.7;
+            filter: grayscale(0.3);
+        }
+
+        .team-chip:focus {
+            outline: 2px solid #ffffff;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -1191,10 +1242,12 @@
             <div class="filters">
                 <div class="filters-grid">
                     <div class="filter-group">
-                        <label for="teamFilter">Filter by Team:</label>
-                        <select id="teamFilter" onchange="filterGames()">
-                            <option value="">All Teams</option>
-                        </select>
+                        <label>Filter by Team:</label>
+                        <div class="team-chips-container">
+                            <div id="teamChips" class="team-chips">
+                                <!-- Team chips will be populated here -->
+                            </div>
+                        </div>
                     </div>
                     <div class="filter-group">
                         <label for="roleFilter">Filter by Role:</label>
@@ -1685,10 +1738,17 @@
         document.addEventListener('DOMContentLoaded', async function() {
             await loadTranslations();
             switchLanguage('de');
+            updateUILanguage();
         });
 
         // Update UI language
         function updateUILanguage() {
+            // Check if translations and currentLanguage are available
+            if (!translations || !currentLanguage || !translations[currentLanguage]) {
+                console.warn('Translations not loaded yet, skipping UI language update');
+                return;
+            }
+            
             // Update filter labels
             const filterLabels = document.querySelectorAll('label');
             filterLabels.forEach(label => {
@@ -1702,12 +1762,9 @@
             });
             
             // Update filter options
-            const teamFilter = document.getElementById('teamFilter');
-            if (teamFilter) {
-                const firstOption = teamFilter.querySelector('option[value=""]');
-                if (firstOption) {
-                    firstOption.textContent = translations[currentLanguage].allTeams;
-                }
+            const teamChipsLabel = document.querySelector('.filter-group label');
+            if (teamChipsLabel && teamChipsLabel.textContent.includes('Filter by Team')) {
+                teamChipsLabel.textContent = translations[currentLanguage].filterByTeam;
             }
             
             const roleFilter = document.getElementById('roleFilter');
@@ -1755,7 +1812,7 @@
             }
         }
 
-        let currentLanguage = 'en';
+        let currentLanguage = 'de';
         
         // Team color management - using shared module
         // getTeamColor function is now available from teamUtils.js
@@ -3129,33 +3186,84 @@
             }
         }
 
-        // Populate team filter dropdown
+        // Populate team filter chips
         function populateTeamFilter() {
-            const teamFilter = document.getElementById('teamFilter');
-            teamFilter.innerHTML = '<option value="">All Teams</option>';
+            const teamChipsContainer = document.getElementById('teamChips');
+            teamChipsContainer.innerHTML = '';
+            
             allTeams.forEach(team => {
-                const option = document.createElement('option');
-                option.value = team;
-                option.textContent = team;
-                teamFilter.appendChild(option);
+                const chip = document.createElement('div');
+                chip.className = 'team-chip selected';
+                chip.textContent = team;
+                
+                // Add accessibility attributes
+                chip.setAttribute('role', 'button');
+                chip.setAttribute('tabindex', '0');
+                chip.setAttribute('aria-pressed', 'true');
+                
+                // Add guard for teamUtils.getTeamColor with fallback
+                let teamColor = '#6c757d'; // Default gray fallback
+                if (teamUtils && typeof teamUtils.getTeamColor === 'function') {
+                    teamColor = teamUtils.getTeamColor(team);
+                }
+                chip.style.backgroundColor = teamColor;
+                
+                // Add click handler
+                chip.onclick = () => toggleTeamFilter(team, chip);
+                
+                // Add keyboard event handlers for accessibility
+                chip.onkeydown = (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        toggleTeamFilter(team, chip);
+                    }
+                };
+                
+                teamChipsContainer.appendChild(chip);
             });
+        }
+
+        // Toggle team filter selection
+        function toggleTeamFilter(team, chipElement) {
+            if (chipElement.classList.contains('selected')) {
+                chipElement.classList.remove('selected');
+                chipElement.classList.add('deselected');
+                chipElement.setAttribute('aria-pressed', 'false');
+            } else {
+                chipElement.classList.remove('deselected');
+                chipElement.classList.add('selected');
+                chipElement.setAttribute('aria-pressed', 'true');
+            }
+            filterGames();
+        }
+
+        // Get selected teams
+        function getSelectedTeams() {
+            const selectedChips = document.querySelectorAll('#teamChips .team-chip.selected');
+            return Array.from(selectedChips).map(chip => chip.textContent);
         }
 
         // Filter games
         function filterGames() {
-            const teamFilter = document.getElementById('teamFilter').value;
+            const selectedTeams = getSelectedTeams();
             const roleFilter = document.getElementById('roleFilter').value;
             const attentionFilter = document.getElementById('attentionFilter').value;
 
+            // If no teams are selected, return empty array
+            if (selectedTeams.length === 0) {
+                renderGames([]);
+                return;
+            }
+
             let filtered = filterCurrentGames(allGames);
 
-            if (teamFilter) {
+            if (selectedTeams.length > 0 && selectedTeams.length < allTeams.length) {
                 filtered = filtered.filter(game => 
-                    game.home_team === teamFilter || 
-                    game.away_team === teamFilter ||
-                    game.scorer_team === teamFilter ||
-                    game.taefeler_team === teamFilter ||
-                    game.scorer_taefeler_team === teamFilter
+                    selectedTeams.includes(game.home_team) || 
+                    selectedTeams.includes(game.away_team) ||
+                    selectedTeams.includes(game.scorer_team) ||
+                    selectedTeams.includes(game.taefeler_team) ||
+                    selectedTeams.includes(game.scorer_taefeler_team)
                 );
             }
 
@@ -3204,10 +3312,16 @@
 
         // Clear filters
         function clearFilters() {
-            document.getElementById('teamFilter').value = '';
+            // Reset team chips to all selected
+            const teamChips = document.querySelectorAll('#teamChips .team-chip');
+            teamChips.forEach(chip => {
+                chip.classList.remove('deselected');
+                chip.classList.add('selected');
+            });
+            
             document.getElementById('roleFilter').value = '';
             document.getElementById('attentionFilter').value = '';
-            renderGames(filterCurrentGames(allGames));
+            filterGames();
         }
 
         // Render games
@@ -3300,9 +3414,18 @@
                     <div class="game-location">📍 ${escapeHtml(game.halle || 'TBD')}</div>
                     <div class="game-team-indicators">
                         ${(() => {
-                            const scorerColor = game.scorer_team && game.scorer_team.trim() !== '' ? teamUtils.getTeamColor(game.scorer_team) : null;
-                            const taefelerColor = game.taefeler_team && game.taefeler_team.trim() !== '' ? teamUtils.getTeamColor(game.taefeler_team) : null;
-                            const scorerTaefelerColor = game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '' ? teamUtils.getTeamColor(game.scorer_taefeler_team) : null;
+                            // Helper function to safely get team color with fallback
+                            const getTeamColorSafe = (teamName) => {
+                                if (!teamName || !teamName.trim()) return null;
+                                if (teamUtils && typeof teamUtils.getTeamColor === 'function') {
+                                    return teamUtils.getTeamColor(teamName);
+                                }
+                                return '#6c757d'; // Default gray fallback
+                            };
+                            
+                            const scorerColor = getTeamColorSafe(game.scorer_team);
+                            const taefelerColor = getTeamColorSafe(game.taefeler_team);
+                            const scorerTaefelerColor = getTeamColorSafe(game.scorer_taefeler_team);
                             
                             return `
                                 ${scorerColor ? `<div class="team-indicator" style="background-color: ${scorerColor}; color: ${scorerColor === '#ffc107' ? '#333' : 'white'};">${escapeHtml(game.scorer_team)}</div>` : ''}
