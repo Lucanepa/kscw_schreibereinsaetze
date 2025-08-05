@@ -277,12 +277,12 @@
         }
 
         .btn-warning {
-            background: #fbbf24;
-            color: #000000;
+            background: #dc3545;
+            color: #ffffff;
         }
 
         .btn-warning:hover {
-            background: #f59e0b;
+            background: #c82333;
         }
 
         #infoButton {
@@ -1769,7 +1769,6 @@
             }
             
             // Update UI language after switching
-            console.log('Language switched to:', lang, 'currentLanguage:', currentLanguage);
             updateUILanguage();
         }
 
@@ -1777,7 +1776,6 @@
 
         // Update chip labels for language changes
         function updateChipLabels() {
-            console.log('updateChipLabels called with currentLanguage:', currentLanguage);
             // Update toggle chip based on current state
             const toggleChip = document.querySelector('#teamChips .select-toggle-chip');
             if (toggleChip) {
@@ -1797,7 +1795,6 @@
 
         // Update UI language
         function updateUILanguage() {
-            console.log('updateUILanguage called with:', { translations, currentLanguage });
             // Check if translations and currentLanguage are available
             if (!translations || !currentLanguage || !translations[currentLanguage]) {
                 console.warn('Translations not loaded yet, skipping UI language update');
@@ -1887,7 +1884,6 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 translations = await response.json();
-                console.log('Translations loaded:', translations);
             } catch (error) {
                 console.error('Error loading translations:', error);
                 // Fallback translations

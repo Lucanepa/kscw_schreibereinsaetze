@@ -82,9 +82,8 @@ if (typeof module !== 'undefined' && module.exports) {
     const hasKey = SUPABASE_CONFIG.anonKey && SUPABASE_CONFIG.anonKey !== 'YOUR_SUPABASE_ANON_KEY_HERE';
 
     if (!hasUrl || !hasKey) {
-        console.warn('⚠️  Configuration template detected!');
-        console.warn('Please copy this file to config.js and add your actual Supabase credentials.');
+        // Configuration template detected - credentials not set
     } else {
-        console.log('✅ Configuration loaded successfully');
+        // Configuration loaded successfully
     }
 })(); 
