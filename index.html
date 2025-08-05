@@ -2732,14 +2732,21 @@
             try {
                 const { data, error } = await supabase
                     .from('scorer_teams')
-                    .select('team')
-                    .order('team');
+                    .select('teams')
+                    .order('teams');
 
                 if (error) throw error;
                 allTeams = [...new Set((data ?? []).map(row => row.team))].sort();
             } catch (error) {
                 console.error('Error loading teams:', error);
                 allTeams = [];
+                
+                // Show error to user
+                if (window.showToast) {
+                    window.showToast('Error loading teams. Please refresh the page to try again.', 'error');
+                } else {
+                    alert('Error loading teams. Please refresh the page to try again.');
+                }
             }
         }
         
@@ -3330,8 +3337,8 @@
                 
                 // Add guard for teamUtils.getTeamColor with fallback
                 let teamColor = '#6c757d'; // Default gray fallback
-                if (teamUtils && typeof teamUtils.getTeamColor === 'function') {
-                    teamColor = teamUtils.getTeamColor(team);
+                if (window.teamUtils && typeof window.teamUtils.getTeamColor === 'function') {
+                    teamColor = window.teamUtils.getTeamColor(team);
                 }
                 
                 chip.style.backgroundColor = teamColor;
@@ -3350,13 +3357,13 @@
         
         // Select none teams
         function selectNoneTeams() {
-            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-none-chip)');
+            const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
             teamChips.forEach(chip => {
                 chip.classList.remove('selected');
                 chip.classList.add('deselected');
                 chip.setAttribute('aria-pressed', 'false');
             });
-            const noneChip = document.querySelector('#teamChips .select-none-chip');
+            const noneChip = document.querySelector('#teamChips .select-toggle-chip');
             if (noneChip) {
                 noneChip.classList.add('selected');
                 noneChip.setAttribute('aria-pressed', 'true');

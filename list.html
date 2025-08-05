@@ -94,10 +94,16 @@
 
     <script>
         // Initialize Supabase client
-        const supabase = window.supabase.createClient(
-            SUPABASE_CONFIG.url,
-            SUPABASE_CONFIG.anonKey
-        );
+        let supabase;
+        if (typeof SUPABASE_CONFIG === 'undefined') {
+            console.error('SUPABASE_CONFIG is not defined. Please check if config.js is loaded correctly.');
+            document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Configuration error. Please refresh the page or contact support.</div>';
+        } else {
+            supabase = window.supabase.createClient(
+                SUPABASE_CONFIG.url,
+                SUPABASE_CONFIG.anonKey
+            );
+        }
 
         let allGames = [];
         let allScorers = [];
@@ -133,10 +139,15 @@
 
         // Load persons from database
         async function loadPersons() {
+            if (!supabase) {
+                console.error('Supabase client not initialized');
+                return;
+            }
+            
             try {
                 const { data, error } = await supabase
                     .from('scorer_scorers')
-                    .select('*')
+                    .select('id, fname, lname')
                     .order('fname')
                     .order('lname');
 
@@ -152,10 +163,15 @@
 
         // Load games from database
         async function loadGames() {
+            if (!supabase) {
+                console.error('Supabase client not initialized');
+                return;
+            }
+            
             try {
                 const { data, error } = await supabase
                     .from('scorer_matches')
-                    .select('*')
+                    .select('id, date, time, halle, home_team, away_team, scorer_id, taefeler_id, scorer_taefeler_id, scorer_team, taefeler_team, scorer_taefeler_team')
                     .order('date', { ascending: true })
                     .order('time', { ascending: true })
                     .order('halle', { ascending: true });
