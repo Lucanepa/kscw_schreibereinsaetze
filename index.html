@@ -522,6 +522,19 @@
             border-bottom: 2px solid #f0f0f0;
             padding-bottom: 20px;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .language-toggle {
+            display: flex;
+            gap: 5px;
+        }
+
+        .language-toggle .lang-btn {
+            padding: 5px 10px;
+            font-size: 0.8rem;
         }
 
         .modal-title {
@@ -1197,13 +1210,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="language-switcher">
-                <button class="lang-btn" onclick="switchLanguage('en')">EN</button>
-                <button class="lang-btn active" onclick="switchLanguage('de')">DE</button>
-            </div>
-            <button id="infoButton" class="btn btn-info" onclick="openInfoModal()">ℹ️ <span id="infoButtonText">Wichtige Informationen</span></button>
-
-
+            <button id="infoButton" class="btn btn-info" onclick="openInfoModal()">⚠️ <span id="infoButtonText">Info</span></button>
         </div>
 
         <div class="main-content">
@@ -1598,7 +1605,11 @@
         <div class="modal-content">
             <span class="close" onclick="closeInfoModal()">&times;</span>
             <div class="modal-header">
-                <div class="modal-title">Important Information</div>
+                <div class="modal-title" id="infoModalTitle">Wichtige Informationen</div>
+                <div class="language-toggle">
+                    <button class="lang-btn" onclick="switchLanguage('en')">EN</button>
+                    <button class="lang-btn active" onclick="switchLanguage('de')">DE</button>
+                </div>
             </div>
             <div class="info-content">
                 <div id="info-en" style="display: none;">
@@ -1659,7 +1670,7 @@
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="btn btn-primary" onclick="closeInfoModal()">Got it!</button>
+                <button class="btn btn-primary" onclick="closeInfoModal()" id="gotItButton">Got it!</button>
             </div>
         </div>
 
@@ -1684,6 +1695,8 @@
             const infoEn = document.getElementById('info-en');
             const infoDe = document.getElementById('info-de');
             const infoButtonText = document.getElementById('infoButtonText');
+            const infoModalTitle = document.getElementById('infoModalTitle');
+            const gotItButton = document.getElementById('gotItButton');
             const enBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'en\')"]');
             const deBtn = document.querySelector('.lang-btn[onclick="switchLanguage(\'de\')"]');
             
@@ -1695,7 +1708,9 @@
                 if (deText) deText.style.display = 'none';
                 if (infoEn) infoEn.style.display = 'block';
                 if (infoDe) infoDe.style.display = 'none';
-                if (infoButtonText) infoButtonText.textContent = 'Important Info';
+                if (infoButtonText) infoButtonText.textContent = 'Info';
+                if (infoModalTitle) infoModalTitle.textContent = 'Important Information';
+                if (gotItButton) gotItButton.textContent = 'Got it!';
                 enBtn.classList.add('active');
                 deBtn.classList.remove('active');
             } else {
@@ -1703,7 +1718,9 @@
                 if (deText) deText.style.display = 'block';
                 if (infoEn) infoEn.style.display = 'none';
                 if (infoDe) infoDe.style.display = 'block';
-                if (infoButtonText) infoButtonText.textContent = 'Wichtige Informationen';
+                if (infoButtonText) infoButtonText.textContent = 'Info';
+                if (infoModalTitle) infoModalTitle.textContent = 'Wichtige Informationen';
+                if (gotItButton) gotItButton.textContent = 'Verstanden!';
                 deBtn.classList.add('active');
                 enBtn.classList.remove('active');
             }
