@@ -17,30 +17,26 @@ const colorPalette = [
     '#6c757d', // Gray
     '#198754', // Dark Green
     '#0d6efd', // Blue
-    '#6610f2', // Indigo
-    '#fd7e14', // Orange (duplicate for more teams)
-    '#20c997', // Teal (duplicate for more teams)
-    '#e83e8c', // Pink (duplicate for more teams)
-    '#6c757d', // Gray (duplicate for more teams)
-    '#198754', // Dark Green (duplicate for more teams)
-    '#0d6efd', // Blue (duplicate for more teams)
-    '#6610f2', // Indigo (duplicate for more teams)
-    '#28a745', // Green (duplicate for more teams)
-    '#ffc107', // Yellow (duplicate for more teams)
-    '#17a2b8', // Cyan (duplicate for more teams)
-    '#6f42c1'  // Purple (duplicate for more teams)
-];
+    '#6610f2'  // Indigo
+];    '#34495e', // Dark Blue Gray
 
-// Simple hash function for consistent team color assignment
+// Improved hash function for better color distribution
 function hashString(str) {
     let hash = 0;
     if (str.length === 0) return hash;
     
+    // Use a better hash algorithm (djb2)
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32-bit integer
+        hash = ((hash << 5) + hash) + char; // hash * 33 + char
     }
+    
+    // Additional mixing for better distribution
+    hash = hash ^ (hash >>> 16);
+    hash = hash * 0x85ebca6b;
+    hash = hash ^ (hash >>> 13);
+    hash = hash * 0xc2b2ae35;
+    hash = hash ^ (hash >>> 16);
     
     return Math.abs(hash);
 }
@@ -57,7 +53,7 @@ function getTeamColor(teamName) {
 }
 
 // Normalize team names to handle various formats and variations
-// Examples: HU23-1, HU23-10, hu23-1, HU23 - 1, HU23–1 (en-dash), etc. -> HU23
+// Examples: HU23-1, HU23-10, hu23-1, HU23 - 1, HU23–1 (en-dash), etc. -> HU23-1, HU23-10
 function normalizeTeamName(teamName) {
     if (!teamName) return teamName;
     
@@ -74,9 +70,11 @@ function normalizeTeamName(teamName) {
     // - HU23–1, HU23–10 (en-dash)
     // - HU23—1, HU23—10 (em-dash)
     // - hu23-1, HU23-1 (case insensitive)
-    const hu23Pattern = /^HU23\s*[-\u2013\u2014]\s*\d+$/;
+    const hu23Pattern = /^HU23\s*[-\u2013\u2014]\s*(\d+)$/;
     if (hu23Pattern.test(teamName)) {
-        return 'HU23';
+        // Extract the number and return HU23-{number}
+        const match = teamName.match(hu23Pattern);
+        return `HU23-${match[1]}`;
     }
     
     return teamName;
