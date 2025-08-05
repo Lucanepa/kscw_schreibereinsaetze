@@ -35,7 +35,57 @@
         .text-3xl { font-size: 2.2rem; }
         .text-4xl { font-size: 28px; }
 
-        /* Filter dropdowns */
+        /* Compact filter system */
+        .filter-section {
+            margin-bottom: 15px;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+            background-color: #f8f9fa;
+            color: #6c757d;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .filter-chip:hover {
+            background-color: #e9ecef;
+            border-color: #3b82f6;
+        }
+
+        .filter-chip.selected {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .dynamic-filter-container {
+            margin-bottom: 15px;
+        }
+
+        .filter-dropdown-container {
+            margin-top: 8px;
+        }
+
         .filter-dropdown {
             width: 100%;
             padding: 8px 12px;
@@ -57,6 +107,23 @@
 
         .filter-dropdown:hover {
             border-color: #3b82f6;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .filter-chips {
+                gap: 6px;
+            }
+            
+            .filter-chip {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
+            
+            .filter-dropdown {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
         }
 
         .team-chip {
@@ -1276,21 +1343,32 @@
             </div>
 
             <div class="filters">
-                <div class="filters-grid">
-                    <div class="filter-group">
-                        <label for="teamFilter">Filter by Team:</label>
+                <div class="filter-section">
+                    <label class="filter-label">Filter by:</label>
+                    <div class="filter-chips">
+                        <div class="filter-chip selected" data-filter="team" onclick="selectFilterChip('team')">
+                            Team
+                        </div>
+                        <div class="filter-chip" data-filter="role" onclick="selectFilterChip('role')">
+                            Role
+                        </div>
+                        <div class="filter-chip" data-filter="issues" onclick="selectFilterChip('issues')">
+                            Issues
+                        </div>
+                    </div>
+                </div>
+                <div class="dynamic-filter-container">
+                    <div id="teamFilterContainer" class="filter-dropdown-container" style="display: none;">
                         <select id="teamFilter" class="filter-dropdown" onchange="filterByTeam()">
                             <option value="">All Teams</option>
                         </select>
                     </div>
-                    <div class="filter-group">
-                        <label for="roleFilter">Filter by Role:</label>
+                    <div id="roleFilterContainer" class="filter-dropdown-container" style="display: none;">
                         <select id="roleFilter" class="filter-dropdown" onchange="filterByRole()">
                             <option value="">All Roles</option>
                         </select>
                     </div>
-                    <div class="filter-group">
-                        <label for="issuesFilter">Filter by Issues:</label>
+                    <div id="issuesFilterContainer" class="filter-dropdown-container" style="display: none;">
                         <select id="issuesFilter" class="filter-dropdown" onchange="filterByIssues()">
                             <option value="">All Games</option>
                         </select>
@@ -2014,6 +2092,9 @@
                 populateTeamFilter();
                 populateRoleFilter();
                 populateIssuesFilter();
+                
+                // Initialize filter system - show team filter by default
+                selectFilterChip('team');
             } catch (error) {
                 console.error('Error loading games:', error);
                 document.getElementById('loading').innerHTML = 'Error loading games. Please try again.';
@@ -3365,6 +3446,33 @@
             filterGames();
         }
 
+        // Select filter chip and show appropriate dropdown
+        function selectFilterChip(filterType) {
+            // Remove selected class from all chips
+            const allChips = document.querySelectorAll('.filter-chip');
+            allChips.forEach(chip => chip.classList.remove('selected'));
+            
+            // Add selected class to clicked chip
+            const selectedChip = document.querySelector(`[data-filter="${filterType}"]`);
+            selectedChip.classList.add('selected');
+            
+            // Hide all filter containers
+            const allContainers = document.querySelectorAll('.filter-dropdown-container');
+            allContainers.forEach(container => container.style.display = 'none');
+            
+            // Show the appropriate filter container
+            const targetContainer = document.getElementById(`${filterType}FilterContainer`);
+            targetContainer.style.display = 'block';
+            
+            // Clear other filters when switching
+            if (filterType !== 'team') document.getElementById('teamFilter').value = '';
+            if (filterType !== 'role') document.getElementById('roleFilter').value = '';
+            if (filterType !== 'issues') document.getElementById('issuesFilter').value = '';
+            
+            // Apply current filter
+            filterGames();
+        }
+
         // Filter games using dropdown values
         function filterGames() {
             const teamFilter = document.getElementById('teamFilter').value;
@@ -3376,11 +3484,11 @@
             // Filter by team
             if (teamFilter && teamFilter !== '') {
                 filtered = filtered.filter(game => 
-                    game.home_team === teamFilter || 
-                    game.away_team === teamFilter ||
-                    game.scorer_team === teamFilter ||
-                    game.taefeler_team === teamFilter ||
-                    game.scorer_taefeler_team === teamFilter
+                    (game.home_team && normalizeTeamName(game.home_team) === teamFilter) || 
+                    (game.away_team && normalizeTeamName(game.away_team) === teamFilter) ||
+                    (game.scorer_team && normalizeTeamName(game.scorer_team) === teamFilter) ||
+                    (game.taefeler_team && normalizeTeamName(game.taefeler_team) === teamFilter) ||
+                    (game.scorer_taefeler_team && normalizeTeamName(game.scorer_taefeler_team) === teamFilter)
                 );
             }
 
@@ -3435,6 +3543,16 @@
             document.getElementById('teamFilter').value = '';
             document.getElementById('roleFilter').value = '';
             document.getElementById('issuesFilter').value = '';
+            
+            // Reset chip selection to "Team" (default)
+            const allChips = document.querySelectorAll('.filter-chip');
+            allChips.forEach(chip => chip.classList.remove('selected'));
+            document.querySelector('[data-filter="team"]').classList.add('selected');
+            
+            // Show team filter, hide others
+            const allContainers = document.querySelectorAll('.filter-dropdown-container');
+            allContainers.forEach(container => container.style.display = 'none');
+            document.getElementById('teamFilterContainer').style.display = 'block';
             
             filterGames();
         }
