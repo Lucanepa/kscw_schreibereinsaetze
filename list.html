@@ -169,7 +169,7 @@
             try {
                 const { data, error } = await supabase
                     .from('scorer_matches')
-                    .select('date, time, halle, home_team, away_team, scorer_id, taefeler_id, scorer_taefeler_id, scorer_team, taefeler_team, scorer_taefeler_team')
+                    .select('*')
                     .order('date', { ascending: true })
                     .order('time', { ascending: true })
                     .order('halle', { ascending: true });
