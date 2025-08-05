@@ -76,7 +76,7 @@ if (typeof module !== 'undefined' && module.exports) {
         personHasTeam,
         getTeamColor
     };
-    console.log('teamUtils loaded successfully:', window.teamUtils);
+    
 } else {
     // Fallback for unsupported environments
     const errorMessage = 'teamUtils: Unsupported environment detected. Neither Node.js (module.exports) nor browser (window) globals are available.';
