@@ -852,19 +852,21 @@
                 display: block;
             }
             
-                    .admin-table-container .mobile-game-card {
-            display: none;
-        }
-        
-                @media (max-width: 768px) {
             .admin-table-container .mobile-game-card {
                 display: block;
                 background: white;
                 border: 1px solid #e9ecef;
-                border-radius: 8px;
-                padding: 15px;
-                margin-bottom: 15px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                cursor: pointer;
+            }
+            
+            .admin-table-container .mobile-game-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             }
             
             .mobile-game-card .game-header {
@@ -933,7 +935,6 @@
                 font-size: 12px;
                 border-radius: 6px;
             }
-        }
 
             .detail-grid {
                 grid-template-columns: 1fr;
@@ -1075,22 +1076,7 @@
             <div id="adminLoading" class="loading">Loading coaches data...</div>
             <div id="adminTableContainer" style="display: none;">
                 <div class="admin-table-container">
-                    <table id="adminTable" class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Home Team</th>
-                                <th>Away Team</th>
-                                <th>Gym</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminTableBody">
-                            <!-- Admin table data will be populated here -->
-                        </tbody>
-                    </table>
+                    <!-- Game cards will be populated here -->
                 </div>
             </div>
         </div>
@@ -1332,8 +1318,7 @@
         let allScorers = [];
         let allTaefelers = [];
         let currentGame = null;
-        let allteams = [];
-
+        let allTeams = [];              // keep camel-case consistency
         // Initialize Supabase
         console.log('🔧 Initializing Supabase client...');
         
@@ -1656,100 +1641,12 @@
             renderAdminTable(filtered);
         }
 
-        // Render admin table
+        // Render admin games as cards (single format)
         function renderAdminTable(games = filterCurrentGames(allGames)) {
-            const tbody = document.getElementById('adminTableBody');
             const container = document.querySelector('.admin-table-container');
             
-            // Desktop table rendering
-            tbody.innerHTML = games.map(game => {
-                const gameDate = new Date(game.date);
-                const formattedDate = gameDate.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                });
-
-                const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
-
-                const statusIcons = [];
-                
-                // Retrieve names from scorer_scorers table using IDs
-                let taefelerName = '';
-                if (game.taefeler_id) {
-                    const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                    if (taefeler) {
-                        taefelerName = `${taefeler.fname} ${taefeler.lname}`;
-                    }
-                }
-                
-                let scorerName = '';
-                if (game.scorer_id) {
-                    const scorer = allScorers.find(s => s.id === game.scorer_id);
-                    if (scorer) {
-                        scorerName = `${scorer.fname} ${scorer.lname}`;
-                    }
-                }
-                
-                let scorerTaefelerName = '';
-                if (game.scorer_taefeler_id) {
-                    const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
-                    if (scorerTaefeler) {
-                        scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`;
-                    }
-                }
-                
-                // Check if this is a combined scorer/täfeler game
-                if (isCombined(game)) {
-                    // Combined scorer/täfeler status
-                    const combinedInfo = scorerTaefelerName ? 
-                        `${escapeHtml(scorerTaefelerName)} (${escapeHtml(game.scorer_taefeler_team)})` : 
-                        escapeHtml(game.scorer_taefeler_team || 'TBD');
-                    const combinedStatus = !game.scorer_taefeler_id ? '⚠️' : '✅';
-                    statusIcons.push(`${combinedStatus} Scorer/Täfeler: ${combinedInfo}`);
-                } else {
-                    // Separate täfeler and scorer status
-                    const taefelerLabel = game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
-                    const taefelerInfo = taefelerName ? 
-                        `${escapeHtml(taefelerName)} (${escapeHtml(game.taefeler_team)})` : 
-                        escapeHtml(game.taefeler_team || 'TBD');
-                    const taefelerStatus = !game.taefeler_id ? '⚠️' : '✅';
-                    statusIcons.push(`${taefelerStatus} ${taefelerLabel}: ${taefelerInfo}`);
-                    
-                    // Scorer status (only if scorer team is assigned)
-                    if (game.scorer_team && game.scorer_team.trim() !== '') {
-                        const scorerInfo = scorerName ? 
-                            `${escapeHtml(scorerName)} (${escapeHtml(game.scorer_team)})` : 
-                            escapeHtml(game.scorer_team);
-                        const scorerStatus = !game.scorer_id ? '⚠️' : '✅';
-                        statusIcons.push(`${scorerStatus} Scorer: ${scorerInfo}`);
-                    }
-                }
-
-                return `
-                    <tr>
-                        <td>${escapeHtml(formattedDate)}</td>
-                        <td>${escapeHtml(formattedTime)}</td>
-                        <td>${escapeHtml(game.home_team || '-')}</td>
-                        <td>${escapeHtml(game.away_team || '-')}</td>
-                        <td>${escapeHtml(game.halle || '-')}</td>
-                        <td class="status-indicator">${statusIcons.join('<br>')}</td>
-                        <td>
-                            <button class="btn btn-warning" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">View</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-            
-            // Mobile cards rendering
-            renderMobileCards(games, container);
-        }
-        
-        // Render mobile cards for admin
-        function renderMobileCards(games, container) {
-            // Remove existing mobile cards
-            const existingCards = container.querySelectorAll('.mobile-game-card');
-            existingCards.forEach(card => card.remove());
+            // Clear existing content
+            container.innerHTML = '';
             
             games.forEach(game => {
                 const gameDate = new Date(game.date);
@@ -1815,9 +1712,9 @@
                     }
                 }
 
-                const mobileCard = document.createElement('div');
-                mobileCard.className = 'mobile-game-card';
-                mobileCard.innerHTML = `
+                const gameCard = document.createElement('div');
+                gameCard.className = 'mobile-game-card';
+                gameCard.innerHTML = `
                     <div class="game-header">
                         <div class="game-date-time">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
                         <div class="game-teams">${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}</div>
@@ -1837,9 +1734,11 @@
                     <button class="btn btn-info action-button" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">View Game</button>
                 `;
                 
-                container.appendChild(mobileCard);
+                container.appendChild(gameCard);
             });
         }
+        
+
 
         // Open focused game view (read-only for coaches)
         function openGameModal(game) {
