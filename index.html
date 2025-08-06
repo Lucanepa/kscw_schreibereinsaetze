@@ -2111,25 +2111,30 @@
                 gamesContainer.appendChild(gameCard);
             });
 
-            // Add "Show More" button if there are more games to show
-            if (games.length > gamesToShow) {
-                console.log('➕ Creating Show More button:', {
+            // Always create or update the "Show More" button
+            // Remove any existing "Show More" button first
+            const existingButton = document.getElementById('showMoreButton');
+            if (existingButton) {
+                existingButton.remove();
+            }
+            
+            const showMoreButton = document.createElement('button');
+            showMoreButton.id = 'showMoreButton';
+            showMoreButton.style.cssText = 'margin: 20px auto; display: block; padding: 12px 24px; font-size: 1rem;';
+            
+            // Check if there are more games to show
+            const hasMoreGames = games.length > gamesToShow;
+            
+            if (hasMoreGames) {
+                console.log('➕ Creating enabled Show More button:', {
                     gamesLength: games.length,
                     gamesToShow,
                     remainingGames: games.length - gamesToShow
                 });
                 
-                // Remove any existing "Show More" button first
-                const existingButton = document.getElementById('showMoreButton');
-                if (existingButton) {
-                    existingButton.remove();
-                }
-                
-                const showMoreButton = document.createElement('button');
-                showMoreButton.id = 'showMoreButton';
                 showMoreButton.className = 'btn btn-primary';
-                showMoreButton.style.cssText = 'margin: 20px auto; display: block; padding: 12px 24px; font-size: 1rem;';
                 showMoreButton.textContent = 'Show More Games';
+                showMoreButton.disabled = false;
                 showMoreButton.onclick = () => {
                     console.log('🔄 Show More button clicked!');
                     console.log('📈 Before increment:', {
@@ -2150,11 +2155,24 @@
                     
                     renderGames(currentFilteredGames);
                 };
+            } else {
+                console.log('➕ Creating disabled Show More button:', {
+                    gamesLength: games.length,
+                    gamesToShow,
+                    remainingGames: 0
+                });
                 
-                // Add the button after the games container
-                const gamesContainerParent = gamesContainer.parentElement;
-                gamesContainerParent.appendChild(showMoreButton);
+                showMoreButton.className = 'btn btn-secondary';
+                showMoreButton.textContent = 'Show More Games';
+                showMoreButton.disabled = true;
+                showMoreButton.style.opacity = '0.6';
+                showMoreButton.style.cursor = 'not-allowed';
+                showMoreButton.onclick = null;
             }
+            
+            // Add the button after the games container
+            const gamesContainerParent = gamesContainer.parentElement;
+            gamesContainerParent.appendChild(showMoreButton);
         }
 
         // Escape HTML to prevent XSS attacks
