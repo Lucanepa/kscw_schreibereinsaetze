@@ -263,7 +263,7 @@
     <button id="infoButton" class="btn btn-warning" aria-expanded="false" aria-controls="mainContent">⚠️
         <span id="infoButtonText">Info</span>
     </button>
-    <button id="modalInfoButton" class="btn btn-warning" onclick="openInfoModal()" style="margin-left: 10px;">📋
+    <button id="modalInfoButton" class="btn btn-warning" onclick="openInfoModal()" style="margin-left: 10px;" aria-haspopup="dialog" aria-expanded="false">📋
         <span>Modal Info</span>
     </button>
 </div>
@@ -356,9 +356,9 @@
 </div>
 
 <!-- Info Modal -->
-<div id="infoModal" class="modal" style="display: none;">
+<div id="infoModal" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modalInfoTitle">
     <div class="modal-content">
-        <span id="closeInfoModalBtn" class="close">&times;</span>
+        <button id="closeInfoModalBtn" class="close" aria-label="Close modal">&times;</button>
         
         <div class="modal-header">
             <h2 id="modalInfoTitle">Important Information</h2>
@@ -493,11 +493,45 @@
 
     // Modal functions
     function openInfoModal() {
-        document.getElementById('infoModal').style.display = 'block';
+        const modal = document.getElementById('infoModal');
+        const modalButton = document.getElementById('modalInfoButton');
+        
+        modal.style.display = 'block';
+        modalButton.setAttribute('aria-expanded', 'true');
+        
+        // Focus trap: store the element that had focus before opening modal
+        window.lastFocusedElement = document.activeElement;
+        
+        // Focus the close button
+        const closeBtn = document.getElementById('closeInfoModalBtn');
+        if (closeBtn) {
+            closeBtn.focus();
+        }
+        
+        // Add event listener for Escape key
+        document.addEventListener('keydown', handleModalKeydown);
     }
 
     function closeInfoModal() {
-        document.getElementById('infoModal').style.display = 'none';
+        const modal = document.getElementById('infoModal');
+        const modalButton = document.getElementById('modalInfoButton');
+        
+        modal.style.display = 'none';
+        modalButton.setAttribute('aria-expanded', 'false');
+        
+        // Remove event listener for Escape key
+        document.removeEventListener('keydown', handleModalKeydown);
+        
+        // Return focus to the element that had focus before opening modal
+        if (window.lastFocusedElement) {
+            window.lastFocusedElement.focus();
+        }
+    }
+
+    function handleModalKeydown(event) {
+        if (event.key === 'Escape') {
+            closeInfoModal();
+        }
     }
 
     // Close modal when clicking outside
@@ -566,6 +600,30 @@
         const closeInfoModalBtn = document.getElementById('closeInfoModalBtn');
         if (closeInfoModalBtn) {
             closeInfoModalBtn.addEventListener('click', closeInfoModal);
+        }
+
+        // Add focus trapping for modal
+        const modal = document.getElementById('infoModal');
+        if (modal) {
+            modal.addEventListener('keydown', function(event) {
+                if (event.key === 'Tab') {
+                    const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                    const firstElement = focusableElements[0];
+                    const lastElement = focusableElements[focusableElements.length - 1];
+
+                    if (event.shiftKey) {
+                        if (document.activeElement === firstElement) {
+                            event.preventDefault();
+                            lastElement.focus();
+                        }
+                    } else {
+                        if (document.activeElement === lastElement) {
+                            event.preventDefault();
+                            firstElement.focus();
+                        }
+                    }
+                }
+            });
         }
     });
 
