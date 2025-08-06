@@ -1690,6 +1690,7 @@
         let allScorers = []; // All scorers from scorer_scorers table
         let allTaefelers = []; // All täfelers from scorer_scorers table
         let gamesToShow = 6; // Number of games to show initially
+        let currentFilteredGames = []; // Store currently filtered games
 
         // Initialize Supabase
         const supabase = window.supabase.createClient(
@@ -1803,7 +1804,8 @@
                 await loadTeams();
                 await loadScorers();
                 await loadTaefelers();
-                renderGames(filterCurrentGames(allGames));
+                currentFilteredGames = filterCurrentGames(allGames);
+                renderGames(currentFilteredGames);
                 populateTeamFilter();
                 populateRoleFilter();
                 populateIssuesFilter();
@@ -3162,6 +3164,8 @@
 
         // Select filter chip and show appropriate dropdown
         function selectFilterChip(filterType) {
+            console.log('🎯 selectFilterChip() called with:', filterType);
+            
             const selectedChip = document.querySelector(`[data-filter="${filterType}"]`);
             const targetContainer = document.getElementById(`${filterType}FilterContainer`);
             if (!selectedChip || !targetContainer) {
@@ -3188,6 +3192,7 @@
             if (filterType !== 'role') document.getElementById('roleFilter').value = '';
             if (filterType !== 'issues') document.getElementById('issuesFilter').value = '';
             
+            console.log('🎯 About to call filterGames() from selectFilterChip');
             // Apply current filter
             filterGames();
         }
@@ -3197,6 +3202,12 @@
             const teamFilter = document.getElementById('teamFilter').value;
             const roleFilter = document.getElementById('roleFilter').value;
             const issuesFilter = document.getElementById('issuesFilter').value;
+
+            console.log('🔍 filterGames() called with filters:', {
+                teamFilter,
+                roleFilter,
+                issuesFilter
+            });
 
             let filtered = filterCurrentGames(allGames);
 
@@ -3253,6 +3264,18 @@
                 });
             }
 
+            // Store the filtered games globally
+            currentFilteredGames = filtered;
+            // Reset games to show when filters change
+            gamesToShow = 6;
+            
+            console.log('📊 filterGames() results:', {
+                totalGames: allGames.length,
+                filteredGamesCount: filtered.length,
+                gamesToShow,
+                currentFilteredGamesLength: currentFilteredGames.length
+            });
+            
             renderGames(filtered);
         }
 
@@ -3278,10 +3301,19 @@
 
         // Render games
         function renderGames(games = allGames) {
+            console.log('🎮 renderGames() called with:', {
+                gamesLength: games.length,
+                gamesToShow,
+                gamesToDisplayLength: Math.min(gamesToShow, games.length),
+                isUsingCurrentFilteredGames: games === currentFilteredGames,
+                firstFewGames: games.slice(0, 3).map(g => `${g.home_team} vs ${g.away_team}`)
+            });
+            
             const gamesContainer = document.getElementById('gamesGrid');
             gamesContainer.innerHTML = '';
 
             if (!games || games.length === 0) {
+                console.log('❌ No games to render');
                 gamesContainer.innerHTML = '<div class="no-games">No games found</div>';
                 return;
             }
@@ -3397,6 +3429,12 @@
 
             // Add "Show More" button if there are more games to show
             if (games.length > gamesToShow) {
+                console.log('➕ Creating Show More button:', {
+                    gamesLength: games.length,
+                    gamesToShow,
+                    remainingGames: games.length - gamesToShow
+                });
+                
                 // Remove any existing "Show More" button first
                 const existingButton = document.getElementById('showMoreButton');
                 if (existingButton) {
@@ -3409,8 +3447,24 @@
                 showMoreButton.style.cssText = 'margin: 20px auto; display: block; padding: 12px 24px; font-size: 1rem;';
                 showMoreButton.textContent = 'Show More Games';
                 showMoreButton.onclick = () => {
+                    console.log('🔄 Show More button clicked!');
+                    console.log('📈 Before increment:', {
+                        gamesToShow,
+                        currentFilteredGamesLength: currentFilteredGames.length,
+                        teamFilter: document.getElementById('teamFilter').value,
+                        roleFilter: document.getElementById('roleFilter').value,
+                        issuesFilter: document.getElementById('issuesFilter').value
+                    });
+                    
                     gamesToShow += 6;
-                    filterGames();
+                    
+                    console.log('📈 After increment:', {
+                        gamesToShow,
+                        currentFilteredGamesLength: currentFilteredGames.length,
+                        willShowGames: Math.min(gamesToShow, currentFilteredGames.length)
+                    });
+                    
+                    renderGames(currentFilteredGames);
                 };
                 
                 // Add the button after the games container
@@ -3584,7 +3638,7 @@
                 
                 // Go back to main view
                 backToMainView();
-                renderGames();
+                renderGames(currentFilteredGames);
             } catch (error) {
                 console.error('Error saving game details:', error);
                 alert('Error saving game details. Please try again.');
