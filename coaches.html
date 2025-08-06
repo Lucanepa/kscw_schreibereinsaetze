@@ -1322,10 +1322,12 @@
             return;
         }
         
-        const supabase = window.supabase.createClient(
+        // Make supabase globally accessible
+        window.supabase = window.supabase.createClient(
             SUPABASE_CONFIG.url,
             SUPABASE_CONFIG.anonKey
         );
+        const supabase = window.supabase; // Local reference for convenience
         console.log('✅ Supabase client initialized successfully');
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -1336,7 +1338,7 @@
         // Load teams from games data
         async function loadTeams() {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await window.supabase
                     .from('scorer_matches')
                     .select('home_team, away_team, scorer_team, taefeler_team, scorer_taefeler_team');
 
@@ -1401,7 +1403,7 @@
             successDiv.style.display = 'none';
 
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await window.supabase.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
@@ -1440,7 +1442,7 @@
 
         // Logout function
         async function logout() {
-            await supabase.auth.signOut();
+            await window.supabase.auth.signOut();
             // Show login modal and hide coaches content
             document.getElementById('loginModal').style.display = 'block';
             document.getElementById('adminContent').style.display = 'none';
@@ -1474,7 +1476,7 @@
 
         // Load games from Supabase
         async function loadGames() {
-            const { data, error } = await supabase
+            const { data, error } = await window.supabase
                 .from('scorer_matches')
                 .select('*')
                 .order('date', { ascending: true })
@@ -1487,7 +1489,7 @@
 
         // Load scorers from scorer_scorers table
         async function loadScorers() {
-            const { data, error } = await supabase
+            const { data, error } = await window.supabase
                 .from('scorer_scorers')
                 .select('*')
                 .eq('scorer_licence', true)
@@ -1500,7 +1502,7 @@
 
         // Load all täfelers from scorer_scorers table
         async function loadTaefelers() {
-            const { data, error } = await supabase
+            const { data, error } = await window.supabase
                 .from('scorer_scorers')
                 .select('*')
                 .order('lname', { ascending: true })
@@ -1971,7 +1973,7 @@
         // Log changes to edit_log table
         async function logChange(action, fieldName, oldValue, newValue, gameInfo) {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await window.supabase
                     .from('scorer_edit_log')
                     .insert({
                         action: action, // 'CREATE', 'UPDATE', 'DELETE'
@@ -2320,7 +2322,7 @@
             }
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await window.supabase
                     .from('scorer_scorers')
                     .insert({
                         fname: fname,
@@ -2383,7 +2385,7 @@
                     updateData.scorer_id = currentGame.scorer_id;
                 }
                 
-                const { error } = await supabase
+                const { error } = await window.supabase
                     .from('scorer_matches')
                     .update(updateData)
                     .eq('match_id', currentGame.match_id);
@@ -2419,7 +2421,15 @@
         // Check authentication status on page load
         async function checkAuthStatus() {
             try {
-                const { data: { user }, error } = await supabase.auth.getUser();
+                // Use global supabase reference
+                if (!window.supabase) {
+                    console.error('❌ Supabase client not initialized');
+                    document.getElementById('loginModal').style.display = 'block';
+                    document.getElementById('adminContent').style.display = 'none';
+                    return;
+                }
+                
+                const { data: { user }, error } = await window.supabase.auth.getUser();
                 
                 if (error) {
                     console.error('Error checking auth status:', error);
@@ -2969,6 +2979,24 @@
         // Handle Enter key in password field
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Coaches page initializing...');
+            
+            // Check if Supabase is properly initialized
+            if (!window.supabase) {
+                console.error('❌ Supabase client not available. Retrying initialization...');
+                // Try to reinitialize
+                try {
+                    window.supabase = window.supabase.createClient(
+                        SUPABASE_CONFIG.url,
+                        SUPABASE_CONFIG.anonKey
+                    );
+                    console.log('✅ Supabase client reinitialized successfully');
+                } catch (error) {
+                    console.error('❌ Failed to reinitialize Supabase:', error);
+                    alert('Failed to initialize application. Please refresh the page.');
+                    return;
+                }
+            }
+            
             checkAuthStatus();
             
             // Add event listener for Enter key in password field
