@@ -1327,6 +1327,13 @@
     </div>
 
     <script>
+        // Global variables
+        let allGames = [];
+        let allScorers = [];
+        let allTaefelers = [];
+        let currentGame = null;
+        let allteams = [];
+
         // Initialize Supabase
         console.log('🔧 Initializing Supabase client...');
         
@@ -1524,6 +1531,25 @@
 
             if (error) throw error;
             allTaefelers = data || [];
+        }
+
+        // Check if a game has issues (missing assignments)
+        function hasIssues(game) {
+            if (isCombined(game)) {
+                // Combined game - check if scorer_taefeler_id is missing
+                return !game.scorer_taefeler_id;
+            } else {
+                // Separate game - check if täfeler_id is missing or scorer_id is missing when scorer_team is assigned
+                const taefelerIssue = !game.taefeler_id;
+                const scorerIssue = game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
+                return taefelerIssue || scorerIssue;
+            }
+        }
+
+        // Check if a game is a combined scorer/täfeler game
+        function isCombined(game) {
+            return game.scorer_taefeler_id || 
+                   (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '');
         }
 
         // Filter out past games (games older than the day after their scheduled date)
@@ -2432,6 +2458,18 @@
 
 
 
+        // Initialize coaches content after successful authentication
+        async function initializeCoachesContent() {
+            try {
+                console.log('🔧 Initializing coaches content...');
+                await loadAdminData();
+                console.log('✅ Coaches content initialized successfully');
+            } catch (error) {
+                console.error('❌ Error initializing coaches content:', error);
+                alert('Error loading coaches data. Please refresh the page.');
+            }
+        }
+
         // Check authentication status on page load
         async function checkAuthStatus() {
             try {
@@ -2446,7 +2484,12 @@
                 const { data: { user }, error } = await window.supabase.auth.getUser();
                 
                 if (error) {
-                    console.error('Error checking auth status:', error);
+                    // AuthSessionMissingError is expected when user is not logged in
+                    if (error.message && error.message.includes('Auth session missing')) {
+                        console.log('ℹ️ No active session found, showing login modal');
+                    } else {
+                        console.error('Error checking auth status:', error);
+                    }
                     // Show login modal on error
                     document.getElementById('loginModal').style.display = 'block';
                     document.getElementById('adminContent').style.display = 'none';
