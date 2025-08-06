@@ -8,6 +8,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="teamUtils.js"></script>
+    <link href="css/theme.css" rel="stylesheet" type="text/css">
     <style>
         * {
             margin: 0;
@@ -1311,11 +1312,27 @@
     </div>
 
     <script>
-          const urlParams = new URLSearchParams(window.location.search);
-  const rawZoom = parseFloat(urlParams.get("zoom"));
-  const zoom = Number.isFinite(rawZoom) && rawZoom > 0.2 && rawZoom < 4 ? rawZoom : 1.0;
+        // Initialize Supabase
+        console.log('🔧 Initializing Supabase client...');
+        
+        // Check if config is loaded
+        if (typeof SUPABASE_CONFIG === 'undefined') {
+            console.error('❌ SUPABASE_CONFIG is not defined. Make sure config.js is loaded properly.');
+            alert('Configuration error. Please refresh the page.');
+            return;
+        }
+        
+        const supabase = window.supabase.createClient(
+            SUPABASE_CONFIG.url,
+            SUPABASE_CONFIG.anonKey
+        );
+        console.log('✅ Supabase client initialized successfully');
 
-  // Apply the zoom to the whole page (body or html)
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawZoom = parseFloat(urlParams.get("zoom"));
+        const zoom = Number.isFinite(rawZoom) && rawZoom > 0.2 && rawZoom < 4 ? rawZoom : 1.0;
+
+        // Apply the zoom to the whole page (body or html)
         // Load teams from games data
         async function loadTeams() {
             try {
@@ -2401,18 +2418,34 @@
 
         // Check authentication status on page load
         async function checkAuthStatus() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                // User is not authenticated, show login modal
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (error) {
+                    console.error('Error checking auth status:', error);
+                    // Show login modal on error
+                    document.getElementById('loginModal').style.display = 'block';
+                    document.getElementById('adminContent').style.display = 'none';
+                    return;
+                }
+                
+                if (!user) {
+                    // User is not authenticated, show login modal
+                    document.getElementById('loginModal').style.display = 'block';
+                    document.getElementById('adminContent').style.display = 'none';
+                    return;
+                }
+                
+                // User is authenticated, hide login modal and show coaches content
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                initializeCoachesContent();
+            } catch (error) {
+                console.error('Unexpected error in checkAuthStatus:', error);
+                // Show login modal on unexpected error
                 document.getElementById('loginModal').style.display = 'block';
                 document.getElementById('adminContent').style.display = 'none';
-                return;
             }
-            
-            // User is authenticated, hide login modal and show coaches content
-            document.getElementById('loginModal').style.display = 'none';
-            document.getElementById('adminContent').style.display = 'block';
-            initializeCoachesContent();
         }
 
         // Download Excel
@@ -2935,6 +2968,7 @@
         // Initialize page
         // Handle Enter key in password field
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Coaches page initializing...');
             checkAuthStatus();
             
             // Add event listener for Enter key in password field
