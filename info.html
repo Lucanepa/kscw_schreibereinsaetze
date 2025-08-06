@@ -1,479 +1,455 @@
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    body {
+        font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        min-height: 100vh;
+        font-feature-settings: "liga" 1, "kern" 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+    }
 
-        body {
-            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            min-height: 100vh;
-            font-feature-settings: "liga" 1, "kern" 1;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
-        }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        overflow: hidden;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        backdrop-filter: blur(10px);
+    }
 
+    /* Header styles */
+    .header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #fbbf24 100%);
+        color: white;
+        padding: 7px 7px;
+        text-align: center;
+        border-radius: 0 0 25px 25px;
+        margin-bottom: 10px;
+        position: relative;
+        box-shadow: 0 1px 3px rgba(30, 58, 138, 0.3);
+    }
+
+    /* Button styles */
+    .btn {
+        display: inline-block;
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 5px;
+        letter-spacing: 0.01em;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+
+    .btn-warning {
+        background: #dc3545;
+        color: #ffffff;
+    }
+
+    .btn-warning:hover {
+        background: #c82333;
+    }
+
+    /* Info button styles */
+    #infoButton {
+        font-size: 1.1rem;
+        padding: 12px 20px;
+        font-weight: 600;
+    }
+
+    .main-content {
+        padding: 10px;
+    }
+
+    .info-content {
+        margin-bottom: 10px;
+    }
+
+    .info-section {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+    }
+
+    .info-section h4 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+
+    .info-section p {
+        margin: 8px 0;
+        line-height: 1.5;
+        font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+    }
+
+    .info-section strong {
+        color: #d63384;
+    }
+
+    .highlight {
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+
+    .language-toggle {
+        display: flex;
+        gap: 8px;
+    }
+
+    .language-toggle .lang-btn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        background: #1e3a8a;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .language-toggle .lang-btn:hover {
+        background: #1e40af;
+    }
+
+    .language-toggle .lang-btn.active {
+        background: #fbbf24;
+        color: #000000;
+        font-weight: 600;
+    }
+
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 800px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.12);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #fbbf24 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        flex: 1;
+    }
+
+    .close {
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-left: 20px;
+    }
+
+    .close:hover {
+        opacity: 0.7;
+    }
+
+    .modal-body {
+        padding: 30px;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.12);
-            overflow: hidden;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
+            margin: 10px;
+            border-radius: 15px;
         }
-
-        /* Header styles */
-        .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #fbbf24 100%);
-            color: white;
-            padding: 25px 20px;
-            text-align: center;
-            border-radius: 0 0 25px 25px;
-            margin-bottom: 30px;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.3);
-        }
-
-        /* Button styles */
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 5px;
-            letter-spacing: 0.01em;
-            border: none;
-            border-radius: 8px;
-            text-decoration: none;
-        }
-
-        .btn-warning {
-            background: #dc3545;
-            color: #ffffff;
-        }
-
-        .btn-warning:hover {
-            background: #c82333;
-        }
-
-        /* Info button styles */
-        #infoButton {
-            font-size: 1.1rem;
-            padding: 12px 20px;
-            font-weight: 600;
-        }
-
+        
         .main-content {
-            padding: 30px;
+            padding: 20px;
         }
-
-        .info-content {
+        
+        .info-section {
+            padding: 12px;
             margin-bottom: 20px;
         }
-
-        .info-section {
-            margin-bottom: 25px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-
+        
         .info-section h4 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 600;
-            letter-spacing: -0.01em;
+            font-size: 1rem;
         }
-
+        
         .info-section p {
-            margin: 8px 0;
-            line-height: 1.5;
-            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 400;
-            letter-spacing: 0.01em;
-        }
-
-        .info-section strong {
-            color: #d63384;
-        }
-
-        .highlight {
-            color: #1e3a8a;
-            font-weight: 600;
-        }
-
-        .language-toggle {
-            display: flex;
-            gap: 8px;
-        }
-
-        .language-toggle .lang-btn {
-            padding: 8px 15px;
             font-size: 0.9rem;
-            background: #1e3a8a;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s;
         }
+    }
 
-        .language-toggle .lang-btn:hover {
-            background: #1e40af;
-        }
 
-        .language-toggle .lang-btn.active {
-            background: #fbbf24;
-            color: #000000;
-            font-weight: 600;
-        }
 
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
 
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 0;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 800px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.12);
-            overflow: hidden;
-        }
 
-        .modal-header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #fbbf24 100%);
-            color: white;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
 
-        .modal-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
-            flex: 1;
-        }
 
-        .close {
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-left: 20px;
-        }
 
-        .close:hover {
-            opacity: 0.7;
-        }
 
-        .modal-body {
-            padding: 30px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
 
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 15px;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .info-section {
-                padding: 12px;
-                margin-bottom: 20px;
-            }
-            
-            .info-section h4 {
-                font-size: 1rem;
-            }
-            
-            .info-section p {
-                font-size: 0.9rem;
-            }
-        }
-    </style>
-    <div class="container">
-        <div class="header">
-            <button id="infoButton" class="btn btn-warning" aria-expanded="false" aria-controls="mainContent">⚠️ <span id="infoButtonText">Info</span></button>
+</style>
+<div class="container">
+<div class="header">
+    <button id="infoButton" class="btn btn-warning" aria-expanded="false" aria-controls="mainContent">⚠️
+        <span id="infoButtonText">Info</span>
+    </button>
+</div>
+<div class="main-content" id="mainContent" style="display: none;">
+    <div class="info-content">
+        <div class="language-toggle" style="margin-bottom: 20px; justify-content: center;">
+            <button class="lang-btn active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="de">DE</button>
         </div>
+        <div id="main-info-en">
+            <div class="info-section">
+                <h4>⏰ Arrival Times</h4>
+                <p>
+                    <strong>
+                        <span class="highlight">Scorer</span>
+                        must be in the hall at least 30 minutes before the start of play.
 
-        <div class="main-content" id="mainContent" style="display: none;">
-            <div class="info-content">
-                <div class="language-toggle" style="margin-bottom: 20px; justify-content: center;">
-                    <button class="lang-btn active" data-lang="en">EN</button>
-                    <button class="lang-btn" data-lang="de">DE</button>
-                </div>
-                
-                <div id="main-info-en">
-                    <div class="info-section">
-                        <h4>⏰ Arrival Times</h4>
-                        <p><strong><span class="highlight">Scorer</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
-                        <p><strong><span class="highlight">Täfeler</span> must be in the hall at least 10 minutes before the start of play.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>⚠️ Warning!</h4>
-                        <p><strong>Late arrival or failure to appear will result in a fine (50.- CHF).</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📋 Game Requirements</h4>
-                        <p>Games from 4L and under only need a <span class="highlight">Scorer</span>, without licence. It is indicated as the only "Scorer/Täfeler" in the game details.</p>
-                        <p><strong>In this case, the Scorer/Täfeler must be in the hall at least 30 minutes before the start of play.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📞 Contact Information</h4>
-                        <p>Your phone number can be seen by the team's coach only. It is used to contact you in case of emergency.</p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📅 Edit Deadlines</h4>
-                        <p><strong>Please note you can sign up or edit your information until 2 days before the game.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>💡 How to Use</h4>
-                        <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
-                    </div>
-                </div>
-                
-                <div id="main-info-de" style="display: none;">
-                    <div class="info-section">
-                        <h4>⏰ Ankunftszeiten</h4>
-                        <p><strong><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                        <p><strong><span class="highlight">Täfler:in</span> muss mindestens 10 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>⚠️ Wichtig!</h4>
-                        <p><strong>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📋 Spielanforderungen</h4>
-                        <p>Für 4L, 5L und DU23-2 Spiele wird nur ein/e <span class="highlight">Schreiber:in</span> ohne Lizenz benötigt. Es ist als einziger "Scorer/Täfeler" in den Spieldetails angegeben.</p>
-                        <p><strong>In diesem Fall muss der Schreiber:in/Täfeler:in mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📞 Kontaktinformationen</h4>
-                        <p>Deine Telefonnummer kann nur vom Teamcoach gesehen werden. Sie wird verwendet, um du im Notfall zu kontaktieren.</p>
-                    </div>
-                    <div class="info-section">
-                        <h4>📅 Bearbeitungsfristen</h4>
-                        <p><strong>Bitte beachte, dass du deine Informationen bis 2 Tage vor dem Spiel bearbeiten kannst.</strong></p>
-                    </div>
-                    <div class="info-section">
-                        <h4>💡 Verwendung</h4>
-                        <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
-                    </div>
-                </div>
+                    </strong>
+                </p>
+                <p>
+                    <strong>
+                        <span class="highlight">T&auml;feler</span>
+                        must be in the hall at least 10 minutes before the start of play.
+
+                    </strong>
+                </p>
+            </div>
+            <div class="info-section">
+                <h4>⚠️ Warning!</h4>
+                <p>
+                    <strong>Late arrival or failure to appear will result in a fine (50.- CHF).</strong>
+                </p>
+            </div>
+            <div class="info-section">
+                <h4>📋 Game Requirements</h4>
+                <p>Games from 4L and under only need a
+                    <span class="highlight">Scorer</span>, without licence. It is indicated as the only &quot;Scorer/T&auml;feler&quot; in the game details.
+                </p>
+                <p>
+                    <strong>In this case, the Scorer/T&auml;feler must be in the hall at least 30 minutes before the start of play.</strong>
+                </p>
+            </div>
+            <div class="info-section">
+                <h4>💡 How to Use</h4>
+                <p>Please click on the game, select your role, select yourself in the dropdown, and confirm. If you don't find yourself in the dropdown, contact Luca or Thamy</p>
             </div>
         </div>
+        <div id="main-info-de" style="display: none;">
+            <div class="info-section">
+                <h4>⏰ Ankunftszeiten</h4>
+                <p>
+                    <strong>
+                        <span class="highlight">Schreiber:in</span>
+                        muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.
 
-        <!-- Info Modal -->
-        <div id="infoModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="modalInfoTitle">Important Information</h2>
-                    <div class="language-toggle">
-                        <button class="lang-btn active" data-lang="en">EN</button>
-                        <button class="lang-btn" data-lang="de">DE</button>
-                    </div>
--                   <span class="close" onclick="closeInfoModal()">&times;</span>
-+                   <span id="closeInfoModalBtn" class="close" role="button" aria-label="Close">&times;</span>                </div>
-                <div class="modal-body">
-                    <div id="modal-info-en">
-                        <div class="info-section">
-                            <h4>⏰ Arrival Times</h4>
-                            <p><strong><span class="highlight">Scorer</span> must be in the hall at least 30 minutes before the start of play.</strong></p>
-                            <p><strong><span class="highlight">Täfeler</span> must be in the hall at least 10 minutes before the start of play.</strong></p>
-                        </div>
-                        <div class="info-section">
-                            <h4>⚠️ Warning!</h4>
-                            <p><strong>Late arrival or failure to appear will result in a fine (50.- CHF).</strong></p>
-                        </div>
-                        <div class="info-section">
-                            <h4>📋 Game Requirements</h4>
-                            <p>Games from 4L and under only need a <span class="highlight">Scorer</span>, without licence. It is indicated as the only "Scorer/Täfeler" in the game details.</p>
-                            <p><strong>In this case, the Scorer/Täfeler must be in the hall at least 30 minutes before the start of play.</strong></p>
-                        </div>
-                        <div class="info-section">
-                            <h4>📞 Contact Information</h4>
-                            <p>Your phone number can be seen by the team's coach only. It is used to contact you in case of emergency.</p>
-                        </div>
-                        <div class="info-section">
-                            <h4>📅 Edit Deadlines</h4>
-                            <p><strong>Please note you can sign up or edit your information until 2 days before the game.</strong></p>
-                        </div>
-                        <div class="info-section">
-                            <h4>💡 How to Use</h4>
-                            <p>Please click on the game, a popup will show up, and fill out your name and phone n., then click save.</p>
-                        </div>
-                    </div>
-                    <div id="modal-info-de" style="display: none;">
-                        <div class="info-section">
-                            <h4>⏰ Ankunftszeiten</h4>
-                            <p><strong><span class="highlight">Schreiber:in</span> muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                            <p><strong><span class="highlight">Täfler:in</span> muss mindestens 10 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                        </div>
-                        <div class="info-section">
-                            <h4>⚠️ Wichtig!</h4>
-                            <p><strong>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</strong></p>
-                        </div>
-                        <div class="info-section">
-                            <h4>📋 Spielanforderungen</h4>
-                            <p>Für 4L, 5L und DU23-2 Spiele wird nur ein/e <span class="highlight">Schreiber:in</span> ohne Lizenz benötigt. Es ist als einziger "Scorer/Täfeler" in den Spieldetails angegeben.</p>
-                            <p><strong>In diesem Fall muss der Schreiber:in/Täfeler:in mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong></p>
-                        </div>
-                        <div class="info-section">
-                            <h4>📞 Kontaktinformationen</h4>
-                            <p>Deine Telefonnummer kann nur vom Teamcoach gesehen werden. Sie wird verwendet, um du im Notfall zu kontaktieren.</p>
-                        </div>
-                        <div class="info-section">
-                            <h4>📅 Bearbeitungsfristen</h4>
-                            <p><strong>Bitte beachte, dass du deine Informationen bis 2 Tage vor dem Spiel bearbeiten kannst.</strong></p>
-                        </div>
-                        <div class="info-section">
-                            <h4>💡 Verwendung</h4>
-                            <p>Bitte klick auf das Spiel, es erscheint ein Popup-Fenster, in das du deinen Namen und deine Telefonnummer einträgst und dann auf „Speichern" klickst.</p>
-                        </div>
-                    </div>
-                </div>
+                    </strong>
+                </p>
+                <p>
+                    <strong>
+                        <span class="highlight">T&auml;fler:in</span>
+                        muss mindestens 10 Minuten vor Spielbeginn in der Halle sein.
+
+                    </strong>
+                </p>
+            </div>
+            <div class="info-section">
+                <h4>⚠️ Wichtig!</h4>
+                <p>
+                    <strong>Wenn du zu sp&auml;t kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</strong>
+                </p>
+            </div>
+            <div class="info-section">
+                <h4>📋 Spielanforderungen</h4>
+                <p>F&uuml;r 4L, 5L und DU23-2 Spiele wird nur ein/e
+                    <span class="highlight">Schreiber:in</span>
+                    ohne Lizenz ben&ouml;tigt. Es ist als einziger &quot;Scorer/T&auml;feler&quot; in den Spieldetails angegeben.
+
+                </p>
+                <p>
+                    <strong>In diesem Fall muss der Schreiber:in/T&auml;feler:in mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong>
+                </p>
+            </div>
+            <div class="info-section">
+                <h4>💡 Verwendung</h4>
+                <p>Klick einfach auf das Spiel, w&auml;hl deine Rolle aus, such dich in der Dropdown-Liste und best&auml;tige deine Auswahl. Wenn du dich nicht in der Dropdown-Liste findest, melde dich bei Luca oder Thamy</p>
             </div>
         </div>
     </div>
-
-    <script>
-        // Language switching function for main content
-        function switchMainLanguage(lang) {
-            const mainInfoEn = document.getElementById('main-info-en');
-            const mainInfoDe = document.getElementById('main-info-de');
-            const enBtn = document.querySelector('.main-content .lang-btn[data-lang="en"]');
-            const deBtn = document.querySelector('.main-content .lang-btn[data-lang="de"]');
-            
-            if (lang === 'en') {
-                mainInfoEn.style.display = 'block';
-                mainInfoDe.style.display = 'none';
-                enBtn.classList.add('active');
-                deBtn.classList.remove('active');
-            } else if (lang === 'de') {
-                mainInfoEn.style.display = 'none';
-                mainInfoDe.style.display = 'block';
-                deBtn.classList.add('active');
-                enBtn.classList.remove('active');
-            }
+</div>
+</div>
+<script>
+    // Language switching function for main content
+    function switchMainLanguage(lang) {
+        const mainInfoEn = document.getElementById('main-info-en');
+        const mainInfoDe = document.getElementById('main-info-de');
+        const enBtn = document.querySelector('.main-content .lang-btn[data-lang="en"]');
+        const deBtn = document.querySelector('.main-content .lang-btn[data-lang="de"]');
+        
+        if (lang === 'en') {
+            mainInfoEn.style.display = 'block';
+            mainInfoDe.style.display = 'none';
+            enBtn.classList.add('active');
+            deBtn.classList.remove('active');
+        } else if (lang === 'de') {
+            mainInfoEn.style.display = 'none';
+            mainInfoDe.style.display = 'block';
+            deBtn.classList.add('active');
+            enBtn.classList.remove('active');
         }
+    }
 
 
 
-        // Language switching function for modal
-        function switchModalLanguage(lang) {
-            const modalInfoEn = document.getElementById('modal-info-en');
-            const modalInfoDe = document.getElementById('modal-info-de');
-            const modalInfoTitle = document.getElementById('modalInfoTitle');
-            const enBtn = document.querySelector('.modal .lang-btn[data-lang="en"]');
-            const deBtn = document.querySelector('.modal .lang-btn[data-lang="de"]');
-            
-            if (lang === 'en') {
-                modalInfoEn.style.display = 'block';
-                modalInfoDe.style.display = 'none';
-                modalInfoTitle.textContent = 'Important Information';
-                enBtn.classList.add('active');
-                deBtn.classList.remove('active');
-            } else if (lang === 'de') {
-                modalInfoEn.style.display = 'none';
-                modalInfoDe.style.display = 'block';
-                modalInfoTitle.textContent = 'Wichtige Informationen';
-                deBtn.classList.add('active');
-                enBtn.classList.remove('active');
-            }
+    // Language switching function for modal
+    function switchModalLanguage(lang) {
+        const modalInfoEn = document.getElementById('modal-info-en');
+        const modalInfoDe = document.getElementById('modal-info-de');
+        const modalInfoTitle = document.getElementById('modalInfoTitle');
+        const enBtn = document.querySelector('.modal .lang-btn[data-lang="en"]');
+        const deBtn = document.querySelector('.modal .lang-btn[data-lang="de"]');
+        
+        if (lang === 'en') {
+            modalInfoEn.style.display = 'block';
+            modalInfoDe.style.display = 'none';
+            modalInfoTitle.textContent = 'Important Information';
+            enBtn.classList.add('active');
+            deBtn.classList.remove('active');
+        } else if (lang === 'de') {
+            modalInfoEn.style.display = 'none';
+            modalInfoDe.style.display = 'block';
+            modalInfoTitle.textContent = 'Wichtige Informationen';
+            deBtn.classList.add('active');
+            enBtn.classList.remove('active');
         }
+    }
 
-        // Modal functions
-        function openInfoModal() {
-            document.getElementById('infoModal').style.display = 'block';
+    // Modal functions
+    function openInfoModal() {
+        document.getElementById('infoModal').style.display = 'block';
+    }
+
+    function closeInfoModal() {
+        document.getElementById('infoModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('infoModal');
+        if (event.target === modal) {
+            closeInfoModal();
         }
+    }
 
-        function closeInfoModal() {
-            document.getElementById('infoModal').style.display = 'none';
+
+
+
+
+
+
+
+
+
+</script>
+<script>
+    // Improved toggle function with accessibility support
+    function toggleInfoContent() {
+        const mainContent = document.getElementById('mainContent');
+        const infoButton = document.getElementById('infoButton');
+        const infoButtonText = document.getElementById('infoButtonText');
+        
+        if (mainContent.style.display === 'none' || mainContent.style.display === '') {
+            mainContent.style.display = 'block';
+            infoButtonText.textContent = 'Hide Info';
+            infoButton.setAttribute('aria-expanded', 'true');
+        } else {
+            mainContent.style.display = 'none';
+            infoButtonText.textContent = 'Info';
+            infoButton.setAttribute('aria-expanded', 'false');
         }
+    }
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('infoModal');
-            if (event.target === modal) {
-                closeInfoModal();
-            }
+    // Add event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        const infoButton = document.getElementById('infoButton');
+        if (infoButton) {
+            infoButton.addEventListener('click', toggleInfoContent);
         }
-    </script>
-
-    <script>
-        // Improved toggle function with accessibility support
-        function toggleInfoContent() {
-            const mainContent = document.getElementById('mainContent');
-            const infoButton = document.getElementById('infoButton');
-            const infoButtonText = document.getElementById('infoButtonText');
-            
-            if (mainContent.style.display === 'none' || mainContent.style.display === '') {
-                mainContent.style.display = 'block';
-                infoButtonText.textContent = 'Hide Info';
-                infoButton.setAttribute('aria-expanded', 'true');
-            } else {
-                mainContent.style.display = 'none';
-                infoButtonText.textContent = 'Info';
-                infoButton.setAttribute('aria-expanded', 'false');
-            }
-        }
-
-        // Add event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            const infoButton = document.getElementById('infoButton');
-            if (infoButton) {
-                infoButton.addEventListener('click', toggleInfoContent);
-            }
-            
-            // Add event listeners for language buttons
-            const mainLangButtons = document.querySelectorAll('.main-content .lang-btn');
-            mainLangButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const lang = this.getAttribute('data-lang');
-                    switchMainLanguage(lang);
-                });
-            });
-            
-            const modalLangButtons = document.querySelectorAll('.modal .lang-btn');
-            modalLangButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const lang = this.getAttribute('data-lang');
-                    switchModalLanguage(lang);
-                });
+        
+        // Add event listeners for language buttons
+        const mainLangButtons = document.querySelectorAll('.main-content .lang-btn');
+        mainLangButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const lang = this.getAttribute('data-lang');
+                switchMainLanguage(lang);
             });
         });
-    </script>
+        
+        const modalLangButtons = document.querySelectorAll('.modal .lang-btn');
+        modalLangButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const lang = this.getAttribute('data-lang');
+                switchModalLanguage(lang);
+            });
+        });
+    });
+
+
+
+
+
+
+
+
+
+
+</script>
