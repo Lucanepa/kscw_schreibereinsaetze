@@ -500,7 +500,8 @@
         modalButton.setAttribute('aria-expanded', 'true');
         
         // Focus trap: store the element that had focus before opening modal
-        window.lastFocusedElement = document.activeElement;
+        modal.dataset.lastFocusedElementId = document.activeElement.id || '';
+  
         
         // Focus the close button
         const closeBtn = document.getElementById('closeInfoModalBtn');
@@ -523,8 +524,9 @@
         document.removeEventListener('keydown', handleModalKeydown);
         
         // Return focus to the element that had focus before opening modal
-        if (window.lastFocusedElement) {
-            window.lastFocusedElement.focus();
+        const prevId = modal.dataset.lastFocusedElementId;
+        if (prevId) {
+            document.getElementById(prevId)?.focus();
         }
     }
 
