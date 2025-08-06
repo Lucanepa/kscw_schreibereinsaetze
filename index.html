@@ -1712,6 +1712,8 @@
 
 
     <script>
+
+
         let allGames = [];
         let allTeams = [];
 
@@ -1726,107 +1728,15 @@
             SUPABASE_CONFIG.anonKey
         );
 
-        // Language switching function
-        function switchLanguage(lang) {
-            const enText = document.getElementById('en-text');
-            const deText = document.getElementById('de-text');
-            const infoEn = document.getElementById('info-en');
-            const infoDe = document.getElementById('info-de');
-            const infoButtonText = document.getElementById('infoButtonText');
-            const infoModalTitle = document.getElementById('infoModalTitle');
-            const enBtn = document.querySelector('#infoFocusedView .lang-btn[onclick="switchLanguage(\'en\')"]');
-            const deBtn = document.querySelector('#infoFocusedView .lang-btn[onclick="switchLanguage(\'de\')"]');
-            
-            // Update current language
-            currentLanguage = lang;
-            
-            if (lang === 'en') {
-                if (enText) enText.style.display = 'block';
-                if (deText) deText.style.display = 'none';
-                if (infoEn) infoEn.style.display = 'block';
-                if (infoDe) infoDe.style.display = 'none';
-                if (infoButtonText) infoButtonText.textContent = 'Info';
-                if (infoModalTitle) infoModalTitle.textContent = 'Important Information';
-                enBtn.classList.add('active');
-                deBtn.classList.remove('active');
-            } else {
-                if (enText) enText.style.display = 'none';
-                if (deText) deText.style.display = 'block';
-                if (infoEn) infoEn.style.display = 'none';
-                if (infoDe) infoDe.style.display = 'block';
-                if (infoButtonText) infoButtonText.textContent = 'Info';
-                if (infoModalTitle) infoModalTitle.textContent = 'Wichtige Informationen';
-                deBtn.classList.add('active');
-                enBtn.classList.remove('active');
-            }
-            
-            // Update UI language after switching
-            updateUILanguage();
-        }
 
 
 
-        // Update chip labels for language changes
-        function updateChipLabels() {
-            // Update toggle chip based on current state
-            const toggleChip = document.querySelector('#teamChips .select-toggle-chip');
-            if (toggleChip) {
-                const teamChips = document.querySelectorAll('#teamChips .team-chip:not(.select-toggle-chip)');
-                const allSelected = Array.from(teamChips).every(chip => chip.classList.contains('selected'));
-                
-                if (allSelected) {
-                    'Alle abwählen';
-                    toggleChip.style.border = '2px solid #dc3545';
-                } else {
-                   'Alle auswählen';
-                    toggleChip.style.border = '2px solid #28a745';
-                }
-            }
-        }
+
+
         
 
-        // Update UI language
-        function updateUILanguage() {
-            // Check if translations and currentLanguage are available
-            if (!translations || !currentLanguage || !translations[currentLanguage]) {
-                console.warn('Translations not loaded yet, skipping UI language update');
-                return;
-            }
-            
-            // Update filter labels
-            const allFilterLabels = document.querySelectorAll('.filter-group label');
-            allFilterLabels.forEach(label => {
-                if (label.textContent.includes('Filter by Team')) {
-                    label.textContent = translations[currentLanguage].filterByTeam;
-                } else if (label.textContent.includes('Filter by Role')) {
-                    label.textContent = translations[currentLanguage].filterByRole;
-                } else if (label.textContent.includes('Filter by Issues')) {
-                    label.textContent = translations[currentLanguage].filterByIssues;
-                }
-            });
 
-            // Update chip labels
-            updateChipLabels();
-            
-            // Update buttons
-            const buttons = document.querySelectorAll('.btn');
-            buttons.forEach(btn => {
-                if (btn.textContent.includes('Clear Filters')) {
-                    btn.textContent = translations[currentLanguage].clearFilters;
-                } else if (btn.textContent.includes('Summary')) {
-                    btn.textContent = `📊 ${translations[currentLanguage].summary}`;
-                }
-            });
-            
-            // Update loading and error messages
-            const loadingElement = document.getElementById('loading');
-            if (loadingElement && loadingElement.textContent.includes('Loading games')) {
-                loadingElement.textContent = translations[currentLanguage].loading;
-            }
-        }
 
-        let currentLanguage = 'en';
-        
         // Team color management - using shared module
         // getTeamColor function is now available from teamUtils.js
 
@@ -1864,63 +1774,7 @@
             return `${dayName}, ${day}/${month}/${year}`;
         }
 
-        // German translations
-        // Translations loaded from external JSON file
-        let translations = {};
-        
-        // Load translations function
-        async function loadTranslations() {
-            try {
-                const response = await fetch('translations.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                translations = await response.json();
-            } catch (error) {
-                console.error('Error loading translations:', error);
-                // Fallback translations
-                translations = {
-                    de: {
-                        filterByTeam: 'Filter nach Team',
-                        filterByRole: 'Filter nach Rolle',
-                        filterByIssues: 'Filter nach Problemen',
-                        clearFilters: 'Filter löschen',
-                        summary: 'Zusammenfassung',
-                        loading: 'Spiele werden geladen...',
-                        allRoles: 'Alle Rollen',
-                        scorerRole: 'Schreiber',
-                        taefelerRole: 'Täfeler',
-                        allGames: 'Alle Spiele',
-                        gamesWithIssues: 'Spiele mit Problemen',
-                        noIssues: 'Spiele ohne Probleme',
-                        overview: 'Übersicht fehlender Informationen',
-                        close: 'Schließen',
-                        teamGames: 'Team Spiele',
-                        allGamesForTeam: 'Alle Spiele für dieses Team',
-                        vs: 'gegen'
-                    },
-                    en: {
-                        filterByTeam: 'Filter by Team',
-                        filterByRole: 'Filter by Role',
-                        filterByIssues: 'Filter by Issues',
-                        clearFilters: 'Clear Filters',
-                        summary: 'Summary',
-                        loading: 'Loading games...',
-                        allRoles: 'All Roles',
-                        scorerRole: 'Scorer',
-                        taefelerRole: 'Täfeler',
-                        allGames: 'All Games',
-                        gamesWithIssues: 'Games with Issues',
-                        noIssues: 'Games without Issues',
-                        overview: 'Overview of missing information',
-                        close: 'Close',
-                        teamGames: 'Team Games',
-                        allGamesForTeam: 'All games for this team',
-                        vs: 'vs'
-                    }
-                };
-            }
-        }
+
         
 
 
@@ -1972,15 +1826,9 @@
         }
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Load translations first
-            await loadTranslations();
-            // Switch to English as default
-            switchLanguage('en');
-            // Then load games and update UI
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load games
             loadGames();
-            // Update UI language when page loads
-            updateUILanguage();
         });
 
         // Load games from matches_complete table
@@ -2512,7 +2360,7 @@
                 return;
             }
             
-            const isGerman = currentLanguage === 'de';
+            const isGerman = false; // Always English
             let roleName, selectedPerson;
             
             if (type === 'taefeler') {
@@ -3280,10 +3128,10 @@
             roleFilter.innerHTML = '';
             
             const roles = [
-                { value: '', label: translations[currentLanguage]?.allRoles || 'All Roles' },
-                { value: 'scorer', label: translations[currentLanguage]?.scorerRole || 'Scorer' },
-                { value: 'taefeler', label: translations[currentLanguage]?.taefelerRole || 'Täfeler' },
-                { value: 'scorer-taefeler', label: currentLanguage === 'de' ? 'Schreiber/Täfeler' : 'Scorer/Täfeler' }
+                            { value: '', label: 'All Roles' },
+            { value: 'scorer', label: 'Scorer' },
+            { value: 'taefeler', label: 'Täfeler' },
+            { value: 'scorer-taefeler', label: 'Scorer/Täfeler' }
             ];
             
             roles.forEach(role => {
@@ -3300,9 +3148,9 @@
             issuesFilter.innerHTML = '';
             
             const issues = [
-                { value: '', label: translations[currentLanguage]?.allGames || 'All Games' },
-                { value: 'issues', label: translations[currentLanguage]?.gamesWithIssues || 'Games with Issues' },
-                { value: 'no-issues', label: translations[currentLanguage]?.noIssues || 'Games without Issues' }
+                            { value: '', label: 'All Games' },
+            { value: 'issues', label: 'Games with Issues' },
+            { value: 'no-issues', label: 'Games without Issues' }
             ];
             
             issues.forEach(issue => {
@@ -3321,7 +3169,7 @@
             // Add default "All Teams" option
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
-            defaultOption.textContent = translations[currentLanguage]?.allTeams || 'All Teams';
+            defaultOption.textContent = 'All Teams';
             teamFilter.appendChild(defaultOption);
             
             // Filter teams to only show scorer/taefeler/scorer_taefeler teams
@@ -3802,9 +3650,9 @@
             document.getElementById('summaryContent').innerHTML = summaryData;
             
             // Update modal titles based on language
-            document.querySelector('#summaryModal .modal-title').textContent = translations[currentLanguage].summary;
-            document.querySelector('#summaryModal .modal-subtitle').textContent = translations[currentLanguage].overview;
-            document.querySelector('#summaryModal .btn-secondary').textContent = translations[currentLanguage].close;
+            document.querySelector('#summaryModal .modal-title').textContent = 'Game Issues Summary';
+            document.querySelector('#summaryModal .modal-subtitle').textContent = 'Overview of missing information';
+            document.querySelector('#summaryModal .btn-secondary').textContent = 'Close';
             
             document.getElementById('summaryModal').style.display = 'block';
         }
@@ -3859,13 +3707,13 @@
                         <div class="game-roles">
                             ${issues.taefeler > 0 ? `
                                 <div class="role-item">
-                                    <div class="role-label">🏐 ${translations[currentLanguage].taefeler}: ${issues.taefeler} missing</div>
+                                    <div class="role-label">🏐 Täfeler: ${issues.taefeler} missing</div>
                                     <div class="status-icon">⚠️</div>
                                 </div>
                             ` : ''}
                             ${issues.scorer > 0 ? `
                                 <div class="role-item">
-                                    <div class="role-label">📝 ${translations[currentLanguage].scorer}: ${issues.scorer} missing</div>
+                                    <div class="role-label">📝 Scorer: ${issues.scorer} missing</div>
                                     <div class="status-icon">⚠️</div>
                                 </div>
                             ` : ''}
@@ -3894,9 +3742,9 @@
                 game.away_team === teamShortName
             );
 
-            document.getElementById('teamGamesTitle').textContent = `${teamShortName} ${translations[currentLanguage].teamGames}`;
-            document.querySelector('#teamGamesModal .modal-subtitle').textContent = translations[currentLanguage].allGamesForTeam;
-            document.querySelector('#teamGamesModal .btn-secondary').textContent = translations[currentLanguage].close;
+            document.getElementById('teamGamesTitle').textContent = `${teamShortName} Games`;
+            document.querySelector('#teamGamesModal .modal-subtitle').textContent = 'All games for this team';
+            document.querySelector('#teamGamesModal .btn-secondary').textContent = 'Close';
             
             let teamGamesHTML = `<div class="team-games-list">`;
             
@@ -3934,16 +3782,16 @@
                             <div class="team-game-date">${escapeHtml(formattedDate)}</div>
                             <div class="team-game-time">${escapeHtml(formattedTime)}</div>
                         </div>
-                        <div class="team-game-teams">${escapeHtml(game.home_team)} ${translations[currentLanguage].vs} ${escapeHtml(game.away_team)}</div>
+                        <div class="team-game-teams">${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}</div>
                         <div class="team-game-location">📍 ${escapeHtml(game.halle || 'TBD')}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team && game.scorer_team.trim() !== '' ? `
                                 <div class="team-role-item ${!game.scorer_id ? 'has-issue' : ''}">
-                                    📝 ${translations[currentLanguage].scorer}: ${escapeHtml(game.scorer_team)}${scorerName ? ` (${escapeHtml(scorerName)})` : ''}
+                                    📝 Scorer: ${escapeHtml(game.scorer_team)}${scorerName ? ` (${escapeHtml(scorerName)})` : ''}
                                 </div>
                             ` : ''}
                             <div class="team-role-item ${!game.taefeler_id ? 'has-issue' : ''}">
-                                🏐 ${translations[currentLanguage].taefeler}: ${escapeHtml(game.taefeler_team || 'TBD')}${taefelerName ? ` (${escapeHtml(taefelerName)})` : ''}
+                                🏐 Täfeler: ${escapeHtml(game.taefeler_team || 'TBD')}${taefelerName ? ` (${escapeHtml(taefelerName)})` : ''}
                             </div>
                         </div>
                     </div>
