@@ -3410,7 +3410,7 @@
                 showMoreButton.textContent = 'Show More Games';
                 showMoreButton.onclick = () => {
                     gamesToShow += 6;
-                    renderGames(games);
+                    renderGames(filterCurrentGames(allGames));
                 };
                 
                 // Add the button after the games container

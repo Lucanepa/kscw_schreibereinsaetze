@@ -199,6 +199,30 @@
         overflow-y: auto;
     }
 
+    /* Language button styles for modal */
+    .lang-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        transition: all 0.3s ease;
+        letter-spacing: 0.01em;
+    }
+
+    .lang-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .lang-btn.active {
+        background: rgba(255, 255, 255, 0.4);
+        border-color: rgba(255, 255, 255, 0.6);
+    }
+
     /* Mobile optimizations */
     @media (max-width: 768px) {
         .container {
@@ -238,6 +262,9 @@
 <div class="header">
     <button id="infoButton" class="btn btn-warning" aria-expanded="false" aria-controls="mainContent">⚠️
         <span id="infoButtonText">Info</span>
+    </button>
+    <button id="modalInfoButton" class="btn btn-warning" onclick="openInfoModal()" style="margin-left: 10px;">📋
+        <span>Modal Info</span>
     </button>
 </div>
 <div class="main-content" id="mainContent" style="display: none;">
@@ -327,6 +354,97 @@
     </div>
 </div>
 </div>
+
+<!-- Info Modal -->
+<div id="infoModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span id="closeInfoModalBtn" class="close">&times;</span>
+        
+        <div class="modal-header">
+            <h2 id="modalInfoTitle">Important Information</h2>
+            <div class="language-toggle">
+                <button class="lang-btn active" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="de">DE</button>
+            </div>
+        </div>
+        
+        <div class="modal-body">
+            <div id="modal-info-en">
+                <div class="info-section">
+                    <h4>⏰ Arrival Times</h4>
+                    <p>
+                        <strong>
+                            <span class="highlight">Scorer</span>
+                            must be in the hall at least 30 minutes before the start of play.
+                        </strong>
+                    </p>
+                    <p>
+                        <strong>
+                            <span class="highlight">Täfeler</span>
+                            must be in the hall at least 10 minutes before the start of play.
+                        </strong>
+                    </p>
+                </div>
+                <div class="info-section">
+                    <h4>⚠️ Warning!</h4>
+                    <p>
+                        <strong>Late arrival or failure to appear will result in a fine (50.- CHF).</strong>
+                    </p>
+                </div>
+                <div class="info-section">
+                    <h4>📋 Game Requirements</h4>
+                    <p>Games from 4L and under only need a
+                        <span class="highlight">Scorer</span>, without licence. It is indicated as the only "Scorer/Täfeler" in the game details.
+                    </p>
+                    <p>
+                        <strong>In this case, the Scorer/Täfeler must be in the hall at least 30 minutes before the start of play.</strong>
+                    </p>
+                </div>
+                <div class="info-section">
+                    <h4>💡 How to Use</h4>
+                    <p>Please click on the game, select your role, select yourself in the dropdown, and confirm. If you don't find yourself in the dropdown, contact Luca or Thamy</p>
+                </div>
+            </div>
+            <div id="modal-info-de" style="display: none;">
+                <div class="info-section">
+                    <h4>⏰ Ankunftszeiten</h4>
+                    <p>
+                        <strong>
+                            <span class="highlight">Schreiber:in</span>
+                            muss mindestens 30 Minuten vor Spielbeginn in der Halle sein.
+                        </strong>
+                    </p>
+                    <p>
+                        <strong>
+                            <span class="highlight">Täfler:in</span>
+                            muss mindestens 10 Minuten vor Spielbeginn in der Halle sein.
+                        </strong>
+                    </p>
+                </div>
+                <div class="info-section">
+                    <h4>⚠️ Wichtig!</h4>
+                    <p>
+                        <strong>Wenn du zu spät kommst oder nicht auftauchst, gibt's eine Busse (50.- CHF).</strong>
+                    </p>
+                </div>
+                <div class="info-section">
+                    <h4>📋 Spielanforderungen</h4>
+                    <p>Für 4L, 5L und DU23-2 Spiele wird nur ein/e
+                        <span class="highlight">Schreiber:in</span>
+                        ohne Lizenz benötigt. Es ist als einziger "Scorer/Täfeler" in den Spieldetails angegeben.
+                    </p>
+                    <p>
+                        <strong>In diesem Fall muss der Schreiber:in/Täfeler:in mindestens 30 Minuten vor Spielbeginn in der Halle sein.</strong>
+                    </p>
+                </div>
+                <div class="info-section">
+                    <h4>💡 Verwendung</h4>
+                    <p>Klick einfach auf das Spiel, wähl deine Rolle aus, such dich in der Dropdown-Liste und bestätige deine Auswahl. Wenn du dich nicht in der Dropdown-Liste findest, melde dich bei Luca oder Thamy</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     // Language switching function for main content
     function switchMainLanguage(lang) {
@@ -399,6 +517,8 @@
 
 
 
+
+
 </script>
 <script>
     // Improved toggle function with accessibility support
@@ -441,6 +561,12 @@
                 switchModalLanguage(lang);
             });
         });
+
+        // Add event listener for modal close button
+        const closeInfoModalBtn = document.getElementById('closeInfoModalBtn');
+        if (closeInfoModalBtn) {
+            closeInfoModalBtn.addEventListener('click', closeInfoModal);
+        }
     });
 
 
