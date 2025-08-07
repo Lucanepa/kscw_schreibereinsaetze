@@ -83,7 +83,56 @@ if (typeof module !== 'undefined' && module.exports) {
 
     if (!hasUrl || !hasKey) {
         // Configuration template detected - credentials not set
+        const errorMessage = 'CRITICAL: Supabase configuration is incomplete. ' +
+            'Please copy config.template.js to config.js and add your actual Supabase credentials. ' +
+            `Missing: ${!hasUrl ? 'URL' : ''}${!hasUrl && !hasKey ? ' and ' : ''}${!hasKey ? 'ANON_KEY' : ''}`;
+        
+        // Log error with detailed information
+        console.error('Configuration Validation Failed:', {
+            error: errorMessage,
+            hasUrl: hasUrl,
+            hasKey: hasKey,
+            url: SUPABASE_CONFIG.url,
+            anonKey: SUPABASE_CONFIG.anonKey ? '[REDACTED]' : 'NOT_SET',
+            timestamp: new Date().toISOString(),
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Node.js'
+        });
+        
+        // In browser environment, show user-friendly error
+        if (typeof window !== 'undefined') {
+            // Create a visible error message for users
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: #dc3545;
+                color: white;
+                padding: 15px;
+                text-align: center;
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+                z-index: 9999;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            `;
+            errorDiv.innerHTML = `
+                <strong>Configuration Error:</strong> Supabase credentials are not configured. 
+                Please contact your administrator or check the browser console for details.
+            `;
+            document.body.appendChild(errorDiv);
+        }
+        
+        // In Node.js environment, terminate the process
+        if (typeof process !== 'undefined' && process.exit) {
+            console.error('Terminating application due to invalid configuration.');
+            process.exit(1);
+        }
+        
+        // For browser environments, throw an error to prevent further execution
+        throw new Error(errorMessage);
     } else {
         // Configuration loaded successfully
+        console.log('Supabase configuration validated successfully.');
     }
 })(); 

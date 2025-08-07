@@ -2123,10 +2123,61 @@
                     });
 
                 if (error) {
-                    // Logging error silently
+                    // Log Supabase error with detailed information
+                    console.error('Supabase insert error in logChange:', {
+                        error: error,
+                        action: action,
+                        fieldName: fieldName,
+                        oldValue: oldValue,
+                        newValue: newValue,
+                        gameInfo: gameInfo,
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        sessionId: getSessionId()
+                    });
+                    
+                    // Optionally send to external logging service if available
+                    if (window.logErrorToService) {
+                        window.logErrorToService('supabase_insert_error', {
+                            error: error.message,
+                            details: error.details,
+                            hint: error.hint,
+                            code: error.code,
+                            context: {
+                                action: action,
+                                fieldName: fieldName,
+                                gameInfo: gameInfo
+                            }
+                        });
+                    }
                 }
             } catch (error) {
-                // Error logging change silently
+                // Log unexpected exception with full context
+                console.error('Unexpected error in logChange:', {
+                    error: error.message,
+                    stack: error.stack,
+                    action: action,
+                    fieldName: fieldName,
+                    oldValue: oldValue,
+                    newValue: newValue,
+                    gameInfo: gameInfo,
+                    timestamp: new Date().toISOString(),
+                    userAgent: navigator.userAgent,
+                    sessionId: getSessionId()
+                });
+                
+                // Optionally send to external logging service if available
+                if (window.logErrorToService) {
+                    window.logErrorToService('unexpected_error', {
+                        error: error.message,
+                        stack: error.stack,
+                        context: {
+                            action: action,
+                            fieldName: fieldName,
+                            gameInfo: gameInfo
+                        }
+                    });
+                }
             }
         }
 
