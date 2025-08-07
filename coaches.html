@@ -1491,7 +1491,7 @@
     window.parent.postMessage({
         type: 'resize',
         height: height
-    }, '*');
+    }, window.location.origin);
 }
 
 // Send height when page loads
