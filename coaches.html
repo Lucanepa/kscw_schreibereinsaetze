@@ -284,6 +284,8 @@
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             background: white;
+            width: 100%;
+            max-width: 100%;
         }
 
         .admin-table th {
@@ -782,6 +784,22 @@
                 border-radius: 15px;
             }
             
+            .mobile-game-card .game-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            
+            .mobile-game-card .game-date-time {
+                font-size: 12px;
+                max-width: 100%;
+            }
+            
+            .mobile-game-card .game-teams {
+                font-size: 11px;
+                max-width: 100%;
+            }
+            
             .header {
                 padding: 20px 15px;
             }
@@ -862,6 +880,10 @@
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 transition: transform 0.3s ease, box-shadow 0.3s ease;
                 cursor: pointer;
+                overflow: hidden;
+                word-wrap: break-word;
+                width: 100%;
+                box-sizing: border-box;
             }
             
             .admin-table-container .mobile-game-card:hover {
@@ -876,18 +898,28 @@
                 margin-bottom: 10px;
                 padding-bottom: 8px;
                 border-bottom: 1px solid #f0f0f0;
+                flex-wrap: wrap;
+                gap: 8px;
             }
             
             .mobile-game-card .game-date-time {
                 font-weight: 600;
                 color: #333;
                 font-size: 14px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
             }
             
             .mobile-game-card .game-teams {
                 font-weight: 600;
                 color: #1e3a8a;
                 font-size: 13px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
             }
             
 
@@ -1716,8 +1748,8 @@
                 gameCard.className = 'mobile-game-card';
                 gameCard.innerHTML = `
                     <div class="game-header">
-                        <div class="game-date-time">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
-                        <div class="game-teams">${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}</div>
+                        <div class="game-date-time" title="${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
+                        <div class="game-teams" title="${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}">${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}</div>
                     </div>
 
                     <div class="game-details">
