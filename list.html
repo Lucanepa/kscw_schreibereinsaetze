@@ -152,7 +152,6 @@ font-size: 1rem; /* ≈16px */
         // Initialize Supabase client
         let supabase;
         if (typeof SUPABASE_CONFIG === 'undefined') {
-            console.error('SUPABASE_CONFIG is not defined. Please check if config.js is loaded correctly.');
             document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Configuration error. Please refresh the page or contact support.</div>';
         } else {
             supabase = window.supabase.createClient(
@@ -197,7 +196,6 @@ font-size: 1rem; /* ≈16px */
         // Load persons from database
         async function loadPersons() {
             if (!supabase) {
-                console.error('Supabase client not initialized');
                 return;
             }
             
@@ -212,7 +210,6 @@ font-size: 1rem; /* ≈16px */
                 allScorers = data ?? [];
                 allTaefelers = data ?? [];
             } catch (error) {
-                console.error('Error loading persons:', error);
                 allScorers = [];
                 allTaefelers = [];
             }
@@ -221,7 +218,6 @@ font-size: 1rem; /* ≈16px */
         // Load games from database
         async function loadGames() {
             if (!supabase) {
-                console.error('Supabase client not initialized');
                 return;
             }
             
@@ -239,7 +235,6 @@ font-size: 1rem; /* ≈16px */
                 await loadPersons();
                 renderGamesTable();
             } catch (error) {
-                console.error('Error loading games:', error);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').style.display = 'block';
             } finally {

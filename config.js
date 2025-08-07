@@ -66,9 +66,6 @@ if (typeof module !== 'undefined' && module.exports) {
 
 (function validateConfig() {
     if (!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) {
-        console.error('❌ Supabase configuration is incomplete!');
-        console.error('Please check your config.js file.');
-    } else {
-        console.log('✅ Supabase configuration loaded successfully');
+        // Supabase configuration is incomplete
     }
 })(); 

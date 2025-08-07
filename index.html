@@ -396,10 +396,10 @@
                         return color;
                     }
                 } catch (error) {
-                    console.error('Error getting team color for', teamName, ':', error);
+                    // Error getting team color silently
                 }
             } else {
-                console.warn('teamUtils or getTeamColor not available');
+                // teamUtils or getTeamColor not available
             }
             return '#6c757d'; // Default gray fallback
         }
@@ -497,7 +497,6 @@
                 // Initialize filter system - show team filter by default
                 selectFilterChip('team');
             } catch (error) {
-                console.error('Error loading games:', error);
                 document.getElementById('loading').innerHTML = 'Error loading games. Please try again.';
             } finally {
                 document.getElementById('loading').style.display = 'none';
@@ -542,7 +541,6 @@
         function normalizeTeamName(teamName) {
             // Check if teamUtils is available before calling its methods
             if (typeof window.teamUtils === 'undefined' || !window.teamUtils) {
-                console.error('teamUtils is not loaded. Please ensure teamUtils.js is properly loaded.');
                 // Return original teamName as fallback
                 return teamName;
             }
@@ -552,7 +550,6 @@
         function personHasTeam(person, targetTeam) {
             // Check if teamUtils is available before calling its methods
             if (typeof window.teamUtils === 'undefined' || !window.teamUtils) {
-                console.error('teamUtils is not loaded. Please ensure teamUtils.js is properly loaded.');
                 // Return false as fallback to prevent false positives
                 return false;
             }
@@ -1254,7 +1251,6 @@
                 
                 allTeams = [...new Set(allTeamValues)].sort();
             } catch (error) {
-                console.error('Error loading teams:', error);
                 allTeams = [];
                 
                 // Show error to user
@@ -1718,7 +1714,6 @@
                 closeAddPersonModal();
                 alert('Person added successfully!');
             } catch (error) {
-                console.error('Error adding person:', error);
                 alert('Error adding person. Please try again.');
             }
         }
@@ -1848,12 +1843,10 @@
 
         // Select filter chip and show appropriate dropdown
         function selectFilterChip(filterType) {
-            console.log('🎯 selectFilterChip() called with:', filterType);
             
             const selectedChip = document.querySelector(`[data-filter="${filterType}"]`);
             const targetContainer = document.getElementById(`${filterType}FilterContainer`);
             if (!selectedChip || !targetContainer) {
-                console.warn(`Unknown filter type: ${filterType}`);
                 return;
             }
 
@@ -1876,7 +1869,6 @@
             if (filterType !== 'role') document.getElementById('roleFilter').value = '';
             if (filterType !== 'issues') document.getElementById('issuesFilter').value = '';
             
-            console.log('🎯 About to call filterGames() from selectFilterChip');
             // Apply current filter
             filterGames();
         }
@@ -1886,12 +1878,6 @@
             const teamFilter = document.getElementById('teamFilter').value;
             const roleFilter = document.getElementById('roleFilter').value;
             const issuesFilter = document.getElementById('issuesFilter').value;
-
-            console.log('🔍 filterGames() called with filters:', {
-                teamFilter,
-                roleFilter,
-                issuesFilter
-            });
 
             let filtered = filterCurrentGames(allGames);
 
@@ -1953,13 +1939,6 @@
             // Reset games to show when filters change
             gamesToShow = 6;
             
-            console.log('📊 filterGames() results:', {
-                totalGames: allGames.length,
-                filteredGamesCount: filtered.length,
-                gamesToShow,
-                currentFilteredGamesLength: currentFilteredGames.length
-            });
-            
             renderGames(filtered);
         }
 
@@ -1985,19 +1964,11 @@
 
         // Render games
         function renderGames(games = allGames) {
-            console.log('🎮 renderGames() called with:', {
-                gamesLength: games.length,
-                gamesToShow,
-                gamesToDisplayLength: Math.min(gamesToShow, games.length),
-                isUsingCurrentFilteredGames: games === currentFilteredGames,
-                firstFewGames: games.slice(0, 3).map(g => `${g.home_team} vs ${g.away_team}`)
-            });
             
             const gamesContainer = document.getElementById('gamesGrid');
             gamesContainer.innerHTML = '';
 
             if (!games || games.length === 0) {
-                console.log('❌ No games to render');
                 gamesContainer.innerHTML = '<div class="no-games">No games found</div>';
                 return;
             }
@@ -2126,41 +2097,15 @@
             const hasMoreGames = games.length > gamesToShow;
             
             if (hasMoreGames) {
-                console.log('➕ Creating enabled Show More button:', {
-                    gamesLength: games.length,
-                    gamesToShow,
-                    remainingGames: games.length - gamesToShow
-                });
-                
                 showMoreButton.className = 'btn btn-primary';
                 showMoreButton.textContent = 'Show More Games';
                 showMoreButton.disabled = false;
                 showMoreButton.onclick = () => {
-                    console.log('🔄 Show More button clicked!');
-                    console.log('📈 Before increment:', {
-                        gamesToShow,
-                        currentFilteredGamesLength: currentFilteredGames.length,
-                        teamFilter: document.getElementById('teamFilter').value,
-                        roleFilter: document.getElementById('roleFilter').value,
-                        issuesFilter: document.getElementById('issuesFilter').value
-                    });
-                    
                     gamesToShow += 6;
-                    
-                    console.log('📈 After increment:', {
-                        gamesToShow,
-                        currentFilteredGamesLength: currentFilteredGames.length,
-                        willShowGames: Math.min(gamesToShow, currentFilteredGames.length)
-                    });
                     
                     renderGames(currentFilteredGames);
                 };
             } else {
-                console.log('➕ Creating disabled Show More button:', {
-                    gamesLength: games.length,
-                    gamesToShow,
-                    remainingGames: 0
-                });
                 
                 showMoreButton.className = 'btn btn-secondary';
                 showMoreButton.textContent = 'Show More Games';
@@ -2253,10 +2198,10 @@
                     });
 
                 if (error) {
-                    console.error('Logging error:', error);
+                    // Logging error silently
                 }
             } catch (error) {
-                console.error('Error logging change:', error);
+                // Error logging change silently
             }
         }
 
@@ -2319,7 +2264,6 @@
                     .eq('match_id', currentGame.match_id);
 
                 if (error) {
-                    console.error('Database update error:', error);
                     throw error;
                 }
 
@@ -2342,7 +2286,6 @@
                 backToMainView();
                 renderGames(currentFilteredGames);
             } catch (error) {
-                console.error('Error saving game details:', error);
                 alert('Error saving game details. Please try again.');
             }
         }
