@@ -229,6 +229,73 @@
             background: #138496;
         }
 
+        .search-section {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e3f2fd;
+        }
+
+        .search-section h3 {
+            margin-bottom: 15px;
+            color: #1976d2;
+            font-size: 1.2rem;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .search-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .search-group input {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-actions {
+            text-align: center;
+        }
+
+        .results-count {
+            background: #e8f5e8;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #28a745;
+        }
+
+        .results-count p {
+            margin: 0;
+            color: #155724;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
         .admin-filters {
             background: #f8f9fa;
             padding: 20px;
@@ -877,6 +944,40 @@
                 gap: 15px;
             }
             
+            .search-section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .search-section h3 {
+                font-size: 1.1rem;
+                margin-bottom: 12px;
+            }
+            
+            .search-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .search-group label {
+                font-size: 0.85rem;
+                margin-bottom: 4px;
+            }
+            
+            .search-group input {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+            
+            .results-count {
+                padding: 8px 12px;
+                margin-bottom: 12px;
+            }
+            
+            .results-count p {
+                font-size: 0.85rem;
+            }
+            
             .admin-table {
                 display: none;
             }
@@ -1053,6 +1154,40 @@
                     <button class="btn btn-info" onclick="downloadPDF()">📄 Download PDF</button>
                     <button class="btn btn-outline" onclick="goBack()">← Back</button>
                     <button class="btn btn-danger" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <h3>🔍 Search Games</h3>
+                <div class="search-grid">
+                    <div class="search-group">
+                        <label for="searchHomeTeam">Home Team:</label>
+                        <input type="text" id="searchHomeTeam" placeholder="Enter home team name" oninput="filterAdminGames()">
+                    </div>
+                    <div class="search-group">
+                        <label for="searchAwayTeam">Away Team:</label>
+                        <input type="text" id="searchAwayTeam" placeholder="Enter away team name" oninput="filterAdminGames()">
+                    </div>
+                    <div class="search-group">
+                        <label for="searchDate">Date:</label>
+                        <input type="date" id="searchDate" oninput="filterAdminGames()">
+                    </div>
+                    <div class="search-group">
+                        <label for="searchTime">Time:</label>
+                        <input type="time" id="searchTime" oninput="filterAdminGames()">
+                    </div>
+                    <div class="search-group">
+                        <label for="searchTaefeler">Täfeler:</label>
+                        <input type="text" id="searchTaefeler" placeholder="Enter täfeler name or team" oninput="filterAdminGames()">
+                    </div>
+                    <div class="search-group">
+                        <label for="searchScorer">Scorer:</label>
+                        <input type="text" id="searchScorer" placeholder="Enter scorer name or team" oninput="filterAdminGames()">
+                    </div>
+                </div>
+                <div class="search-actions">
+                    <button class="btn btn-secondary" onclick="clearSearch()">Clear Search</button>
                 </div>
             </div>
 
@@ -1625,6 +1760,14 @@
             const homeTeam = document.getElementById('adminHomeFilter').value;
             const issuesFilter = document.getElementById('adminIssuesFilter').value;
 
+            // Get search values
+            const searchHomeTeam = document.getElementById('searchHomeTeam').value.toLowerCase();
+            const searchAwayTeam = document.getElementById('searchAwayTeam').value.toLowerCase();
+            const searchDate = document.getElementById('searchDate').value;
+            const searchTime = document.getElementById('searchTime').value;
+            const searchTaefeler = document.getElementById('searchTaefeler').value.toLowerCase();
+            const searchScorer = document.getElementById('searchScorer').value.toLowerCase();
+
             let filtered = filterCurrentGames(allGames);
 
             // Filter by taefeler team
@@ -1652,7 +1795,109 @@
                 filtered = filtered.filter(game => !hasIssues(game));
             }
 
+            // Search filters
+            if (searchHomeTeam) {
+                filtered = filtered.filter(game => 
+                    game.home_team && game.home_team.toLowerCase().includes(searchHomeTeam)
+                );
+            }
+
+            if (searchAwayTeam) {
+                filtered = filtered.filter(game => 
+                    game.away_team && game.away_team.toLowerCase().includes(searchAwayTeam)
+                );
+            }
+
+            if (searchDate) {
+                filtered = filtered.filter(game => game.date === searchDate);
+            }
+
+            if (searchTime) {
+                filtered = filtered.filter(game => 
+                    game.time && game.time.substring(0, 5) === searchTime
+                );
+            }
+
+            if (searchTaefeler) {
+                filtered = filtered.filter(game => {
+                    // Check täfeler team
+                    if (game.taefeler_team && game.taefeler_team.toLowerCase().includes(searchTaefeler)) {
+                        return true;
+                    }
+                    // Check täfeler name
+                    if (game.taefeler_id) {
+                        const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                        if (taefeler) {
+                            const taefelerName = `${taefeler.fname} ${taefeler.lname}`.toLowerCase();
+                            if (taefelerName.includes(searchTaefeler)) {
+                                return true;
+                            }
+                        }
+                    }
+                    // Check combined scorer/täfeler team
+                    if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchTaefeler)) {
+                        return true;
+                    }
+                    // Check combined scorer/täfeler name
+                    if (game.scorer_taefeler_id) {
+                        const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
+                        if (scorerTaefeler) {
+                            const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
+                            if (scorerTaefelerName.includes(searchTaefeler)) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                });
+            }
+
+            if (searchScorer) {
+                filtered = filtered.filter(game => {
+                    // Check scorer team
+                    if (game.scorer_team && game.scorer_team.toLowerCase().includes(searchScorer)) {
+                        return true;
+                    }
+                    // Check scorer name
+                    if (game.scorer_id) {
+                        const scorer = allScorers.find(s => s.id === game.scorer_id);
+                        if (scorer) {
+                            const scorerName = `${scorer.fname} ${scorer.lname}`.toLowerCase();
+                            if (scorerName.includes(searchScorer)) {
+                                return true;
+                            }
+                        }
+                    }
+                    // Check combined scorer/täfeler team
+                    if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchScorer)) {
+                        return true;
+                    }
+                    // Check combined scorer/täfeler name
+                    if (game.scorer_taefeler_id) {
+                        const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
+                        if (scorerTaefeler) {
+                            const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
+                            if (scorerTaefelerName.includes(searchScorer)) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                });
+            }
+
             renderAdminTable(filtered);
+        }
+
+        // Clear search function
+        function clearSearch() {
+            document.getElementById('searchHomeTeam').value = '';
+            document.getElementById('searchAwayTeam').value = '';
+            document.getElementById('searchDate').value = '';
+            document.getElementById('searchTime').value = '';
+            document.getElementById('searchTaefeler').value = '';
+            document.getElementById('searchScorer').value = '';
+            filterAdminGames();
         }
 
         // Render admin games as cards (single format)
@@ -1661,6 +1906,12 @@
             
             // Clear existing content
             container.innerHTML = '';
+            
+            // Add results count
+            const resultsCount = document.createElement('div');
+            resultsCount.className = 'results-count';
+            resultsCount.innerHTML = `<p>Found ${games.length} game${games.length !== 1 ? 's' : ''}</p>`;
+            container.appendChild(resultsCount);
             
             games.forEach(game => {
                 const gameDate = new Date(game.date);
