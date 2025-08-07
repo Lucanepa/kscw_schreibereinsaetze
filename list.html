@@ -136,6 +136,12 @@ font-size: 1rem; /* ≈16px */
     <div class="container">
         <div id="loading" class="loading">Loading games...</div>
         <div id="error" class="error" style="display: none;">Error loading games. Please try again.</div>
+        
+        <!-- Show List Button -->
+        <div id="showListButtonContainer" style="text-align: center; margin: 20px 0;">
+            <button id="showListButton" class="btn btn-primary" onclick="toggleList()">Show List</button>
+        </div>
+        
         <table id="gamesTable" style="display: none;">
             <thead>
                 <tr>
@@ -385,13 +391,28 @@ font-size: 1rem; /* ≈16px */
                 }
             }
 
-            document.getElementById('gamesTable').style.display = 'table';
+            // Don't automatically show the table - let user toggle it
+            // document.getElementById('gamesTable').style.display = 'table';
         }
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             loadGames();
         });
+
+        // Toggle list visibility
+        function toggleList() {
+            const table = document.getElementById('gamesTable');
+            const button = document.getElementById('showListButton');
+            
+            if (table.style.display === 'none') {
+                table.style.display = 'table';
+                button.textContent = 'Hide List';
+            } else {
+                table.style.display = 'none';
+                button.textContent = 'Show List';
+            }
+        }
     </script>
 </body>
 </html> 
