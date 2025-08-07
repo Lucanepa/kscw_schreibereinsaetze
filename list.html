@@ -157,6 +157,20 @@
     </div>
 
     <script>
+        function sendHeightToParent() {
+    const height = document.body.scrollHeight;
+    window.parent.postMessage({
+        type: 'resize',
+        height: height
+    }, '*');
+}
+
+// Send height when page loads
+window.addEventListener('load', sendHeightToParent);
+
+// Optional: Send height when content changes
+const observer = new ResizeObserver(sendHeightToParent);
+observer.observe(document.body);
         // Configuration for contact information
         const CONTACT_INFO = {
             supportText: 'contact support',
