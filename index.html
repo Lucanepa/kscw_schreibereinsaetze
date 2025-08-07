@@ -2008,10 +2008,12 @@ observer.observe(document.body);
                 return;
             }
 
-            // Limit the number of games to show
-            const gamesToDisplay = games.slice(0, gamesToShow);
+            // Render ALL games but hide the ones beyond the limit
+            const allGamesToRender = games;
 
-            gamesToDisplay.forEach(game => {
+            allGamesToRender.forEach((game, index) => {
+                // Hide games beyond the current limit
+                const shouldShow = index < gamesToShow;
                 const gameDate = new Date(game.date);
                 const formattedDate = formatDate(game.date);
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
@@ -2054,6 +2056,11 @@ observer.observe(document.body);
                 gameCard.onclick = () => openGameModal(game);
                 gameCard.setAttribute('data-match-id', game.match_id);
                 gameCard.setAttribute('data-match-name', `${game.home_team} vs ${game.away_team}`);
+                
+                // Set visibility based on whether this game should be shown
+                if (!shouldShow) {
+                    gameCard.style.display = 'none';
+                }
 
                 // Retrieve names from scorer_scorers table using IDs
                 let taefelerName = '';
@@ -2117,7 +2124,15 @@ observer.observe(document.body);
                 gamesContainer.appendChild(gameCard);
             });
 
-            // Always create or update the "Show More" button
+            // Create or update the "Show More" button
+            updateShowMoreButton();
+        }
+
+        // Function to update the "Show More" button state
+        function updateShowMoreButton() {
+            const gamesContainer = document.getElementById('gamesGrid');
+            const gamesContainerParent = gamesContainer.parentElement;
+            
             // Remove any existing "Show More" button first
             const existingButton = document.getElementById('showMoreButton');
             if (existingButton) {
@@ -2129,7 +2144,8 @@ observer.observe(document.body);
             showMoreButton.style.cssText = 'margin: 20px auto; display: block; padding: 12px 24px; font-size: 1rem;';
             
             // Check if there are more games to show
-            const hasMoreGames = games.length > gamesToShow;
+            const totalGames = currentFilteredGames.length;
+            const hasMoreGames = totalGames > gamesToShow;
             
             if (hasMoreGames) {
                 showMoreButton.className = 'btn btn-primary';
@@ -2138,10 +2154,18 @@ observer.observe(document.body);
                 showMoreButton.onclick = () => {
                     gamesToShow += 6;
                     
-                    renderGames(currentFilteredGames);
+                    // Show the hidden games
+                    const gameCards = gamesContainer.querySelectorAll('.game-card');
+                    gameCards.forEach((card, index) => {
+                        if (index < gamesToShow) {
+                            card.style.display = 'block';
+                        }
+                    });
+                    
+                    // Update button state
+                    updateShowMoreButton();
                 };
             } else {
-                
                 showMoreButton.className = 'btn btn-secondary';
                 showMoreButton.textContent = 'Show More Games';
                 showMoreButton.disabled = true;
@@ -2151,7 +2175,6 @@ observer.observe(document.body);
             }
             
             // Add the button after the games container
-            const gamesContainerParent = gamesContainer.parentElement;
             gamesContainerParent.appendChild(showMoreButton);
         }
 
