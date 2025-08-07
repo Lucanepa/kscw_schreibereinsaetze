@@ -785,18 +785,33 @@
             }
             
             .mobile-game-card .game-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #f0f0f0;
+                flex-wrap: wrap;
+                gap: 8px;
             }
             
             .mobile-game-card .game-date-time {
-                font-size: 12px;
+                font-weight: 600;
+                color: #333;
+                font-size: 14px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 max-width: 100%;
             }
             
             .mobile-game-card .game-teams {
-                font-size: 11px;
+                font-weight: 600;
+                color: #1e3a8a;
+                font-size: 13px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 max-width: 100%;
             }
             
@@ -890,39 +905,6 @@
                 transform: translateY(-2px);
                 box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             }
-            
-            .mobile-game-card .game-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 10px;
-                padding-bottom: 8px;
-                border-bottom: 1px solid #f0f0f0;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            
-            .mobile-game-card .game-date-time {
-                font-weight: 600;
-                color: #333;
-                font-size: 14px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                max-width: 100%;
-            }
-            
-            .mobile-game-card .game-teams {
-                font-weight: 600;
-                color: #1e3a8a;
-                font-size: 13px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                max-width: 100%;
-            }
-            
-
             
             .mobile-game-card .game-details {
                 display: grid;
