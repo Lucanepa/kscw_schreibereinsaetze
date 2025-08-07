@@ -1053,53 +1053,91 @@
 
             /* Simple game card styles */
             .simple-game-card {
-                background: white;
+                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
                 border: 1px solid #e9ecef;
-                border-radius: 8px;
-                padding: 16px;
-                margin-bottom: 12px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 16px;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+                transition: all 0.3s ease;
                 cursor: pointer;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                gap: 12px;
+                gap: 16px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .simple-game-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #007bff, #28a745);
+                opacity: 0;
+                transition: opacity 0.3s ease;
             }
 
             .simple-game-card:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+                border-color: #007bff;
+            }
+
+            .simple-game-card:hover::before {
+                opacity: 1;
+            }
+
+            .simple-game-card .game-info {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
             }
 
             .simple-game-card .game-date-time {
-                font-size: 14px;
-                font-weight: 600;
-                color: #333;
-                flex: 1;
+                font-size: 15px;
+                font-weight: 700;
+                color: #2c3e50;
+                letter-spacing: 0.5px;
+            }
+
+            .simple-game-card .game-teams {
+                font-size: 13px;
+                color: #6c757d;
+                font-weight: 500;
             }
 
             .simple-game-card .game-status {
-                font-size: 12px;
-                font-weight: 500;
-                padding: 4px 8px;
-                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 600;
+                padding: 6px 12px;
+                border-radius: 20px;
                 white-space: nowrap;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
 
             .simple-game-card .game-status.assigned {
-                background-color: #d4edda;
-                color: #155724;
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
             }
 
             .simple-game-card .game-status.unassigned {
-                background-color: #f8d7da;
-                color: #721c24;
+                background: linear-gradient(135deg, #dc3545, #e74c3c);
+                color: white;
+                box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
             }
 
             .simple-game-card .game-status.partial {
-                background-color: #fff3cd;
-                color: #856404;
+                background: linear-gradient(135deg, #ffc107, #fd7e14);
+                color: white;
+                box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
             }
 
             .detail-grid {
@@ -2012,8 +2050,12 @@
 
                 const gameCard = document.createElement('div');
                 gameCard.className = 'simple-game-card';
+                gameCard.onclick = () => openGameModal(game);
                 gameCard.innerHTML = `
-                    <div class="game-date-time">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
+                    <div class="game-info">
+                        <div class="game-date-time">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
+                        <div class="game-teams">${escapeHtml(game.home_team || 'TBD')} vs ${escapeHtml(game.away_team || 'TBD')}</div>
+                    </div>
                     <div class="game-status ${statusClass}">${status}</div>
                 `;
                 
