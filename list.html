@@ -8,9 +8,10 @@
     <style>
         body {
             font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
-font-size: 1rem; /* ≈16px */
-            margin: 20px;            background-color: #f5f5f5;
+            font-size: 1rem; /* ≈16px */
+            margin: 20px;
+            background-color: #f5f5f5;
+            overflow-y: auto;
         }
         .container {
             max-width: 1200px;
@@ -386,9 +387,17 @@ font-size: 1rem; /* ≈16px */
                     renderGamesTable();
                 };
                 
-                // Add the button after the table
-                const container = document.querySelector('.container');
-                container.appendChild(showMoreButton);
+                // Add the button after the table, but only if table is visible
+                const table = document.getElementById('gamesTable');
+                if (table && table.style.display !== 'none') {
+                    const container = document.querySelector('.container');
+                    container.appendChild(showMoreButton);
+                } else {
+                    // If table is hidden, create the button but hide it
+                    const container = document.querySelector('.container');
+                    showMoreButton.style.display = 'none';
+                    container.appendChild(showMoreButton);
+                }
             } else {
                 // Remove any existing show more button if no more games to show
                 const existingButton = document.querySelector('.show-more-button');
@@ -411,14 +420,24 @@ font-size: 1rem; /* ≈16px */
             const container = document.getElementById('gamesTable'); // element exists
             if (!container) return; // safety guard
             const button = document.getElementById('showListButton');
+            const showMoreButton = document.querySelector('.show-more-button');
             
             if (container.style.display === 'none') {
                 container.style.display = 'block';
                 button.textContent = 'Hide List';
+                // Show the "Show More" button if it exists and there are more games
+                if (showMoreButton) {
+                    showMoreButton.style.display = 'block';
+                }
             } else {
                 container.style.display = 'none';
                 button.textContent = 'Show List';
-            }        }
+                // Hide the "Show More" button when list is hidden
+                if (showMoreButton) {
+                    showMoreButton.style.display = 'none';
+                }
+            }
+        }
     </script>
 </body>
 </html> 
