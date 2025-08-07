@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSCW Schreibereinsätze</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+      
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
+        .seamless-container {
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .seamless-frame {
+            width: 100%;
+            min-height: 600px;
+            height: auto;
+            border: none;
+            display: block;
+            overflow-x: hidden;
+            transition: height 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="seamless-container">
+        <iframe class="seamless-frame" src="index.html" loading="lazy"></iframe>
+    </div>
+
+    <script>
+        // Add iframe resize handler
+        window.addEventListener('message', function(event) {
+            // Verify the origin for security (adjust this to match your domain)
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+            
+            if (event.data && event.data.type === 'resize') {
+                const iframe = document.querySelector('.seamless-frame');
+                if (iframe) {
+                    // Add some padding to prevent content from being cut off
+                    const newHeight = event.data.height + 50;
+                    iframe.style.height = newHeight + 'px';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

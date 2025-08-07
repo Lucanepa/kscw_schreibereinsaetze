@@ -2566,5 +2566,26 @@ observer.observe(document.body);
 
 
 </script>
+
+<script>
+// Add iframe resize handler
+window.addEventListener('message', function(event) {
+    // Verify the origin for security
+    if (event.origin !== 'https://lucanepa.github.io') {
+        return;
+    }
+    
+    if (event.data && event.data.type === 'resize') {
+        const iframe = document.querySelector('.seamless-frame');
+        if (iframe) {
+            // Add some padding to prevent content from being cut off
+            const newHeight = event.data.height + 50;
+            iframe.style.height = newHeight + 'px';
+        }
+    }
+});
+
+// ... existing code ...
+</script>
     </body>
 </html>
