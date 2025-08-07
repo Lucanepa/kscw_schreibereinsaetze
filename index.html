@@ -467,7 +467,20 @@
             </div>
         </div>
         <script>
+function sendHeightToParent() {
+    const height = document.body.scrollHeight;
+    window.parent.postMessage({
+        type: 'resize',
+        height: height
+    }, '*');
+}
 
+// Send height when page loads
+window.addEventListener('load', sendHeightToParent);
+
+// Optional: Send height when content changes
+const observer = new ResizeObserver(sendHeightToParent);
+observer.observe(document.body);
 
         let allGames = [];
         let allTeams = [];
@@ -709,6 +722,7 @@
         // Filter games based on search
         function filterGames() {
             const filtered = getFilteredGamesWithSearch();
+            currentFilteredGames = filtered; // Update the global variable for pagination
             renderGames(filtered);
         }
 
@@ -1987,11 +2001,7 @@
             const gamesContainer = document.getElementById('gamesGrid');
             gamesContainer.innerHTML = '';
 
-            // Add results count
-            const resultsCount = document.createElement('div');
-            resultsCount.className = 'results-count';
-            resultsCount.innerHTML = `<p>Found ${games.length} game${games.length !== 1 ? 's' : ''}</p>`;
-            gamesContainer.appendChild(resultsCount);
+
 
             if (!games || games.length === 0) {
                 gamesContainer.innerHTML = '<div class="no-games">No games found</div>';
