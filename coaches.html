@@ -1051,6 +1051,57 @@
                 border-radius: 6px;
             }
 
+            /* Simple game card styles */
+            .simple-game-card {
+                background: white;
+                border: 1px solid #e9ecef;
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .simple-game-card:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+
+            .simple-game-card .game-date-time {
+                font-size: 14px;
+                font-weight: 600;
+                color: #333;
+                flex: 1;
+            }
+
+            .simple-game-card .game-status {
+                font-size: 12px;
+                font-weight: 500;
+                padding: 4px 8px;
+                border-radius: 4px;
+                white-space: nowrap;
+            }
+
+            .simple-game-card .game-status.assigned {
+                background-color: #d4edda;
+                color: #155724;
+            }
+
+            .simple-game-card .game-status.unassigned {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
+
+            .simple-game-card .game-status.partial {
+                background-color: #fff3cd;
+                color: #856404;
+            }
+
             .detail-grid {
                 grid-template-columns: 1fr;
             }
@@ -1753,8 +1804,8 @@
             });
         }
 
-        // Filter admin games
-        function filterAdminGames() {
+        // Shared helper function that includes all filtering logic (dropdown filters + search filters)
+        function getFilteredGamesWithSearch() {
             const taefelerTeam = document.getElementById('adminTaefelerFilter').value;
             const scorerTeam = document.getElementById('adminScorerFilter').value;
             const homeTeam = document.getElementById('adminHomeFilter').value;
@@ -1886,6 +1937,12 @@
                 });
             }
 
+            return filtered;
+        }
+
+        // Filter admin games
+        function filterAdminGames() {
+            const filtered = getFilteredGamesWithSearch();
             renderAdminTable(filtered);
         }
 
@@ -1900,7 +1957,7 @@
             filterAdminGames();
         }
 
-        // Render admin games as cards (single format)
+        // Render admin games as simple cards with date, time, and status only
         function renderAdminTable(games = filterCurrentGames(allGames)) {
             const container = document.querySelector('.admin-table-container');
             
@@ -1923,80 +1980,41 @@
 
                 const formattedTime = game.time ? game.time.substring(0, 5) : 'TBD';
 
-                const statusIcons = [];
+                // Determine status based on assignments
+                let status = '';
+                let statusClass = '';
                 
-                // Retrieve names from scorer_scorers table using IDs
-                let taefelerName = '';
-                if (game.taefeler_id) {
-                    const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                    if (taefeler) {
-                        taefelerName = `${taefeler.fname} ${taefeler.lname}`;
-                    }
-                }
-                
-                let scorerName = '';
-                if (game.scorer_id) {
-                    const scorer = allScorers.find(s => s.id === game.scorer_id);
-                    if (scorer) {
-                        scorerName = `${scorer.fname} ${scorer.lname}`;
-                    }
-                }
-                
-                let scorerTaefelerName = '';
-                if (game.scorer_taefeler_id) {
-                    const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
-                    if (scorerTaefeler) {
-                        scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`;
-                    }
-                }
-                
-                // Check if this is a combined scorer/täfeler game
                 if (isCombined(game)) {
-                    // Combined scorer/täfeler status
-                    const combinedInfo = scorerTaefelerName ? 
-                        `${escapeHtml(scorerTaefelerName)} (${escapeHtml(game.scorer_taefeler_team)})` : 
-                        escapeHtml(game.scorer_taefeler_team || 'TBD');
-                    const combinedStatus = !game.scorer_taefeler_id ? '⚠️' : '✅';
-                    statusIcons.push(`${combinedStatus} Scorer/Täfeler: ${combinedInfo}`);
+                    // Combined scorer/täfeler game
+                    if (game.scorer_taefeler_id) {
+                        status = '✅ Assigned';
+                        statusClass = 'assigned';
+                    } else {
+                        status = '⚠️ Unassigned';
+                        statusClass = 'unassigned';
+                    }
                 } else {
-                    // Separate täfeler and scorer status
-                    const taefelerLabel = game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Schreiber/Täfeler';
-                    const taefelerInfo = taefelerName ? 
-                        `${escapeHtml(taefelerName)} (${escapeHtml(game.taefeler_team)})` : 
-                        escapeHtml(game.taefeler_team || 'TBD');
-                    const taefelerStatus = !game.taefeler_id ? '⚠️' : '✅';
-                    statusIcons.push(`${taefelerStatus} ${taefelerLabel}: ${taefelerInfo}`);
+                    // Separate täfeler and scorer
+                    const taefelerAssigned = game.taefeler_id;
+                    const scorerAssigned = game.scorer_id;
                     
-                    // Scorer status (only if scorer team is assigned)
-                    if (game.scorer_team && game.scorer_team.trim() !== '') {
-                        const scorerInfo = scorerName ? 
-                            `${escapeHtml(scorerName)} (${escapeHtml(game.scorer_team)})` : 
-                            escapeHtml(game.scorer_team);
-                        const scorerStatus = !game.scorer_id ? '⚠️' : '✅';
-                        statusIcons.push(`${scorerStatus} Scorer: ${scorerInfo}`);
+                    if (taefelerAssigned && scorerAssigned) {
+                        status = '✅ Both Assigned';
+                        statusClass = 'assigned';
+                    } else if (taefelerAssigned || scorerAssigned) {
+                        status = '⚠️ Partially Assigned';
+                        statusClass = 'partial';
+                    } else {
+                        status = '❌ Unassigned';
+                        statusClass = 'unassigned';
                     }
                 }
 
                 const gameCard = document.createElement('div');
-                gameCard.className = 'mobile-game-card';
+                gameCard.className = 'simple-game-card';
                 gameCard.innerHTML = `
-                    <div class="game-header">
-                        <div class="game-date-time" title="${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
-                        <div class="game-teams" title="${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}">${escapeHtml(game.home_team || '-')} vs ${escapeHtml(game.away_team || '-')}</div>
-                    </div>
-
-                    <div class="game-details">
-                        <div class="detail-item">
-                            <div class="detail-label">Gym</div>
-                            <div class="detail-value">${escapeHtml(game.halle || '-')}</div>
-                        </div>
-
-                        <div class="detail-item">
-                            <div class="detail-label">Status</div>
-                            <div class="detail-value status-indicator">${statusIcons.join(' ')}</div>
-                        </div>
-                    </div>
-                    <button class="btn btn-info action-button" onclick="openGameModal(${JSON.stringify(game).replace(/"/g, '&quot;')})">View Game</button>
+                    <div class="game-date-time">${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)}</div>
+                    <div class="game-status ${statusClass}">${status}</div>
                 `;
                 
                 container.appendChild(gameCard);
