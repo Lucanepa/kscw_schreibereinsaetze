@@ -845,6 +845,95 @@
             border-left: 3px solid #ffc107;
         }
 
+        /* Simple game card styles - Global */
+        .simple-game-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .simple-game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #007bff, #28a745);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .simple-game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            border-color: #007bff;
+        }
+
+        .simple-game-card:hover::before {
+            opacity: 1;
+        }
+
+        .simple-game-card .game-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .simple-game-card .game-date-time {
+            font-size: 15px;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: 0.5px;
+        }
+
+        .simple-game-card .game-teams {
+            font-size: 13px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .simple-game-card .game-status {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .simple-game-card .game-status.assigned {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .simple-game-card .game-status.unassigned {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+            color: white;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .simple-game-card .game-status.partial {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -1049,95 +1138,6 @@
                 padding: 8px;
                 font-size: 12px;
                 border-radius: 6px;
-            }
-
-            /* Simple game card styles */
-            .simple-game-card {
-                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-                border: 1px solid #e9ecef;
-                border-radius: 12px;
-                padding: 20px;
-                margin-bottom: 16px;
-                box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-                transition: all 0.3s ease;
-                cursor: pointer;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 16px;
-                position: relative;
-                overflow: hidden;
-            }
-
-            .simple-game-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 3px;
-                background: linear-gradient(90deg, #007bff, #28a745);
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-
-            .simple-game-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-                border-color: #007bff;
-            }
-
-            .simple-game-card:hover::before {
-                opacity: 1;
-            }
-
-            .simple-game-card .game-info {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-            }
-
-            .simple-game-card .game-date-time {
-                font-size: 15px;
-                font-weight: 700;
-                color: #2c3e50;
-                letter-spacing: 0.5px;
-            }
-
-            .simple-game-card .game-teams {
-                font-size: 13px;
-                color: #6c757d;
-                font-weight: 500;
-            }
-
-            .simple-game-card .game-status {
-                font-size: 11px;
-                font-weight: 600;
-                padding: 6px 12px;
-                border-radius: 20px;
-                white-space: nowrap;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-
-            .simple-game-card .game-status.assigned {
-                background: linear-gradient(135deg, #28a745, #20c997);
-                color: white;
-                box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-            }
-
-            .simple-game-card .game-status.unassigned {
-                background: linear-gradient(135deg, #dc3545, #e74c3c);
-                color: white;
-                box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
-            }
-
-            .simple-game-card .game-status.partial {
-                background: linear-gradient(135deg, #ffc107, #fd7e14);
-                color: white;
-                box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
             }
 
             .detail-grid {
