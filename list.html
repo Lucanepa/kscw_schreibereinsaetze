@@ -155,10 +155,16 @@ font-size: 1rem; /* ≈16px */
     </div>
 
     <script>
+        // Configuration for contact information
+        const CONTACT_INFO = {
+            supportText: 'contact support',
+            adminText: 'contact the administrator'
+        };
+
         // Initialize Supabase client
         let supabase;
         if (typeof SUPABASE_CONFIG === 'undefined') {
-            document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Configuration error. Please refresh the page or contact Luca.</div>';
+            document.body.innerHTML = `<div style="padding: 20px; text-align: center; color: red;">Configuration error. Please refresh the page or ${CONTACT_INFO.supportText}.</div>`;
         } else {
             supabase = window.supabase.createClient(
                 SUPABASE_CONFIG.url,
@@ -402,7 +408,8 @@ font-size: 1rem; /* ≈16px */
 
         // Toggle list visibility
         function toggleList() {
-            const container = document.getElementById('gamesTableContainer');
+            const container = document.getElementById('gamesTable'); // element exists
+            if (!container) return; // safety guard
             const button = document.getElementById('showListButton');
             
             if (container.style.display === 'none') {
@@ -411,8 +418,7 @@ font-size: 1rem; /* ≈16px */
             } else {
                 container.style.display = 'none';
                 button.textContent = 'Show List';
-            }
-        }
+            }        }
     </script>
 </body>
 </html> 
