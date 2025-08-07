@@ -6,6 +6,13 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <style>
+                html, body {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 1rem; /* ≈16px */
@@ -13,16 +20,20 @@
             background-color: #f5f5f5;
             overflow-y: auto;
             overflow-x: hidden;
+            /* Ensure full width in iframe */
+            min-width: 100%;
         }
+        
         .container {
-    width: 100%;
-    max-width: 1200px;  /* Add a max-width so it can be centered */
-    margin: 0 auto;      /* Center the container */
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
+            width: 100%;
+            max-width: none;  /* Remove max-width constraint */
+            margin: 0;        /* Remove auto margins */
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-sizing: border-box; /* Ensure padding is included in width */
+        }
         h1 {
             text-align: center;
             color: #333;
@@ -441,27 +452,28 @@ observer.observe(document.body);
 
         // Toggle list visibility
         function toggleList() {
-            const container = document.getElementById('gamesTable'); // element exists
-            if (!container) return; // safety guard
-            const button = document.getElementById('showListButton');
-            const showMoreButton = document.querySelector('.show-more-button');
-            
-            if (container.style.display === 'none') {
-                container.style.display = 'block';
-                button.textContent = 'Hide List';
-                // Show the "Show More" button if it exists and there are more games
-                if (showMoreButton) {
-                    showMoreButton.style.display = 'block';
-                }
-            } else {
-                container.style.display = 'none';
-                button.textContent = 'Show List';
-                // Hide the "Show More" button when list is hidden
-                if (showMoreButton) {
-                    showMoreButton.style.display = 'none';
-                }
-            }
+    const container = document.getElementById('gamesTable');
+    if (!container) return;
+    const button = document.getElementById('showListButton');
+    const showMoreButton = document.querySelector('.show-more-button');
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        button.textContent = 'Hide List';
+        if (showMoreButton) {
+            showMoreButton.style.display = 'block';
         }
+    } else {
+        container.style.display = 'none';
+        button.textContent = 'Show List';
+        if (showMoreButton) {
+            showMoreButton.style.display = 'none';
+        }
+    }
+    
+    // Send height update after toggle
+    setTimeout(sendHeightToParent, 100);
+}
     </script>
 </body>
 </html> 
