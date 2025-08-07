@@ -12,6 +12,7 @@
             margin: 0;
             background-color: #f5f5f5;
             overflow-y: auto;
+            overflow-x: hidden;
         }
         .container {
     width: 100%;
@@ -32,12 +33,17 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            table-layout: fixed;
+            word-wrap: break-word;
         }
         th, td {
             padding: 8px 6px;
             text-align: left;
             border-bottom: 1px solid #ddd;
             font-size: 0.8rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 0;
         }
         th {
             background-color: #f8f9fa;
@@ -122,11 +128,14 @@
             
             table {
                 font-size: 0.875rem;
+                table-layout: fixed;
             }
             
             th, td {
                 padding: 6px 4px;
                 font-size: 0.7rem;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
             
             .duty-info {
