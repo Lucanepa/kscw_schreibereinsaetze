@@ -572,8 +572,8 @@ observer.observe(document.body);
                 `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `SUMMARY:${escapeICS(`${currentGame.home_team} vs ${currentGame.away_team}`)}`,
-                `DESCRIPTION:Volleyball match at ${escapeHtml(currentGame.halle || 'TBD')}. Scorer: ${escapeHtml(currentGame.scorer_team || 'TBD')}. Täfeler: ${escapeHtml(currentGame.taefeler_team || 'TBD')}.`,
-                `LOCATION:${escapeHtml(currentGame.halle || 'TBD')}`,
+                `DESCRIPTION:Volleyball match at ${escapeICS(currentGame.halle || 'TBD')}. Scorer: ${escapeICS(currentGame.scorer_team || 'TBD')}. Täfeler: ${escapeICS(currentGame.taefeler_team || 'TBD')}.`,
+                `LOCATION:${escapeICS(currentGame.halle || 'TBD')}`,
                 'BEGIN:VALARM',
                 `TRIGGER:-P1D`,
                 'ACTION:DISPLAY',
@@ -824,6 +824,20 @@ observer.observe(document.body);
             currentFilteredGames = filtered; // Update the global variable for pagination
             // Reset pagination when filtering
             gamesToShow = 6;
+            
+            // Log the filter application
+            logSystemEvent('FILTER_APPLIED', {
+                search_home_team: document.getElementById('searchHomeTeam').value,
+                search_away_team: document.getElementById('searchAwayTeam').value,
+                search_date: document.getElementById('searchDate').value,
+                search_any: document.getElementById('searchAny').value,
+                search_taefeler: document.getElementById('searchTaefeler').value,
+                search_scorer: document.getElementById('searchScorer').value,
+                search_type: document.querySelector('input[name="searchType"]:checked')?.value,
+                results_count: filtered.length,
+                total_games: allGames.length
+            });
+            
             renderGames(filtered);
         }
 
@@ -839,6 +853,12 @@ observer.observe(document.body);
             document.querySelector('input[name="searchType"][value="any"]').checked = true;
             // Update visibility to show the "Any" input field
             updateSearchFieldVisibility();
+            
+            // Log the search clear action
+            logSystemEvent('SEARCH_CLEARED', {
+                timestamp: new Date().toISOString()
+            });
+            
             filterGames();
         }
 
@@ -917,7 +937,7 @@ observer.observe(document.body);
                         <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
-                    resultItem.addEventListener('click', () => selectTaefeler(person));
+                    resultItem.addEventListener('click', (evt) => selectTaefeler(person, evt));
                     resultItem.addEventListener('mouseenter', () => {
                         resultItem.style.backgroundColor = '#f8f9fa';
                     });
@@ -955,7 +975,7 @@ observer.observe(document.body);
                         <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
-                    resultItem.addEventListener('click', () => selectScorer(person));
+                    resultItem.addEventListener('click', (evt) => selectScorer(person, evt));
                     resultItem.addEventListener('mouseenter', () => {
                         resultItem.style.backgroundColor = '#f8f9fa';
                     });
@@ -993,7 +1013,7 @@ observer.observe(document.body);
                         <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
-                    resultItem.addEventListener('click', () => selectScorerTaefeler(person));
+                    resultItem.addEventListener('click', (evt) => selectScorerTaefeler(person, evt));
                     resultItem.addEventListener('mouseenter', () => {
                         resultItem.style.backgroundColor = '#f8f9fa';
                     });
@@ -1052,7 +1072,7 @@ observer.observe(document.body);
                         <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
-                    resultItem.addEventListener('click', () => selectTaefeler(person));
+                    resultItem.addEventListener('click', (evt) => selectTaefeler(person, evt));
                     resultItem.addEventListener('mouseenter', () => {
                         resultItem.style.backgroundColor = '#f8f9fa';
                     });
@@ -1109,7 +1129,7 @@ observer.observe(document.body);
                         <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
-                    resultItem.addEventListener('click', () => selectScorer(person));
+                    resultItem.addEventListener('click', (evt) => selectScorer(person, evt));
                     resultItem.addEventListener('mouseenter', () => {
                         resultItem.style.backgroundColor = '#f8f9fa';
                     });
@@ -1166,7 +1186,7 @@ observer.observe(document.body);
                         <div style="font-weight: 500; color: #333; font-size: 0.9em;">${person.fname} ${person.lname}</div>
                     `;
                     
-                    resultItem.addEventListener('click', () => selectScorerTaefeler(person));
+                    resultItem.addEventListener('click', (evt) => selectScorerTaefeler(person, evt));
                     resultItem.addEventListener('mouseenter', () => {
                         resultItem.style.backgroundColor = '#f8f9fa';
                     });
@@ -1602,7 +1622,7 @@ observer.observe(document.body);
         
 
         // Select täfeler from results
-        function selectTaefeler(person) {
+        function selectTaefeler(person, evt) {
             // Don't allow selection if already confirmed
             if (window.taefelerConfirmed) {
                 alert('Täfeler has already been confirmed and cannot be changed.');
@@ -1615,8 +1635,8 @@ observer.observe(document.body);
                 item.style.backgroundColor = 'white';
                 item.style.border = 'none';
             });
-            event.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
-            event.target.closest('.result-item').style.border = '2px solid #2196f3';
+            evt.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
+            evt.target.closest('.result-item').style.border = '2px solid #2196f3';
             
             // Store the selected person
             window.selectedTaefeler = person;
@@ -1632,7 +1652,7 @@ observer.observe(document.body);
 
 
         // Select scorer from results
-        function selectScorer(person) {
+        function selectScorer(person, evt) {
             // Don't allow selection if already confirmed
             if (window.scorerConfirmed) {
                 alert('Scorer has already been confirmed and cannot be changed.');
@@ -1645,8 +1665,8 @@ observer.observe(document.body);
                 item.style.backgroundColor = 'white';
                 item.style.border = 'none';
             });
-            event.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
-            event.target.closest('.result-item').style.border = '2px solid #2196f3';
+            evt.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
+            evt.target.closest('.result-item').style.border = '2px solid #2196f3';
             
             // Store the selected person
             window.selectedScorer = person;
@@ -1660,7 +1680,7 @@ observer.observe(document.body);
         }
 
         // Select scorer/täfeler from results
-        function selectScorerTaefeler(person) {
+        function selectScorerTaefeler(person, evt) {
             // Don't allow selection if already confirmed
             if (window.scorerTaefelerConfirmed) {
                 alert('Scorer/Täfeler has already been confirmed and cannot be changed.');
@@ -1673,8 +1693,8 @@ observer.observe(document.body);
                 item.style.backgroundColor = 'white';
                 item.style.border = 'none';
             });
-            event.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
-            event.target.closest('.result-item').style.border = '2px solid #2196f3';
+            evt.target.closest('.result-item').style.backgroundColor = '#e3f2fd';
+            evt.target.closest('.result-item').style.border = '2px solid #2196f3';
             
             // Store the selected person
             window.selectedScorerTaefeler = person;
@@ -1762,6 +1782,16 @@ observer.observe(document.body);
         // Open game modal
         function openGameModal(game) {
             currentGame = game;
+            
+            // Log the game view action
+            logSystemEvent('GAME_VIEWED', {
+                game_id: game.match_id,
+                home_team: game.home_team,
+                away_team: game.away_team,
+                date: game.date,
+                time: game.time,
+                halle: game.halle
+            });
             
             // Hide main content and show focused game view
             document.querySelector('.main-content').style.display = 'none';
@@ -1942,6 +1972,16 @@ observer.observe(document.body);
 
         // Back to main view
         function backToMainView() {
+            // Log the return to main view action
+            if (currentGame) {
+                logSystemEvent('RETURN_TO_MAIN_VIEW', {
+                    game_id: currentGame.match_id,
+                    home_team: currentGame.home_team,
+                    away_team: currentGame.away_team,
+                    date: currentGame.date
+                });
+            }
+            
             document.getElementById('focusedGameView').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             currentGame = null;
@@ -1968,6 +2008,12 @@ observer.observe(document.body);
 
         // Open coach access
         async function openCoachAccess() {
+            // Log the navigation to coaches page
+            logSystemEvent('NAVIGATE_TO_COACHES', {
+                from_page: 'index.html',
+                timestamp: new Date().toISOString()
+            });
+            
             window.location.href = 'coaches.html';
         }
 
@@ -2041,6 +2087,18 @@ observer.observe(document.body);
 
                 if (error) throw error;
 
+                // Log the person creation
+                await logChange('CREATE', 'scorer_scorers', null, `${fname} ${lname}`, {
+                    table_name: 'scorer_scorers',
+                    record_id: data[0]?.id,
+                    game_info: null
+                }, {
+                    person_type: 'scorer',
+                    phone: phone,
+                    email: email,
+                    scorer_licence: false
+                });
+
                 // Reload täfelers and scorers
                 await loadTaefelers();
                 await loadScorers();
@@ -2052,6 +2110,16 @@ observer.observe(document.body);
                 closeAddPersonModal();
                 alert('Person added successfully!');
             } catch (error) {
+                // Log the error
+                await logChange('ERROR', 'saveNewPerson', null, error.message, {
+                    table_name: 'scorer_scorers',
+                    record_id: null,
+                    game_info: null
+                }, {
+                    error_type: 'person_creation_failed',
+                    attempted_data: { fname, lname, phone, email }
+                });
+                
                 alert('Error adding person. Please try again.');
             }
         }
@@ -2257,6 +2325,14 @@ observer.observe(document.body);
                 showMoreButton.textContent = `Show More Games (${gamesToShow} of ${totalGames})`;
                 showMoreButton.disabled = false;
                 showMoreButton.onclick = () => {
+                    // Log the show more action
+                    logSystemEvent('SHOW_MORE_GAMES', {
+                        previous_limit: gamesToShow,
+                        new_limit: gamesToShow + 6,
+                        total_games: totalGames,
+                        filtered_games: currentFilteredGames.length
+                    });
+                    
                     gamesToShow += 6;
                     // Re-render games with the new limit
                     renderGames(currentFilteredGames);
@@ -2312,11 +2388,7 @@ observer.observe(document.body);
 
 
 
-        // Close modal
-        function closeModal() {
-            document.getElementById('gameModal').style.display = 'none';
-            currentGame = null;
-        }
+
 
         // Generate a session ID that persists during the session
         function getSessionId() {
@@ -2328,27 +2400,43 @@ observer.observe(document.body);
             return sessionId;
         }
 
-        // Log changes to edit_log table
-        async function logChange(action, fieldName, oldValue, newValue, gameInfo) {
+        // Get client IP address (if possible)
+        async function getClientIP() {
             try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                console.warn('Could not fetch IP address:', error);
+                return 'unknown';
+            }
+        }
+
+        // Enhanced logging function with IP address and more context
+        async function logChange(action, fieldName, oldValue, newValue, gameInfo, additionalContext = {}) {
+            try {
+                const clientIP = await getClientIP();
                 const { data, error } = await supabase
                     .from('scorer_edit_log')
                     .insert({
                         action: action, // 'CREATE', 'UPDATE', 'DELETE'
-                        table_name: 'scorer_matches',
-                        record_id: currentGame.match_id,
+                        table_name: gameInfo?.table_name || 'scorer_matches',
+                        record_id: gameInfo?.record_id || currentGame?.match_id,
                         field_name: fieldName,
                         old_value: oldValue,
                         new_value: newValue,
                         user_agent: navigator.userAgent,
                         session_id: getSessionId(),
-                        game_info: {
+                        client_ip: clientIP,
+                        timestamp: new Date().toISOString(),
+                        game_info: gameInfo?.game_info || (currentGame ? {
                             home_team: currentGame.home_team,
                             away_team: currentGame.away_team,
                             date: currentGame.date,
                             time: currentGame.time,
                             halle: currentGame.halle
-                        }
+                        } : null),
+                        additional_context: additionalContext
                     });
 
                 if (error) {
@@ -2362,7 +2450,8 @@ observer.observe(document.body);
                         gameInfo: gameInfo,
                         timestamp: new Date().toISOString(),
                         userAgent: navigator.userAgent,
-                        sessionId: getSessionId()
+                        sessionId: getSessionId(),
+                        clientIP: clientIP
                     });
                     
                     // Optionally send to external logging service if available
@@ -2408,6 +2497,40 @@ observer.observe(document.body);
                     });
                 }
             }
+        }
+
+        // Log system events (page loads, filters, etc.)
+        async function logSystemEvent(eventType, eventData = {}) {
+            try {
+                await logChange('SYSTEM', eventType, null, null, {
+                    table_name: 'system_events',
+                    record_id: null,
+                    game_info: null
+                }, {
+                    event_type: eventType,
+                    event_data: eventData,
+                    page_url: window.location.href,
+                    referrer: document.referrer
+                });
+            } catch (error) {
+                console.warn('Failed to log system event:', error);
+            }
+        }
+
+        // Log page load event
+        window.addEventListener('load', () => {
+            logSystemEvent('PAGE_LOAD', {
+                page: 'index.html',
+                timestamp: new Date().toISOString()
+            });
+        });
+
+        // Log filter changes
+        function logFilterChange(filterType, filterValue) {
+            logSystemEvent('FILTER_CHANGE', {
+                filter_type: filterType,
+                filter_value: filterValue
+            });
         }
 
         // Save game details
@@ -2496,12 +2619,12 @@ observer.observe(document.body);
         }
 
         // Close modal when clicking outside
-        window.onclick = function(event) {
+        window.addEventListener('click', function(event) {
             const modal = document.getElementById('gameModal');
             if (event.target === modal) {
                 closeModal();
             }
-        }
+        });
 
         // Show summary modal
         function showSummary() {
@@ -2668,7 +2791,7 @@ observer.observe(document.body);
         }
 
         // Close summary modal when clicking outside
-        window.onclick = function(event) {
+        window.addEventListener('click', function(event) {
             const gameModal = document.getElementById('gameModal');
             const summaryModal = document.getElementById('summaryModal');
             const teamGamesModal = document.getElementById('teamGamesModal');
@@ -2681,7 +2804,7 @@ observer.observe(document.body);
             if (event.target === teamGamesModal) {
                 closeTeamGamesModal();
             }
-        };
+        });
 
 
 </script>
@@ -2729,6 +2852,12 @@ window.addEventListener('message', function(event) {
                 } else if (searchType === 'scorer') {
                     searchScorer.style.display = 'block';
                 }
+                
+                // Log the search type change
+                logSystemEvent('SEARCH_TYPE_CHANGED', {
+                    search_type: searchType,
+                    timestamp: new Date().toISOString()
+                });
             }
             
             // Add event listeners to radio buttons
