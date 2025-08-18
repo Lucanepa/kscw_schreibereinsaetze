@@ -633,7 +633,7 @@
             // Create header
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            const headers = ['Date', 'Time', 'Home Team', 'Away Team', 'Gym', 'Täfeler (Team)', 'Scorer (Team)', 'Actions'];
+            const headers = ['Date', 'Time', 'Game N', 'Gym', 'Täfeler (Team)', 'Scorer (Team)', 'Actions'];
             
             headers.forEach(headerText => {
                 const th = document.createElement('th');
@@ -660,15 +660,10 @@
                 timeCell.textContent = formatTime(game.time);
                 row.appendChild(timeCell);
                 
-                // Home Team
-                const homeTeamCell = document.createElement('td');
-                homeTeamCell.textContent = game.home_team || '-';
-                row.appendChild(homeTeamCell);
-                
-                // Away Team
-                const awayTeamCell = document.createElement('td');
-                awayTeamCell.textContent = game.away_team || '-';
-                row.appendChild(awayTeamCell);
+                // Game N
+                const gameNCell = document.createElement('td');
+                gameNCell.textContent = game.gamen || `Game ${games.indexOf(game) + 1}`;
+                row.appendChild(gameNCell);
                 
                 // Gym
                 const gymCell = document.createElement('td');
@@ -677,9 +672,20 @@
                 
                 // Täfeler
                 const taefelerCell = document.createElement('td');
-                const taefelerText = getPersonWithTeam(game.taefeler_id, scorers, game.taefeler_team);
+                let taefelerText;
+                
+                // Check if this is a combined scorer/täfeler game
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    taefelerText = getCombinedPersonWithTeam(game);
+                    if (!taefelerText) {
+                        taefelerText = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                    }
+                } else {
+                    taefelerText = getPersonWithTeam(game.taefeler_id, scorers, game.taefeler_team);
+                }
+                
                 taefelerCell.textContent = taefelerText;
-                if (taefelerText === 'Missing assignment') {
+                if (taefelerText.includes('Missing assignment')) {
                     taefelerCell.className = 'missing-assignment';
                 } else if (taefelerText === 'Person not found') {
                     taefelerCell.className = 'person-not-found';
@@ -688,9 +694,20 @@
                 
                 // Scorer
                 const scorerCell = document.createElement('td');
-                const scorerText = getPersonWithTeam(game.scorer_id, scorers, game.scorer_team);
+                let scorerText;
+                
+                // Check if this is a combined scorer/täfeler game
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    scorerText = getCombinedPersonWithTeam(game);
+                    if (!scorerText) {
+                        scorerText = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                    }
+                } else {
+                    scorerText = getPersonWithTeam(game.scorer_id, scorers, game.scorer_team);
+                }
+                
                 scorerCell.textContent = scorerText;
-                if (scorerText === 'Missing assignment') {
+                if (scorerText.includes('Missing assignment')) {
                     scorerCell.className = 'missing-assignment';
                 } else if (scorerText === 'Person not found') {
                     scorerCell.className = 'person-not-found';
@@ -710,8 +727,26 @@
             container.appendChild(table);
             
             // Add summary statistics
-            const missingTaefeler = games.filter(game => !game.taefeler_id).length;
-            const missingScorer = games.filter(game => !game.scorer_id).length;
+            const missingTaefeler = games.filter(game => {
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    // Combined game - check if scorer_taefeler_id is missing
+                    return !game.scorer_taefeler_id;
+                } else {
+                    // Separate game - check if täfeler_id is missing
+                    return !game.taefeler_id;
+                }
+            }).length;
+            
+            const missingScorer = games.filter(game => {
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    // Combined game - check if scorer_taefeler_id is missing
+                    return !game.scorer_taefeler_id;
+                } else {
+                    // Separate game - check if scorer_id is missing when scorer_team is assigned
+                    return game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
+                }
+            }).length;
+            
             const totalGames = games.length;
             
             if (missingTaefeler > 0 || missingScorer > 0) {
@@ -844,7 +879,13 @@
         }
 
         function getPersonWithTeam(id, people, assignedTeam) {
-            if (!id) return 'Missing assignment';
+            if (!id) {
+                // Check if this is a combined scorer/täfeler game
+                if (assignedTeam && assignedTeam.includes('scorer_taefeler')) {
+                    return `Missing assignment (${assignedTeam})`;
+                }
+                return assignedTeam ? `Missing assignment (${assignedTeam})` : 'Missing assignment';
+            }
             const person = people.find(p => p.id === id);
             if (!person) return 'Person not found';
             
@@ -853,6 +894,18 @@
                 displayText += ` (${assignedTeam})`;
             }
             return displayText;
+        }
+
+        // New function to handle combined scorer/täfeler assignments
+        function getCombinedPersonWithTeam(game) {
+            if (game.scorer_taefeler_id) {
+                const person = scorers.find(p => p.id === game.scorer_taefeler_id);
+                if (person) {
+                    return `${person.fname} ${person.lname} (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                }
+                return 'Person not found';
+            }
+            return null; // Not a combined game
         }
 
         function formatDate(dateString) {
@@ -1019,13 +1072,32 @@
         // Function to update scorer assignments (for non-admin users)
         async function updateScorerAssignments(matchId, scorerId, taefelerId) {
             try {
-                const { data, error } = await supabase.rpc('update_scorer_assignments', {
-                    match_id: matchId,
-                    new_scorer_id: scorerId || null,
-                    new_taefeler_id: taefelerId || null
-                });
-                
-                if (error) throw error;
+                // First, get the current game to check if it's a combined game
+                const currentGame = games.find(g => g.match_id === matchId);
+                if (!currentGame) {
+                    throw new Error('Game not found');
+                }
+
+                // Check if this is a combined scorer/täfeler game
+                if (currentGame.scorer_taefeler_id || currentGame.scorer_taefeler_team) {
+                    // For combined games, we need to update the scorer_taefeler_id field
+                    // Use the taefelerId parameter for combined games
+                    const { error } = await supabase
+                        .from('scorer_matches')
+                        .update({ scorer_taefeler_id: taefelerId })
+                        .eq('match_id', matchId);
+                    
+                    if (error) throw error;
+                } else {
+                    // For separate games, use the RPC function
+                    const { data, error } = await supabase.rpc('update_scorer_assignments', {
+                        match_id: matchId,
+                        new_scorer_id: scorerId || null,
+                        new_taefeler_id: taefelerId || null
+                    });
+                    
+                    if (error) throw error;
+                }
                 
                 // Refresh the games table to show updated assignments
                 await loadGames();
@@ -1189,7 +1261,7 @@
             // Create header
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            const headers = ['Date', 'Time', 'Home Team', 'Away Team', 'Gym', 'Täfeler (Team)', 'Scorer (Team)', 'Actions'];
+            const headers = ['Date', 'Time', 'Game N', 'Gym', 'Täfeler (Team)', 'Scorer (Team)', 'Actions'];
             
             headers.forEach(headerText => {
                 const th = document.createElement('th');
@@ -1216,15 +1288,10 @@
                 timeCell.textContent = formatTime(game.time);
                 row.appendChild(timeCell);
                 
-                // Home Team
-                const homeTeamCell = document.createElement('td');
-                homeTeamCell.textContent = game.home_team || '-';
-                row.appendChild(homeTeamCell);
-                
-                // Away Team
-                const awayTeamCell = document.createElement('td');
-                awayTeamCell.textContent = game.away_team || '-';
-                row.appendChild(awayTeamCell);
+                // Game N
+                const gameNCell = document.createElement('td');
+                gameNCell.textContent = game.gamen || `Game ${games.indexOf(game) + 1}`;
+                row.appendChild(gameNCell);
                 
                 // Gym
                 const gymCell = document.createElement('td');
@@ -1233,9 +1300,20 @@
                 
                 // Täfeler
                 const taefelerCell = document.createElement('td');
-                const taefelerText = getPersonWithTeam(game.taefeler_id, scorers, game.taefeler_team);
+                let taefelerText;
+                
+                // Check if this is a combined scorer/täfeler game
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    taefelerText = getCombinedPersonWithTeam(game);
+                    if (!taefelerText) {
+                        taefelerText = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                    }
+                } else {
+                    taefelerText = getPersonWithTeam(game.taefeler_id, scorers, game.taefeler_team);
+                }
+                
                 taefelerCell.textContent = taefelerText;
-                if (taefelerText === 'Missing assignment') {
+                if (taefelerText.includes('Missing assignment')) {
                     taefelerCell.className = 'missing-assignment';
                 } else if (taefelerText === 'Person not found') {
                     taefelerCell.className = 'person-not-found';
@@ -1244,9 +1322,20 @@
                 
                 // Scorer
                 const scorerCell = document.createElement('td');
-                const scorerText = getPersonWithTeam(game.scorer_id, scorers, game.scorer_team);
+                let scorerText;
+                
+                // Check if this is a combined scorer/täfeler game
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    scorerText = getCombinedPersonWithTeam(game);
+                    if (!scorerText) {
+                        scorerText = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                    }
+                } else {
+                    scorerText = getPersonWithTeam(game.scorer_id, scorers, game.scorer_team);
+                }
+                
                 scorerCell.textContent = scorerText;
-                if (scorerText === 'Missing assignment') {
+                if (scorerText.includes('Missing assignment')) {
                     scorerCell.className = 'missing-assignment';
                 } else if (scorerText === 'Person not found') {
                     scorerCell.className = 'person-not-found';
@@ -1264,8 +1353,22 @@
             container.appendChild(table);
             
             // Add summary statistics for filtered games
-            const missingTaefeler = filteredGames.filter(game => !game.taefeler_id).length;
-            const missingScorer = filteredGames.filter(game => !game.scorer_id).length;
+            const missingTaefeler = filteredGames.filter(game => {
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    return !game.scorer_taefeler_id;
+                } else {
+                    return !game.taefeler_id;
+                }
+            }).length;
+            
+            const missingScorer = filteredGames.filter(game => {
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    return !game.scorer_taefeler_id;
+                } else {
+                    return game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
+                }
+            }).length;
+            
             const totalFiltered = filteredGames.length;
             
             if (missingTaefeler > 0 || missingScorer > 0) {
@@ -1436,13 +1539,25 @@
             modalContent.className = 'modal-content';
             modalContent.style.maxWidth = '500px';
             
+            // Check if this is a combined scorer/täfeler game
+            const isCombinedGame = game.scorer_taefeler_id || game.scorer_taefeler_team;
+            
             modalContent.innerHTML = `
                 <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
                 <h2>Update Assignments for Game</h2>
-                <p><strong>${game.home_team} vs ${game.away_team}</strong> on ${formatDate(game.date)} at ${formatTime(game.time)}</p>
+                <p><strong>${game.gamen || `Game ${games.indexOf(game) + 1}`}</strong> on ${formatDate(game.date)} at ${formatTime(game.time)}</p>
                 
+                ${isCombinedGame ? `
                 <div class="form-group">
-                    <label>Täfeler:</label>
+                    <label>Scorer/Täfeler (${game.scorer_taefeler_team || 'Scorer/Täfeler'}):</label>
+                    <select id="quickScorerTaefelerId">
+                        <option value="">Select Scorer/Täfeler</option>
+                        ${scorers.map(person => `<option value="${person.id}" ${game.scorer_taefeler_id === person.id ? 'selected' : ''}>${person.fname} ${person.lname}</option>`).join('')}
+                    </select>
+                </div>
+                ` : `
+                <div class="form-group">
+                    <label>Täfeler (${game.taefeler_team || 'TBD'}):</label>
                     <select id="quickTaefelerId">
                         <option value="">Select Täfeler</option>
                         ${scorers.map(person => `<option value="${person.id}" ${game.taefeler_id === person.id ? 'selected' : ''}>${person.fname} ${person.lname}</option>`).join('')}
@@ -1450,14 +1565,15 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Scorer:</label>
+                    <label>Scorer (${game.scorer_team || 'TBD'}):</label>
                     <select id="quickScorerId">
                         <option value="">Select Scorer</option>
                         ${scorers.map(person => `<option value="${person.id}" ${game.scorer_id === person.id ? 'selected' : ''}>${person.fname} ${person.lname}</option>`).join('')}
                     </select>
                 </div>
+                `}
                 
-                <button class="btn btn-success" onclick="saveQuickAssignments('${game.match_id}')">Save Assignments</button>
+                <button class="btn btn-success" onclick="saveQuickAssignments('${game.match_id}', ${isCombinedGame})">Save Assignments</button>
                 <button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()">Cancel</button>
             `;
             
@@ -1466,9 +1582,37 @@
         }
 
         // Function to save quick assignments
-        async function saveQuickAssignments(matchId) {
-            const taefelerId = document.getElementById('quickTaefelerId').value || null;
-            const scorerId = document.getElementById('quickScorerId').value || null;
+        async function saveQuickAssignments(matchId, isCombinedGame) {
+            let taefelerId = null;
+            let scorerId = null;
+
+            if (isCombinedGame) {
+                const scorerTaefelerId = document.getElementById('quickScorerTaefelerId').value || null;
+                // For combined games, we need to update the scorer_taefeler_id field
+                try {
+                    const { error } = await supabase
+                        .from('scorer_matches')
+                        .update({ scorer_taefeler_id: scorerTaefelerId })
+                        .eq('match_id', matchId);
+                    
+                    if (error) throw error;
+                    
+                    // Refresh the games table
+                    await loadGames();
+                    renderGamesTable();
+                    
+                    // Close the modal
+                    document.querySelector('.modal').remove();
+                    alert('Scorer/Täfeler assignment updated successfully!');
+                    return;
+                } catch (error) {
+                    alert('Error updating scorer/täfeler assignment: ' + error.message);
+                    return;
+                }
+            } else {
+                taefelerId = document.getElementById('quickTaefelerId').value || null;
+                scorerId = document.getElementById('quickScorerId').value || null;
+            }
             
             try {
                 const result = await updateScorerAssignments(matchId, scorerId, taefelerId);
