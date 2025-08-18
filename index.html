@@ -147,13 +147,13 @@
                             <label>Search for:</label>
                             <div class="radio-group" style="display: flex; gap: 10px; margin-top: 5px;">
                                 <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">
-                                    <input type="radio" name="searchType" value="any" checked> Any
+                                    <input type="radio" name="searchType" value="any" checked onchange="filterGames()"> Any
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">
-                                    <input type="radio" name="searchType" value="taefeler"> Täfeler
+                                    <input type="radio" name="searchType" value="taefeler" onchange="filterGames()"> Täfeler
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">
-                                    <input type="radio" name="searchType" value="scorer"> Scorer
+                                    <input type="radio" name="searchType" value="scorer" onchange="filterGames()"> Scorer
                                 </label>
                             </div>
                         </div>
@@ -2221,12 +2221,19 @@ observer.observe(document.body);
                 existingButton.remove();
             }
             
+            // Check if there are any games to show
+            const totalGames = currentFilteredGames.length;
+            
+            // If no games found, don't show any button
+            if (totalGames === 0) {
+                return;
+            }
+            
             const showMoreButton = document.createElement('button');
             showMoreButton.id = 'showMoreButton';
             showMoreButton.style.cssText = 'margin: 20px auto; display: block; padding: 12px 24px; font-size: 1rem;';
             
             // Check if there are more games to show
-            const totalGames = currentFilteredGames.length;
             const hasMoreGames = totalGames > gamesToShow;
             
             if (hasMoreGames) {
