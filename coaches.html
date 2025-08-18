@@ -1575,20 +1575,22 @@ observer.observe(document.body);
             div.textContent = text;
             return div.innerHTML;
         }
-        
-        // Escape HTML content
-        function escapeHtml(text) {
-            if (text == null) return '';
-            return text.replace(/[&<>"']/g, function(match) {
-                const escape = {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#39;'
-                };
-                return escape[match];
-            });
+
+        // Mask phone number for privacy (shows only last 2 digits)
+        function maskPhone(phone) {
+            if (!phone || typeof phone !== 'string') return 'unknown';
+            if (phone.length <= 2) return phone;
+            return '•'.repeat(phone.length - 2) + phone.slice(-2);
+        }
+
+        // Mask email for privacy (shows first letter + *** + @domain)
+        function maskEmail(email) {
+            if (!email || typeof email !== 'string') return 'unknown';
+            const atIndex = email.indexOf('@');
+            if (atIndex <= 1) return email; // Too short to mask meaningfully
+            const localPart = email.substring(0, atIndex);
+            const domain = email.substring(atIndex);
+            return localPart.charAt(0) + '***' + domain;
         }
 
         // Escape ICS content
@@ -2135,8 +2137,8 @@ observer.observe(document.body);
         
         // Show more games function
         function showMoreGames() {
-            // Derive total count from the actual games array in scope
-            const totalGames = (allGames || games || []).length;
+            // Derive total count from the filtered games array in scope
+            const totalGames = (currentFilteredGames || []).length;
             
             // Log the show more action
             logSystemEvent('SHOW_MORE_GAMES', {
@@ -2806,7 +2808,7 @@ observer.observe(document.body);
                     game_info: null
                 }, {
                     person_type: 'scorer',
-                    phone: phone,
+                    phone: maskPhone(phone),
                     scorer_licence: false
                 });
 
@@ -2828,7 +2830,7 @@ observer.observe(document.body);
                     game_info: null
                 }, {
                     error_type: 'person_creation_failed',
-                    attempted_data: { fname, lname, phone }
+                    attempted_data: { fname, lname, phone: maskPhone(phone) }
                 });
                 
                 alert('Error adding person. Please try again.');
