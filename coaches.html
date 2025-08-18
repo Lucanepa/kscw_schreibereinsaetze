@@ -2849,16 +2849,72 @@ observer.observe(document.body);
             try {
                 // Log changes for each field that was modified
                 if (currentGame.taefeler_name !== taefelerName) {
-                    await logChange('UPDATE', 'taefeler_name', currentGame.taefeler_name, taefelerName);
+                    await logChange('UPDATE', 'taefeler_name', 
+                        currentGame.taefeler_name || 'unassigned', 
+                        taefelerName || 'unassigned', 
+                        {
+                            table_name: 'scorer_matches',
+                            record_id: currentGame.match_id,
+                            game_info: {
+                                home_team: currentGame.home_team,
+                                away_team: currentGame.away_team,
+                                date: currentGame.date,
+                                time: currentGame.time,
+                                halle: currentGame.halle
+                            }
+                        }
+                    );
                 }
                 if (currentGame.taefeler_phone !== taefelerPhone) {
-                    await logChange('UPDATE', 'taefeler_phone', currentGame.taefeler_phone, taefelerPhone);
+                    await logChange('UPDATE', 'taefeler_phone', 
+                        currentGame.taefeler_phone || 'unassigned', 
+                        taefelerPhone || 'unassigned', 
+                        {
+                            table_name: 'scorer_matches',
+                            record_id: currentGame.match_id,
+                            game_info: {
+                                home_team: currentGame.home_team,
+                                away_team: currentGame.away_team,
+                                date: currentGame.date,
+                                time: currentGame.time,
+                                halle: currentGame.halle
+                            }
+                        }
+                    );
                 }
                 if (currentGame.scorer_name !== scorerName) {
-                    await logChange('UPDATE', 'scorer_name', currentGame.scorer_name, scorerName);
+                    await logChange('UPDATE', 'scorer_name', 
+                        currentGame.scorer_name || 'unassigned', 
+                        taefelerName || 'unassigned', 
+                        {
+                            table_name: 'scorer_matches',
+                            record_id: currentGame.match_id,
+                            game_info: {
+                                home_team: currentGame.home_team,
+                                away_team: currentGame.away_team,
+                                date: currentGame.date,
+                                time: currentGame.time,
+                                halle: currentGame.halle
+                            }
+                        }
+                    );
                 }
                 if (currentGame.scorer_phone !== scorerPhone) {
-                    await logChange('UPDATE', 'scorer_phone', currentGame.scorer_phone, scorerPhone);
+                    await logChange('UPDATE', 'scorer_phone', 
+                        currentGame.scorer_phone || 'unassigned', 
+                        scorerPhone || 'unassigned', 
+                        {
+                            table_name: 'scorer_matches',
+                            record_id: currentGame.match_id,
+                            game_info: {
+                                home_team: currentGame.home_team,
+                                away_team: currentGame.away_team,
+                                date: currentGame.date,
+                                time: currentGame.time,
+                                halle: currentGame.halle
+                            }
+                        }
+                    );
                 }
                 
                 // Use match_id for updates (much simpler and more reliable)

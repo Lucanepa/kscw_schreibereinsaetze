@@ -82,6 +82,14 @@
         let allLogs = [];
         let filteredLogs = [];
 
+        // Helper function to escape HTML and prevent XSS
+        function escapeHtml(text) {
+            if (text == null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
             try {
@@ -90,6 +98,19 @@
                 }
                 
                 supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+                
+                // Check authentication before loading logs
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    // Not authenticated, show login prompt
+                    document.getElementById('logsTable').innerHTML = '<div class="error">Please log in to view logs. <a href="admin.html">Go to Admin Panel</a></div>';
+                    return;
+                }
+                
+                // Check if user is admin (you may need to implement this based on your auth system)
+                // For now, we'll assume any authenticated user can view logs
+                // You can add additional role checks here
+                
                 await loadLogs();
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -142,8 +163,8 @@
                         log.action || '',
                         log.table_name || '',
                         log.field_name || '',
-                        log.old_value || '',
-                        log.new_value || '',
+                        typeof log.old_value === 'string' ? log.old_value : JSON.stringify(log.old_value || ''),
+                        typeof log.new_value === 'string' ? log.new_value : JSON.stringify(log.new_value || ''),
                         log.client_ip || '',
                         log.session_id || ''
                     ].join(' ').toLowerCase();
@@ -177,43 +198,103 @@
                 return;
             }
 
-            const table = `
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Timestamp</th>
-                            <th>Action</th>
-                            <th>Table</th>
-                            <th>Field</th>
-                            <th>Old Value</th>
-                            <th>New Value</th>
-                            <th>IP Address</th>
-                            <th>Session ID</th>
-                            <th>User Agent</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filteredLogs.map(log => `
-                            <tr>
-                                <td>${new Date(log.timestamp).toLocaleString()}</td>
-                                <td><strong>${log.action}</strong></td>
-                                <td>${log.table_name}</td>
-                                <td>${log.field_name || '-'}</td>
-                                <td title="${log.old_value || ''}">${(log.old_value || '').substring(0, 50)}${(log.old_value || '').length > 50 ? '...' : ''}</td>
-                                <td title="${log.new_value || ''}">${(log.new_value || '').substring(0, 50)}${(log.new_value || '').length > 50 ? '...' : ''}</td>
-                                <td>${log.client_ip || '-'}</td>
-                                <td title="${log.session_id || ''}">${(log.session_id || '').substring(0, 20)}${(log.session_id || '').length > 20 ? '...' : ''}</td>
-                                <td title="${log.user_agent || ''}">${(log.user_agent || '').substring(0, 30)}${(log.user_agent || '').length > 30 ? '...' : ''}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div style="margin-top: 20px; text-align: center; color: #7f8c8d;">
-                    Showing ${filteredLogs.length} of ${allLogs.length} total logs
-                </div>
-            `;
+            // Clear container
+            container.innerHTML = '';
             
-            container.innerHTML = table;
+            // Create table element
+            const table = document.createElement('table');
+            table.className = 'table';
+            
+            // Create header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const headers = ['Timestamp', 'Action', 'Table', 'Field', 'Old Value', 'New Value', 'IP Address', 'Session ID', 'User Agent'];
+            
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            
+            filteredLogs.forEach(log => {
+                const row = document.createElement('tr');
+                
+                // Timestamp
+                const timestampCell = document.createElement('td');
+                timestampCell.textContent = new Date(log.timestamp).toLocaleString();
+                row.appendChild(timestampCell);
+                
+                // Action
+                const actionCell = document.createElement('td');
+                const actionStrong = document.createElement('strong');
+                actionStrong.textContent = log.action;
+                actionCell.appendChild(actionStrong);
+                row.appendChild(actionCell);
+                
+                // Table
+                const tableCell = document.createElement('td');
+                tableCell.textContent = log.table_name;
+                row.appendChild(tableCell);
+                
+                // Field
+                const fieldCell = document.createElement('td');
+                fieldCell.textContent = log.field_name || '-';
+                row.appendChild(fieldCell);
+                
+                // Old Value
+                const oldValueCell = document.createElement('td');
+                const oldValue = log.old_value || '';
+                const oldValueText = typeof oldValue === 'string' ? oldValue : JSON.stringify(oldValue);
+                oldValueCell.title = oldValueText;
+                oldValueCell.textContent = oldValueText.length > 50 ? oldValueText.substring(0, 50) + '...' : oldValueText;
+                row.appendChild(oldValueCell);
+                
+                // New Value
+                const newValueCell = document.createElement('td');
+                const newValue = log.new_value || '';
+                const newValueText = typeof newValue === 'string' ? newValue : JSON.stringify(newValue);
+                newValueCell.title = newValueText;
+                newValueCell.textContent = newValueText.length > 50 ? newValueText.substring(0, 50) + '...' : newValueText;
+                row.appendChild(newValueCell);
+                
+                // IP Address
+                const ipCell = document.createElement('td');
+                ipCell.textContent = log.client_ip || '-';
+                row.appendChild(ipCell);
+                
+                // Session ID
+                const sessionCell = document.createElement('td');
+                const sessionText = log.session_id || '';
+                sessionCell.title = sessionText;
+                sessionCell.textContent = sessionText.length > 20 ? sessionText.substring(0, 20) + '...' : sessionText;
+                row.appendChild(sessionCell);
+                
+                // User Agent
+                const userAgentCell = document.createElement('td');
+                const userAgentText = log.user_agent || '';
+                userAgentCell.title = userAgentText;
+                userAgentCell.textContent = userAgentText.length > 30 ? userAgentText.substring(0, 30) + '...' : userAgentText;
+                row.appendChild(userAgentCell);
+                
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            container.appendChild(table);
+            
+            // Add summary
+            const summary = document.createElement('div');
+            summary.style.marginTop = '20px';
+            summary.style.textAlign = 'center';
+            summary.style.color = '#7f8c8d';
+            summary.textContent = `Showing ${filteredLogs.length} of ${allLogs.length} total logs`;
+            container.appendChild(summary);
         }
     </script>
 </body>
