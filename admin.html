@@ -970,10 +970,12 @@
         function populateTeamDropdowns() {
             const taefelerTeam = document.getElementById('taefelerTeam');
             const scorerTeam = document.getElementById('scorerTeam');
+            const scorerTaefelerTeam = document.getElementById('scorerTaefelerTeam');
             
             // Clear existing options
             taefelerTeam.innerHTML = '<option value="">Select Team</option>';
             scorerTeam.innerHTML = '<option value="">Select Team</option>';
+            scorerTaefelerTeam.innerHTML = '<option value="">Select Team</option>';
             
             teams.forEach(team => {
                 const taefelerOption = document.createElement('option');
@@ -985,16 +987,23 @@
                 scorerOption.value = team;
                 scorerOption.textContent = team;
                 scorerTeam.appendChild(scorerOption);
+                
+                const combinedOption = document.createElement('option');
+                combinedOption.value = team;
+                combinedOption.textContent = team;
+                scorerTaefelerTeam.appendChild(combinedOption);
             });
         }
 
         function populatePersonDropdowns() {
             const taefelerId = document.getElementById('taefelerId');
             const scorerId = document.getElementById('scorerId');
+            const scorerTaefelerId = document.getElementById('scorerTaefelerId');
             
             // Clear existing options
             taefelerId.innerHTML = '<option value="">Select Täfeler</option>';
             scorerId.innerHTML = '<option value="">Select Scorer</option>';
+            scorerTaefelerId.innerHTML = '<option value="">Select Scorer/Täfeler</option>';
             
             scorers.forEach(person => {
                 const taefelerOption = document.createElement('option');
@@ -1006,6 +1015,11 @@
                 scorerOption.value = person.id;
                 scorerOption.textContent = `${person.fname} ${person.lname}`;
                 scorerId.appendChild(scorerOption);
+                
+                const combinedOption = document.createElement('option');
+                combinedOption.value = person.id;
+                combinedOption.textContent = `${person.fname} ${person.lname}`;
+                scorerTaefelerId.appendChild(combinedOption);
             });
         }
 
@@ -1018,11 +1032,8 @@
             populatePersonDropdowns();
             
             // Reset form field visibility for new games
-            document.getElementById('taefelerIdGroup').style.display = 'block';
-            document.getElementById('scorerIdGroup').style.display = 'block';
-            document.getElementById('scorerTaefelerTeamGroup').style.display = 'none';
-            document.getElementById('scorerTaefelerIdGroup').style.display = 'none';
             document.getElementById('assignmentType').value = 'separate'; // Default to separate
+            toggleAssignmentFields(); // This will show/hide the appropriate fields
             
             document.getElementById('gameModal').style.display = 'block';
         }
@@ -1046,14 +1057,11 @@
             document.getElementById('scorerId').value = game.scorer_id || '';
             document.getElementById('scorerTaefelerTeam').value = game.scorer_taefeler_team || '';
             document.getElementById('scorerTaefelerId').value = game.scorer_taefeler_id || '';
-            document.getElementById('assignmentType').value = game.scorer_taefeler_id || game.scorer_taefeler_team ? 'combined' : 'separate';
-
-            // Show/hide combined fields based on game type
+            
+            // Set assignment type and toggle fields accordingly
             const isCombinedGame = game.scorer_taefeler_id || game.scorer_taefeler_team;
-            document.getElementById('taefelerIdGroup').style.display = isCombinedGame ? 'none' : 'block';
-            document.getElementById('scorerIdGroup').style.display = isCombinedGame ? 'none' : 'block';
-            document.getElementById('scorerTaefelerTeamGroup').style.display = isCombinedGame ? 'block' : 'none';
-            document.getElementById('scorerTaefelerIdGroup').style.display = isCombinedGame ? 'block' : 'none';
+            document.getElementById('assignmentType').value = isCombinedGame ? 'combined' : 'separate';
+            toggleAssignmentFields(); // This will show/hide the appropriate fields
 
             document.getElementById('gameModal').style.display = 'block';
         }
@@ -1098,10 +1106,9 @@
             
             if (!await verifyAdminStatus()) return; // Verify admin status
             
-            // Determine if this is a combined game based on form input
-            const scorerTaefelerTeam = document.getElementById('scorerTaefelerTeam').value;
-            const scorerTaefelerId = document.getElementById('scorerTaefelerId').value;
-            const isCombinedGame = scorerTaefelerTeam || scorerTaefelerId;
+            // Determine if this is a combined game based on assignment type selection
+            const assignmentType = document.getElementById('assignmentType').value;
+            const isCombinedGame = assignmentType === 'combined';
             
             const gameData = {
                 date: document.getElementById('gameDate').value,
@@ -1113,8 +1120,8 @@
                 scorer_team: isCombinedGame ? null : document.getElementById('scorerTeam').value,
                 taefeler_id: isCombinedGame ? null : (document.getElementById('taefelerId').value || null),
                 scorer_id: isCombinedGame ? null : (document.getElementById('scorerId').value || null),
-                scorer_taefeler_team: isCombinedGame ? scorerTaefelerTeam : null,
-                scorer_taefeler_id: isCombinedGame ? (scorerTaefelerId || null) : null
+                scorer_taefeler_team: isCombinedGame ? document.getElementById('scorerTaefelerTeam').value : null,
+                scorer_taefeler_id: isCombinedGame ? (document.getElementById('scorerTaefelerId').value || null) : null
             };
 
             try {
@@ -1718,19 +1725,29 @@
         // Function to toggle visibility of separate and combined assignment fields
         function toggleAssignmentFields() {
             const assignmentType = document.getElementById('assignmentType').value;
+            const taefelerTeam = document.getElementById('taefelerTeam').parentElement;
+            const scorerTeam = document.getElementById('scorerTeam').parentElement;
             const taefelerIdGroup = document.getElementById('taefelerIdGroup');
             const scorerIdGroup = document.getElementById('scorerIdGroup');
             const scorerTaefelerTeamGroup = document.getElementById('scorerTaefelerTeamGroup');
             const scorerTaefelerIdGroup = document.getElementById('scorerTaefelerIdGroup');
 
             if (assignmentType === 'combined') {
+                // Hide separate assignment fields
+                taefelerTeam.style.display = 'none';
+                scorerTeam.style.display = 'none';
                 taefelerIdGroup.style.display = 'none';
                 scorerIdGroup.style.display = 'none';
+                // Show combined assignment fields
                 scorerTaefelerTeamGroup.style.display = 'block';
                 scorerTaefelerIdGroup.style.display = 'block';
             } else { // separate
+                // Show separate assignment fields
+                taefelerTeam.style.display = 'block';
+                scorerTeam.style.display = 'block';
                 taefelerIdGroup.style.display = 'block';
                 scorerIdGroup.style.display = 'block';
+                // Hide combined assignment fields
                 scorerTaefelerTeamGroup.style.display = 'none';
                 scorerTaefelerIdGroup.style.display = 'none';
             }
