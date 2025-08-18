@@ -65,8 +65,8 @@
             </div>
 
             <div class="tabs">
-                <button class="tab active" onclick="showTab('games')">Games</button>
-                <button class="tab" onclick="showTab('scorers')">Scorers</button>
+                <button class="tab active" onclick="showTab('games', event)">Games</button>
+                <button class="tab" onclick="showTab('scorers', event)">Scorers</button>
                 <a href="logs.html" class="tab" style="text-decoration: none; color: inherit;">Logs</a>
             </div>
 
@@ -196,14 +196,25 @@
         let teams = [];
         let editingId = null;
 
+        // Helper function to escape HTML and prevent XSS
+        function escapeHtml(text) {
+            if (text == null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
             try {
+                console.log('DOM loaded, initializing...');
                 if (typeof SUPABASE_CONFIG === 'undefined') {
                     throw new Error('Configuration not loaded');
                 }
                 
+                console.log('Supabase config found:', SUPABASE_CONFIG);
                 supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+                console.log('Supabase client created');
                 await checkAuth();
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -213,10 +224,19 @@
 
         // Authentication
         async function checkAuth() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                currentUser = user;
-                showAdminPanel();
+            try {
+                console.log('Checking authentication...');
+                const { data: { user } } = await supabase.auth.getUser();
+                console.log('Auth result:', user);
+                if (user) {
+                    currentUser = user;
+                    console.log('User authenticated, showing admin panel');
+                    showAdminPanel();
+                } else {
+                    console.log('No user found, staying on login form');
+                }
+            } catch (error) {
+                console.error('Error checking auth:', error);
             }
         }
 
@@ -242,8 +262,10 @@
         }
 
         function showAdminPanel() {
+            console.log('Showing admin panel...');
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
+            console.log('Admin panel displayed, loading data...');
             loadData();
         }
 
@@ -253,25 +275,51 @@
         }
 
         // Tab management
-        function showTab(tabName) {
+        function showTab(tabName, event) {
+            console.log('showTab called with:', tabName, event);
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
             document.getElementById(tabName + 'Tab').classList.add('active');
             
-            if (tabName === 'games') renderGamesTable();
-            else if (tabName === 'scorers') renderScorersTable();
+            if (tabName === 'games') {
+                console.log('Switching to games tab');
+                renderGamesTable();
+            } else if (tabName === 'scorers') {
+                console.log('Switching to scorers tab');
+                console.log('Current scorers array length:', scorers.length);
+                // Ensure scorers are loaded before rendering
+                if (scorers.length === 0) {
+                    console.log('Scorers not loaded yet, loading...');
+                    loadScorers().then(() => {
+                        console.log('Scorers loaded, now rendering table');
+                        renderScorersTable();
+                    }).catch(error => {
+                        console.error('Error loading scorers:', error);
+                    });
+                } else {
+                    console.log('Scorers already loaded, rendering table');
+                    renderScorersTable();
+                }
+            }
         }
 
         // Data loading
         async function loadData() {
             try {
+                console.log('Loading all data...');
                 await Promise.all([
                     loadGames(),
                     loadScorers(),
                     loadTeams()
                 ]);
+                console.log('All data loaded successfully');
+                console.log('Games:', games.length);
+                console.log('Scorers:', scorers.length);
+                console.log('Teams:', teams.length);
                 renderGamesTable();
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -279,118 +327,255 @@
         }
 
         async function loadGames() {
-            const { data, error } = await supabase
-                .from('scorer_matches')
-                .select('*')
-                .order('date', { ascending: true });
-            
-            if (error) throw error;
-            games = data || [];
+            try {
+                console.log('Loading games...');
+                const { data, error } = await supabase
+                    .from('scorer_matches')
+                    .select('*')
+                    .order('date', { ascending: true });
+                
+                if (error) {
+                    console.error('Error loading games:', error);
+                    throw error;
+                }
+                
+                games = data || [];
+                console.log('Games loaded:', games.length);
+            } catch (error) {
+                console.error('Exception in loadGames:', error);
+                throw error;
+            }
         }
 
         async function loadScorers() {
-            const { data, error } = await supabase
-                .from('scorer_scorers')
-                .select('*')
-                .order('lname', { ascending: true });
-            
-            if (error) throw error;
-            scorers = data || [];
+            try {
+                console.log('Loading scorers...');
+                const { data, error } = await supabase
+                    .from('scorer_scorers')
+                    .select('*')
+                    .order('lname', { ascending: true });
+                
+                if (error) {
+                    console.error('Error loading scorers:', error);
+                    throw error;
+                }
+                
+                scorers = data || [];
+                console.log('Scorers loaded:', scorers.length, scorers);
+            } catch (error) {
+                console.error('Exception in loadScorers:', error);
+                throw error;
+            }
         }
 
         async function loadTeams() {
-            // Extract unique teams from games
-            const teamSet = new Set();
-            games.forEach(game => {
-                if (game.home_team) teamSet.add(game.home_team);
-                if (game.away_team) teamSet.add(game.away_team);
-                if (game.taefeler_team) teamSet.add(game.taefeler_team);
-                if (game.scorer_team) teamSet.add(game.scorer_team);
-            });
-            teams = Array.from(teamSet).sort();
+            try {
+                console.log('Loading teams...');
+                // Extract unique teams from games
+                const teamSet = new Set();
+                games.forEach(game => {
+                    if (game.home_team) teamSet.add(game.home_team);
+                    if (game.away_team) teamSet.add(game.away_team);
+                    if (game.taefeler_team) teamSet.add(game.taefeler_team);
+                    if (game.scorer_team) teamSet.add(game.scorer_team);
+                });
+                teams = Array.from(teamSet).sort();
+                console.log('Teams loaded:', teams.length, teams);
+            } catch (error) {
+                console.error('Exception in loadTeams:', error);
+                throw error;
+            }
         }
 
         // Rendering functions
         function renderGamesTable() {
+            console.log('Rendering games table...');
             const container = document.getElementById('gamesTable');
+            console.log('Games container:', container);
+            console.log('Games array:', games);
+            
             if (!games.length) {
+                console.log('No games found, showing loading message');
                 container.innerHTML = '<div class="loading">No games found</div>';
                 return;
             }
 
-            const table = `
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Home Team</th>
-                            <th>Away Team</th>
-                            <th>Gym</th>
-                            <th>Täfeler</th>
-                            <th>Scorer</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${games.map(game => `
-                            <tr>
-                                <td>${new Date(game.date).toLocaleDateString()}</td>
-                                <td>${game.time || '-'}</td>
-                                <td>${game.home_team || '-'}</td>
-                                <td>${game.away_team || '-'}</td>
-                                <td>${game.halle || '-'}</td>
-                                <td>${getPersonName(game.taefeler_id, scorers) || '-'}</td>
-                                <td>${getPersonName(game.scorer_id, scorers) || '-'}</td>
-                                <td>
-                                    <button class="btn btn-primary" onclick="editGame(${game.match_id})">Edit</button>
-                                    <button class="btn btn-danger" onclick="deleteGame(${game.match_id})">Delete</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            container.innerHTML = table;
+            console.log('Creating games table with', games.length, 'games');
+            
+            // Clear container
+            container.innerHTML = '';
+            
+            // Create table element
+            const table = document.createElement('table');
+            table.className = 'table';
+            
+            // Create header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const headers = ['Date', 'Time', 'Home Team', 'Away Team', 'Gym', 'Täfeler', 'Scorer', 'Actions'];
+            
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            
+            games.forEach(game => {
+                const row = document.createElement('tr');
+                
+                // Date
+                const dateCell = document.createElement('td');
+                dateCell.textContent = new Date(game.date).toLocaleDateString();
+                row.appendChild(dateCell);
+                
+                // Time
+                const timeCell = document.createElement('td');
+                timeCell.textContent = game.time || '-';
+                row.appendChild(timeCell);
+                
+                // Home Team
+                const homeTeamCell = document.createElement('td');
+                homeTeamCell.textContent = game.home_team || '-';
+                row.appendChild(homeTeamCell);
+                
+                // Away Team
+                const awayTeamCell = document.createElement('td');
+                awayTeamCell.textContent = game.away_team || '-';
+                row.appendChild(awayTeamCell);
+                
+                // Gym
+                const gymCell = document.createElement('td');
+                gymCell.textContent = game.halle || '-';
+                row.appendChild(gymCell);
+                
+                // Täfeler
+                const taefelerCell = document.createElement('td');
+                taefelerCell.textContent = getPersonName(game.taefeler_id, scorers) || '-';
+                row.appendChild(taefelerCell);
+                
+                // Scorer
+                const scorerCell = document.createElement('td');
+                scorerCell.textContent = getPersonName(game.scorer_id, scorers) || '-';
+                row.appendChild(scorerCell);
+                
+                // Actions
+                const actionsCell = document.createElement('td');
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-primary';
+                editBtn.textContent = 'Edit';
+                editBtn.addEventListener('click', () => editGame(game.match_id));
+                actionsCell.appendChild(editBtn);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.addEventListener('click', () => deleteGame(game.match_id));
+                actionsCell.appendChild(deleteBtn);
+                
+                row.appendChild(actionsCell);
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            container.appendChild(table);
+            console.log('Games table rendered successfully');
         }
 
         function renderScorersTable() {
+            console.log('Rendering scorers table...');
             const container = document.getElementById('scorersTable');
+            console.log('Container:', container);
+            console.log('Scorers array:', scorers);
+            
             if (!scorers.length) {
+                console.log('No scorers found, showing loading message');
                 container.innerHTML = '<div class="loading">No scorers found</div>';
                 return;
             }
 
-            const table = `
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                            <th>Teams</th>
-                            <th>Scorer Licence</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${scorers.map(scorer => `
-                            <tr>
-                                <td>${scorer.fname} ${scorer.lname}</td>
-                                <td>${scorer.phone || '-'}</td>
-                                <td>${scorer.email || '-'}</td>
-                                <td>${Array.isArray(scorer.teams) ? scorer.teams.join(', ') : scorer.teams || '-'}</td>
-                                <td>${scorer.scorer_licence ? 'Yes' : 'No'}</td>
-                                <td>
-                                    <button class="btn btn-primary" onclick="editScorer(${scorer.id})">Edit</button>
-                                    <button class="btn btn-danger" onclick="deleteScorer(${scorer.id})">Delete</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            container.innerHTML = table;
+            console.log('Creating table with', scorers.length, 'scorers');
+            
+            // Clear container
+            container.innerHTML = '';
+            
+            // Create table element
+            const table = document.createElement('table');
+            table.className = 'table';
+            
+            // Create header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const headers = ['Name', 'Phone', 'Email', 'Teams', 'Scorer Licence', 'Actions'];
+            
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            
+            scorers.forEach(scorer => {
+                const row = document.createElement('tr');
+                
+                // Name
+                const nameCell = document.createElement('td');
+                nameCell.textContent = `${scorer.fname} ${scorer.lname}`;
+                row.appendChild(nameCell);
+                
+                // Phone
+                const phoneCell = document.createElement('td');
+                phoneCell.textContent = scorer.phone || '-';
+                row.appendChild(phoneCell);
+                
+                // Email
+                const emailCell = document.createElement('td');
+                emailCell.textContent = scorer.email || '-';
+                row.appendChild(emailCell);
+                
+                // Teams
+                const teamsCell = document.createElement('td');
+                teamsCell.textContent = Array.isArray(scorer.teams) ? scorer.teams.join(', ') : scorer.teams || '-';
+                row.appendChild(teamsCell);
+                
+                // Scorer Licence
+                const licenceCell = document.createElement('td');
+                licenceCell.textContent = scorer.scorer_licence ? 'Yes' : 'No';
+                row.appendChild(licenceCell);
+                
+                // Actions
+                const actionsCell = document.createElement('td');
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-primary';
+                editBtn.textContent = 'Edit';
+                editBtn.addEventListener('click', () => editScorer(scorer.id));
+                actionsCell.appendChild(editBtn);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.addEventListener('click', () => deleteScorer(scorer.id));
+                actionsCell.appendChild(deleteBtn);
+                
+                row.appendChild(actionsCell);
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            container.appendChild(table);
+            console.log('Table rendered successfully');
         }
 
 
@@ -406,12 +591,20 @@
             const taefelerTeam = document.getElementById('taefelerTeam');
             const scorerTeam = document.getElementById('scorerTeam');
             
+            // Clear existing options
             taefelerTeam.innerHTML = '<option value="">Select Team</option>';
             scorerTeam.innerHTML = '<option value="">Select Team</option>';
             
             teams.forEach(team => {
-                taefelerTeam.innerHTML += `<option value="${team}">${team}</option>`;
-                scorerTeam.innerHTML += `<option value="${team}">${team}</option>`;
+                const taefelerOption = document.createElement('option');
+                taefelerOption.value = team;
+                taefelerOption.textContent = team;
+                taefelerTeam.appendChild(taefelerOption);
+                
+                const scorerOption = document.createElement('option');
+                scorerOption.value = team;
+                scorerOption.textContent = team;
+                scorerTeam.appendChild(scorerOption);
             });
         }
 
@@ -419,12 +612,20 @@
             const taefelerId = document.getElementById('taefelerId');
             const scorerId = document.getElementById('scorerId');
             
+            // Clear existing options
             taefelerId.innerHTML = '<option value="">Select Täfeler</option>';
             scorerId.innerHTML = '<option value="">Select Scorer</option>';
             
             scorers.forEach(person => {
-                taefelerId.innerHTML += `<option value="${person.id}">${person.fname} ${person.lname}</option>`;
-                scorerId.innerHTML += `<option value="${person.id}">${person.fname} ${person.lname}</option>`;
+                const taefelerOption = document.createElement('option');
+                taefelerOption.value = person.id;
+                taefelerOption.textContent = `${person.fname} ${person.lname}`;
+                taefelerId.appendChild(taefelerOption);
+                
+                const scorerOption = document.createElement('option');
+                scorerOption.value = person.id;
+                scorerOption.textContent = `${person.fname} ${person.lname}`;
+                scorerId.appendChild(scorerOption);
             });
         }
 
@@ -444,6 +645,8 @@
             if (!game) return;
 
             document.getElementById('gameModalTitle').textContent = 'Edit Game';
+            populateTeamDropdowns();
+            populatePersonDropdowns();
             document.getElementById('gameDate').value = game.date;
             document.getElementById('gameTime').value = game.time || '';
             document.getElementById('homeTeam').value = game.home_team || '';
@@ -454,8 +657,6 @@
             document.getElementById('taefelerId').value = game.taefeler_id || '';
             document.getElementById('scorerId').value = game.scorer_id || '';
 
-            populateTeamDropdowns();
-            populatePersonDropdowns();
             document.getElementById('gameModal').style.display = 'block';
         }
 
@@ -467,9 +668,14 @@
         }
 
         function editScorer(id) {
+            console.log('editScorer called with id:', id);
             editingId = id;
             const scorer = scorers.find(s => s.id === id);
-            if (!scorer) return;
+            console.log('Found scorer:', scorer);
+            if (!scorer) {
+                console.log('No scorer found with id:', id);
+                return;
+            }
 
             document.getElementById('scorerModalTitle').textContent = 'Edit Scorer';
             document.getElementById('scorerFname').value = scorer.fname || '';
@@ -480,6 +686,7 @@
             document.getElementById('scorerLicence').value = scorer.scorer_licence ? 'true' : 'false';
 
             document.getElementById('scorerModal').style.display = 'block';
+            console.log('Edit modal displayed');
         }
 
         function closeModal(modalId) {
@@ -579,19 +786,26 @@
         }
 
         async function deleteScorer(id) {
+            console.log('deleteScorer called with id:', id);
             if (!confirm('Are you sure you want to delete this scorer?')) return;
             
             try {
+                console.log('Deleting scorer from database...');
                 const { error } = await supabase
                     .from('scorer_scorers')
                     .delete()
                     .eq('id', id);
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Database error:', error);
+                    throw error;
+                }
                 
+                console.log('Scorer deleted successfully');
                 await loadScorers();
                 renderScorersTable();
             } catch (error) {
+                console.error('Error in deleteScorer:', error);
                 alert('Error deleting scorer: ' + error.message);
             }
         }
@@ -626,40 +840,89 @@
                 return;
             }
 
-            const table = `
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Home Team</th>
-                            <th>Away Team</th>
-                            <th>Gym</th>
-                            <th>Täfeler</th>
-                            <th>Scorer</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filteredGames.map(game => `
-                            <tr>
-                                <td>${new Date(game.date).toLocaleDateString()}</td>
-                                <td>${game.time || '-'}</td>
-                                <td>${game.home_team || '-'}</td>
-                                <td>${game.away_team || '-'}</td>
-                                <td>${game.halle || '-'}</td>
-                                <td>${getPersonName(game.taefeler_id, scorers) || '-'}</td>
-                                <td>${getPersonName(game.scorer_id, scorers) || '-'}</td>
-                                <td>
-                                    <button class="btn btn-primary" onclick="editGame(${game.match_id})">Edit</button>
-                                    <button class="btn btn-danger" onclick="deleteGame(${game.match_id})">Delete</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            container.innerHTML = table;
+            // Clear container
+            container.innerHTML = '';
+            
+            // Create table element
+            const table = document.createElement('table');
+            table.className = 'table';
+            
+            // Create header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const headers = ['Date', 'Time', 'Home Team', 'Away Team', 'Gym', 'Täfeler', 'Scorer', 'Actions'];
+            
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            
+            filteredGames.forEach(game => {
+                const row = document.createElement('tr');
+                
+                // Date
+                const dateCell = document.createElement('td');
+                dateCell.textContent = new Date(game.date).toLocaleDateString();
+                row.appendChild(dateCell);
+                
+                // Time
+                const timeCell = document.createElement('td');
+                timeCell.textContent = game.time || '-';
+                row.appendChild(timeCell);
+                
+                // Home Team
+                const homeTeamCell = document.createElement('td');
+                homeTeamCell.textContent = game.home_team || '-';
+                row.appendChild(homeTeamCell);
+                
+                // Away Team
+                const awayTeamCell = document.createElement('td');
+                awayTeamCell.textContent = game.away_team || '-';
+                row.appendChild(awayTeamCell);
+                
+                // Gym
+                const gymCell = document.createElement('td');
+                gymCell.textContent = game.halle || '-';
+                row.appendChild(gymCell);
+                
+                // Täfeler
+                const taefelerCell = document.createElement('td');
+                taefelerCell.textContent = getPersonName(game.taefeler_id, scorers) || '-';
+                row.appendChild(taefelerCell);
+                
+                // Scorer
+                const scorerCell = document.createElement('td');
+                scorerCell.textContent = getPersonName(game.scorer_id, scorers) || '-';
+                row.appendChild(scorerCell);
+                
+                // Actions
+                const actionsCell = document.createElement('td');
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-primary';
+                editBtn.textContent = 'Edit';
+                editBtn.addEventListener('click', () => editGame(game.match_id));
+                actionsCell.appendChild(editBtn);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.addEventListener('click', () => deleteGame(game.match_id));
+                actionsCell.appendChild(deleteBtn);
+                
+                row.appendChild(actionsCell);
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            container.appendChild(table);
         }
 
         function renderFilteredScorers(filteredScorers) {
@@ -669,36 +932,79 @@
                 return;
             }
 
-            const table = `
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                            <th>Teams</th>
-                            <th>Scorer Licence</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filteredScorers.map(scorer => `
-                            <tr>
-                                <td>${scorer.fname} ${scorer.lname}</td>
-                                <td>${scorer.phone || '-'}</td>
-                                <td>${scorer.email || '-'}</td>
-                                <td>${Array.isArray(scorer.teams) ? scorer.teams.join(', ') : scorer.teams || '-'}</td>
-                                <td>${scorer.scorer_licence ? 'Yes' : 'No'}</td>
-                                <td>
-                                    <button class="btn btn-primary" onclick="editScorer(${scorer.id})">Edit</button>
-                                    <button class="btn btn-danger" onclick="deleteScorer(${scorer.id})">Delete</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            container.innerHTML = table;
+            // Clear container
+            container.innerHTML = '';
+            
+            // Create table element
+            const table = document.createElement('table');
+            table.className = 'table';
+            
+            // Create header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const headers = ['Name', 'Phone', 'Email', 'Teams', 'Scorer Licence', 'Actions'];
+            
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            
+            filteredScorers.forEach(scorer => {
+                const row = document.createElement('tr');
+                
+                // Name
+                const nameCell = document.createElement('td');
+                nameCell.textContent = `${scorer.fname} ${scorer.lname}`;
+                row.appendChild(nameCell);
+                
+                // Phone
+                const phoneCell = document.createElement('td');
+                phoneCell.textContent = scorer.phone || '-';
+                row.appendChild(phoneCell);
+                
+                // Email
+                const emailCell = document.createElement('td');
+                emailCell.textContent = scorer.email || '-';
+                row.appendChild(emailCell);
+                
+                // Teams
+                const teamsCell = document.createElement('td');
+                teamsCell.textContent = Array.isArray(scorer.teams) ? scorer.teams.join(', ') : scorer.teams || '-';
+                row.appendChild(teamsCell);
+                
+                // Scorer Licence
+                const licenceCell = document.createElement('td');
+                licenceCell.textContent = scorer.scorer_licence ? 'Yes' : 'No';
+                row.appendChild(licenceCell);
+                
+                // Actions
+                const actionsCell = document.createElement('td');
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-primary';
+                editBtn.textContent = 'Edit';
+                editBtn.addEventListener('click', () => editScorer(scorer.id));
+                actionsCell.appendChild(editBtn);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.addEventListener('click', () => deleteScorer(scorer.id));
+                actionsCell.appendChild(deleteBtn);
+                
+                row.appendChild(actionsCell);
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            container.appendChild(table);
         }
     </script>
 </body>
