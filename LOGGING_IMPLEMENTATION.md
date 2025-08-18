@@ -69,6 +69,7 @@ The `scorer_edit_log` table now captures:
 - Logs system-level events (page loads, navigation, etc.)
 - Captures page URL and referrer information
 - Used for non-database events
+- **Implementation Note**: System events are stored in the `scorer_edit_log` table with `table_name='system_events'` for consistency with the unified logging approach
 
 ### `getClientIP()`
 - Fetches client IP address from ipify.org API
@@ -100,10 +101,34 @@ The `scorer_edit_log` table now captures:
 
 ## Security & Privacy
 
-- **IP Addresses**: Only logged for audit purposes, not stored permanently
+- **IP Addresses**: Logged for audit purposes with 90-day retention policy
 - **User Data**: Sensitive information is not logged in plain text
 - **Session IDs**: Generated locally, not tied to user identity
 - **Error Handling**: Failed logging doesn't break application functionality
+
+## Data Retention Policy
+
+### IP Address Retention
+- **Retention Period**: 90 days from timestamp
+- **Enforcement Mechanism**: Database row-level TTL policy
+- **Implementation**: 
+  ```sql
+  -- Add TTL policy to scorer_edit_log table
+  ALTER TABLE scorer_edit_log 
+  ADD COLUMN expires_at TIMESTAMP WITH TIME ZONE 
+  GENERATED ALWAYS AS (timestamp + INTERVAL '90 days') STORED;
+  
+  -- Create policy to automatically delete expired rows
+  CREATE POLICY "auto_delete_expired_logs" ON scorer_edit_log
+  FOR DELETE USING (expires_at < NOW());
+  
+  -- Set up scheduled cleanup job (runs daily at 2 AM)
+  SELECT cron.schedule(
+    'cleanup-expired-logs',
+    '0 2 * * *',
+    'DELETE FROM scorer_edit_log WHERE expires_at < NOW();'
+  );
+  ```
 
 ## Performance Considerations
 
@@ -111,6 +136,7 @@ The `scorer_edit_log` table now captures:
 - **Error Fallbacks**: Logging failures don't impact user experience
 - **IP API**: External API call with timeout handling
 - **Batch Operations**: Multiple changes logged individually for granular tracking
+- **Automatic Cleanup**: Expired logs automatically removed to maintain performance
 
 ## Monitoring & Analysis
 
@@ -128,7 +154,6 @@ Potential improvements could include:
 
 - **Real-time Logging Dashboard** - Live monitoring of system activity
 - **Alert System** - Notifications for unusual patterns
-- **Data Retention Policies** - Automatic cleanup of old logs
 - **Advanced Analytics** - Machine learning for pattern detection
 - **Export Functionality** - Download logs for external analysis
 
@@ -141,4 +166,4 @@ Potential improvements could include:
 - ✅ **Error Logging** - Implemented with detailed context
 - ✅ **System Events** - Implemented across all major user actions
 
-All logging is now centralized in the `scorer_edit_log` table, providing a complete audit trail of user actions and system events.
+All logging is now centralized in the `scorer_edit_log` table, providing a complete audit trail of user actions and system events. System events are stored with `table_name='system_events'` for easy filtering and analysis.

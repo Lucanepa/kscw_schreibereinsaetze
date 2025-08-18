@@ -2094,8 +2094,8 @@ observer.observe(document.body);
                     game_info: null
                 }, {
                     person_type: 'scorer',
-                    phone: phone,
-                    email: email,
+                    phone: maskPhone(phone),
+                    email: maskEmail(email),
                     scorer_licence: false
                 });
 
@@ -2117,7 +2117,7 @@ observer.observe(document.body);
                     game_info: null
                 }, {
                     error_type: 'person_creation_failed',
-                    attempted_data: { fname, lname, phone, email }
+                    attempted_data: { fname, lname, phone: maskPhone(phone), email: maskEmail(email) }
                 });
                 
                 alert('Error adding person. Please try again.');
@@ -2876,5 +2876,30 @@ window.addEventListener('message', function(event) {
             
             // ... existing code ...
 </script>
+
+        // Helper function to safely escape HTML
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Mask phone number for privacy (shows only last 2 digits)
+        function maskPhone(phone) {
+            if (!phone || typeof phone !== 'string') return 'unknown';
+            if (phone.length <= 2) return phone;
+            return '•'.repeat(phone.length - 2) + phone.slice(-2);
+        }
+
+        // Mask email for privacy (shows first letter + *** + @domain)
+        function maskEmail(email) {
+            if (!email || typeof email !== 'string') return 'unknown';
+            const atIndex = email.indexOf('@');
+            if (atIndex <= 1) return email; // Too short to mask meaningfully
+            const localPart = email.substring(0, atIndex);
+            const domain = email.substring(atIndex);
+            return localPart.charAt(0) + '***' + domain;
+        }
     </body>
 </html>
