@@ -634,7 +634,7 @@
             // Create header
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            const headers = ['Date', 'Time', 'Game N', 'Gym', 'Täfeler (Team)', 'Scorer (Team)', 'Actions'];
+            const headers = ['Date', 'Time', 'Game N', 'Gym', 'Täfeler', 'Scorer', 'Scorer/Täfeler', 'Actions'];
             
             headers.forEach(headerText => {
                 const th = document.createElement('th');
@@ -675,12 +675,9 @@
                 const taefelerCell = document.createElement('td');
                 let taefelerText;
                 
-                // Check if this is a combined scorer/täfeler game
+                // If this is a combined game, show blank in täfeler column
                 if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
-                    taefelerText = getCombinedPersonWithTeam(game);
-                    if (!taefelerText) {
-                        taefelerText = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
-                    }
+                    taefelerText = '-'; // Combined game, no separate täfeler
                 } else {
                     taefelerText = getPersonWithTeam(game.taefeler_id, scorers, game.taefeler_team);
                 }
@@ -697,12 +694,9 @@
                 const scorerCell = document.createElement('td');
                 let scorerText;
                 
-                // Check if this is a combined scorer/täfeler game
+                // If this is a combined game, show blank in scorer column
                 if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
-                    scorerText = getCombinedPersonWithTeam(game);
-                    if (!scorerText) {
-                        scorerText = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
-                    }
+                    scorerText = '-'; // Combined game, no separate scorer
                 } else {
                     scorerText = getPersonWithTeam(game.scorer_id, scorers, game.scorer_team);
                 }
@@ -714,6 +708,20 @@
                     scorerCell.className = 'person-not-found';
                 }
                 row.appendChild(scorerCell);
+                
+                // Scorer/Täfeler (Combined)
+                const combinedCell = document.createElement('td');
+                if (game.scorer_taefeler_id) {
+                    const person = scorers.find(p => p.id === game.scorer_taefeler_id);
+                    if (person) {
+                        combinedCell.textContent = `${person.fname} ${person.lname} (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                    } else {
+                        combinedCell.textContent = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                    }
+                } else {
+                    combinedCell.textContent = '-'; // No combined assignment
+                }
+                row.appendChild(combinedCell);
                 
                 // Actions
                 const actionsCell = document.createElement('td');
@@ -729,28 +737,23 @@
             
             // Add summary statistics
             const missingTaefeler = games.filter(game => {
-                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
-                    // Combined game - check if scorer_taefeler_id is missing
-                    return !game.scorer_taefeler_id;
-                } else {
-                    // Separate game - check if täfeler_id is missing
-                    return !game.taefeler_id;
-                }
+                // Only count as missing if it's NOT a combined game and täfeler_id is missing
+                return !(game.scorer_taefeler_id || game.scorer_taefeler_team) && !game.taefeler_id;
             }).length;
             
             const missingScorer = games.filter(game => {
-                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
-                    // Combined game - check if scorer_taefeler_id is missing
-                    return !game.scorer_taefeler_id;
-                } else {
-                    // Separate game - check if scorer_id is missing when scorer_team is assigned
-                    return game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
-                }
+                // Only count as missing if it's NOT a combined game and scorer_id is missing
+                return !(game.scorer_taefeler_id || game.scorer_taefeler_team) && !game.scorer_id;
+            }).length;
+            
+            const missingCombined = games.filter(game => {
+                // Count as missing if it IS a combined game but scorer_taefeler_id is missing
+                return (game.scorer_taefeler_id || game.scorer_taefeler_team) && !game.scorer_taefeler_id;
             }).length;
             
             const totalGames = games.length;
             
-            if (missingTaefeler > 0 || missingScorer > 0) {
+            if (missingTaefeler > 0 || missingScorer > 0 || missingCombined > 0) {
                 const summaryDiv = document.createElement('div');
                 summaryDiv.style.marginTop = '15px';
                 summaryDiv.style.padding = '10px';
@@ -765,6 +768,9 @@
                 }
                 if (missingScorer > 0) {
                     summaryText += `, ${missingScorer} missing scorer`;
+                }
+                if (missingCombined > 0) {
+                    summaryText += `, ${missingCombined} missing scorer/täfeler`;
                 }
                 
                 summaryDiv.textContent = summaryText;
@@ -1262,7 +1268,7 @@
             // Create header
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            const headers = ['Date', 'Time', 'Game N', 'Gym', 'Täfeler (Team)', 'Scorer (Team)', 'Actions'];
+            const headers = ['Date', 'Time', 'Game N', 'Gym', 'Täfeler', 'Scorer', 'Scorer/Täfeler', 'Actions'];
             
             headers.forEach(headerText => {
                 const th = document.createElement('th');
@@ -1303,12 +1309,9 @@
                 const taefelerCell = document.createElement('td');
                 let taefelerText;
                 
-                // Check if this is a combined scorer/täfeler game
+                // If this is a combined game, show blank in täfeler column
                 if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
-                    taefelerText = getCombinedPersonWithTeam(game);
-                    if (!taefelerText) {
-                        taefelerText = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
-                    }
+                    taefelerText = '-'; // Combined game, no separate täfeler
                 } else {
                     taefelerText = getPersonWithTeam(game.taefeler_id, scorers, game.taefeler_team);
                 }
@@ -1325,12 +1328,9 @@
                 const scorerCell = document.createElement('td');
                 let scorerText;
                 
-                // Check if this is a combined scorer/täfeler game
+                // If this is a combined game, show blank in scorer column
                 if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
-                    scorerText = getCombinedPersonWithTeam(game);
-                    if (!scorerText) {
-                        scorerText = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
-                    }
+                    scorerText = '-'; // Combined game, no separate scorer
                 } else {
                     scorerText = getPersonWithTeam(game.scorer_id, scorers, game.scorer_team);
                 }
@@ -1342,6 +1342,20 @@
                     scorerCell.className = 'person-not-found';
                 }
                 row.appendChild(scorerCell);
+                
+                // Scorer/Täfeler (Combined)
+                const combinedCell = document.createElement('td');
+                if (game.scorer_taefeler_id) {
+                    const person = scorers.find(p => p.id === game.scorer_taefeler_id);
+                    if (person) {
+                        combinedCell.textContent = `${person.fname} ${person.lname} (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                    } else {
+                        combinedCell.textContent = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                    }
+                } else {
+                    combinedCell.textContent = '-'; // No combined assignment
+                }
+                row.appendChild(combinedCell);
                 
                 // Actions
                 const actionsCell = document.createElement('td');
@@ -1355,24 +1369,23 @@
             
             // Add summary statistics for filtered games
             const missingTaefeler = filteredGames.filter(game => {
-                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
-                    return !game.scorer_taefeler_id;
-                } else {
-                    return !game.taefeler_id;
-                }
+                // Only count as missing if it's NOT a combined game and täfeler_id is missing
+                return !(game.scorer_taefeler_id || game.scorer_taefeler_team) && !game.taefeler_id;
             }).length;
             
             const missingScorer = filteredGames.filter(game => {
-                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
-                    return !game.scorer_taefeler_id;
-                } else {
-                    return game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
-                }
+                // Only count as missing if it's NOT a combined game and scorer_id is missing
+                return !(game.scorer_taefeler_id || game.scorer_taefeler_team) && !game.scorer_id;
+            }).length;
+            
+            const missingCombined = filteredGames.filter(game => {
+                // Count as missing if it IS a combined game but scorer_taefeler_id is missing
+                return (game.scorer_taefeler_id || game.scorer_taefeler_team) && !game.scorer_taefeler_id;
             }).length;
             
             const totalFiltered = filteredGames.length;
             
-            if (missingTaefeler > 0 || missingScorer > 0) {
+            if (missingTaefeler > 0 || missingScorer > 0 || missingCombined > 0) {
                 const summaryDiv = document.createElement('div');
                 summaryDiv.style.marginTop = '15px';
                 summaryDiv.style.padding = '10px';
@@ -1387,6 +1400,9 @@
                 }
                 if (missingScorer > 0) {
                     summaryText += `, ${missingScorer} missing scorer`;
+                }
+                if (missingCombined > 0) {
+                    summaryText += `, ${missingCombined} missing scorer/täfeler`;
                 }
                 
                 summaryDiv.textContent = summaryText;
