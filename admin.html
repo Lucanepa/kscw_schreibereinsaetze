@@ -10,7 +10,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .container { max-width: none; width: 100%; margin: 0 auto; padding: 20px; }
         .header { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab { padding: 12px 24px; background: #ecf0f1; border: none; border-radius: 6px; cursor: pointer; }
@@ -40,6 +40,19 @@
         .success { color: #27ae60; margin-top: 10px; }
         .missing-assignment { color: #e74c3c; font-style: italic; }
         .person-not-found { color: #f39c12; font-style: italic; }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header { padding: 15px; }
+            .tabs { flex-direction: column; gap: 5px; }
+            .tab { text-align: center; }
+            .search-bar { padding: 10px; }
+            .search-input { width: 100%; margin-bottom: 10px; margin-right: 0; }
+            .table { font-size: 14px; }
+            .table th, .table td { padding: 8px; }
+            .btn { width: 100%; margin: 2px 0; }
+        }
     </style>
 </head>
 <body>
@@ -124,6 +137,13 @@
                     <input type="text" id="gym">
                 </div>
                 <div class="form-group">
+                    <label>Assignment Type:</label>
+                    <select id="assignmentType" onchange="toggleAssignmentFields()">
+                        <option value="separate">Separate Täfeler & Scorer</option>
+                        <option value="combined">Combined Scorer/Täfeler</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Täfeler Team:</label>
                     <select id="taefelerTeam">
                         <option value="">Select Team</option>
@@ -135,16 +155,28 @@
                         <option value="">Select Team</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="taefelerIdGroup">
                     <label>Täfeler:</label>
                     <select id="taefelerId">
                         <option value="">Select Täfeler</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="scorerIdGroup">
                     <label>Scorer:</label>
                     <select id="scorerId">
                         <option value="">Select Scorer</option>
+                    </select>
+                </div>
+                <div class="form-group" id="scorerTaefelerTeamGroup" style="display: none;">
+                    <label>Scorer/Täfeler Team:</label>
+                    <select id="scorerTaefelerTeam">
+                        <option value="">Select Team</option>
+                    </select>
+                </div>
+                <div class="form-group" id="scorerTaefelerIdGroup" style="display: none;">
+                    <label>Scorer/Täfeler:</label>
+                    <select id="scorerTaefelerId">
+                        <option value="">Select Scorer/Täfeler</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-success">Save</button>
@@ -711,12 +743,18 @@
                 
                 // Scorer/Täfeler (Combined)
                 const combinedCell = document.createElement('td');
-                if (game.scorer_taefeler_id) {
-                    const person = scorers.find(p => p.id === game.scorer_taefeler_id);
-                    if (person) {
-                        combinedCell.textContent = `${person.fname} ${person.lname} (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    if (game.scorer_taefeler_id) {
+                        const person = scorers.find(p => p.id === game.scorer_taefeler_id);
+                        if (person) {
+                            combinedCell.textContent = `${person.fname} ${person.lname} (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                        } else {
+                            combinedCell.textContent = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                            combinedCell.className = 'missing-assignment';
+                        }
                     } else {
                         combinedCell.textContent = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                        combinedCell.className = 'missing-assignment';
                     }
                 } else {
                     combinedCell.textContent = '-'; // No combined assignment
@@ -978,6 +1016,14 @@
             document.getElementById('gameForm').reset();
             populateTeamDropdowns();
             populatePersonDropdowns();
+            
+            // Reset form field visibility for new games
+            document.getElementById('taefelerIdGroup').style.display = 'block';
+            document.getElementById('scorerIdGroup').style.display = 'block';
+            document.getElementById('scorerTaefelerTeamGroup').style.display = 'none';
+            document.getElementById('scorerTaefelerIdGroup').style.display = 'none';
+            document.getElementById('assignmentType').value = 'separate'; // Default to separate
+            
             document.getElementById('gameModal').style.display = 'block';
         }
 
@@ -998,6 +1044,16 @@
             document.getElementById('scorerTeam').value = game.scorer_team || '';
             document.getElementById('taefelerId').value = game.taefeler_id || '';
             document.getElementById('scorerId').value = game.scorer_id || '';
+            document.getElementById('scorerTaefelerTeam').value = game.scorer_taefeler_team || '';
+            document.getElementById('scorerTaefelerId').value = game.scorer_taefeler_id || '';
+            document.getElementById('assignmentType').value = game.scorer_taefeler_id || game.scorer_taefeler_team ? 'combined' : 'separate';
+
+            // Show/hide combined fields based on game type
+            const isCombinedGame = game.scorer_taefeler_id || game.scorer_taefeler_team;
+            document.getElementById('taefelerIdGroup').style.display = isCombinedGame ? 'none' : 'block';
+            document.getElementById('scorerIdGroup').style.display = isCombinedGame ? 'none' : 'block';
+            document.getElementById('scorerTaefelerTeamGroup').style.display = isCombinedGame ? 'block' : 'none';
+            document.getElementById('scorerTaefelerIdGroup').style.display = isCombinedGame ? 'block' : 'none';
 
             document.getElementById('gameModal').style.display = 'block';
         }
@@ -1042,16 +1098,23 @@
             
             if (!await verifyAdminStatus()) return; // Verify admin status
             
+            // Determine if this is a combined game based on form input
+            const scorerTaefelerTeam = document.getElementById('scorerTaefelerTeam').value;
+            const scorerTaefelerId = document.getElementById('scorerTaefelerId').value;
+            const isCombinedGame = scorerTaefelerTeam || scorerTaefelerId;
+            
             const gameData = {
                 date: document.getElementById('gameDate').value,
                 time: document.getElementById('gameTime').value,
                 home_team: document.getElementById('homeTeam').value,
                 away_team: document.getElementById('awayTeam').value,
                 halle: document.getElementById('gym').value,
-                taefeler_team: document.getElementById('taefelerTeam').value,
-                scorer_team: document.getElementById('scorerTeam').value,
-                taefeler_id: document.getElementById('taefelerId').value || null,
-                scorer_id: document.getElementById('scorerId').value || null
+                taefeler_team: isCombinedGame ? null : document.getElementById('taefelerTeam').value,
+                scorer_team: isCombinedGame ? null : document.getElementById('scorerTeam').value,
+                taefeler_id: isCombinedGame ? null : (document.getElementById('taefelerId').value || null),
+                scorer_id: isCombinedGame ? null : (document.getElementById('scorerId').value || null),
+                scorer_taefeler_team: isCombinedGame ? scorerTaefelerTeam : null,
+                scorer_taefeler_id: isCombinedGame ? (scorerTaefelerId || null) : null
             };
 
             try {
@@ -1345,12 +1408,18 @@
                 
                 // Scorer/Täfeler (Combined)
                 const combinedCell = document.createElement('td');
-                if (game.scorer_taefeler_id) {
-                    const person = scorers.find(p => p.id === game.scorer_taefeler_id);
-                    if (person) {
-                        combinedCell.textContent = `${person.fname} ${person.lname} (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                if (game.scorer_taefeler_id || game.scorer_taefeler_team) {
+                    if (game.scorer_taefeler_id) {
+                        const person = scorers.find(p => p.id === game.scorer_taefeler_id);
+                        if (person) {
+                            combinedCell.textContent = `${person.fname} ${person.lname} (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                        } else {
+                            combinedCell.textContent = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                            combinedCell.className = 'missing-assignment';
+                        }
                     } else {
                         combinedCell.textContent = `Missing assignment (${game.scorer_taefeler_team || 'Scorer/Täfeler'})`;
+                        combinedCell.className = 'missing-assignment';
                     }
                 } else {
                     combinedCell.textContent = '-'; // No combined assignment
@@ -1643,6 +1712,27 @@
                 }
             } catch (error) {
                 alert('Error updating assignments: ' + error.message);
+            }
+        }
+
+        // Function to toggle visibility of separate and combined assignment fields
+        function toggleAssignmentFields() {
+            const assignmentType = document.getElementById('assignmentType').value;
+            const taefelerIdGroup = document.getElementById('taefelerIdGroup');
+            const scorerIdGroup = document.getElementById('scorerIdGroup');
+            const scorerTaefelerTeamGroup = document.getElementById('scorerTaefelerTeamGroup');
+            const scorerTaefelerIdGroup = document.getElementById('scorerTaefelerIdGroup');
+
+            if (assignmentType === 'combined') {
+                taefelerIdGroup.style.display = 'none';
+                scorerIdGroup.style.display = 'none';
+                scorerTaefelerTeamGroup.style.display = 'block';
+                scorerTaefelerIdGroup.style.display = 'block';
+            } else { // separate
+                taefelerIdGroup.style.display = 'block';
+                scorerIdGroup.style.display = 'block';
+                scorerTaefelerTeamGroup.style.display = 'none';
+                scorerTaefelerIdGroup.style.display = 'none';
             }
         }
     </script>
