@@ -193,6 +193,70 @@
     </div>
 
     <script>
+        // ============================================================================
+        // RLS POLICIES REQUIRED IN SUPABASE DATABASE
+        // ============================================================================
+        // 
+        // 1. ENABLE RLS ON ALL TABLES:
+        //    ALTER TABLE scorer_matches ENABLE ROW LEVEL SECURITY;
+        //    ALTER TABLE scorer_scorers ENABLE ROW LEVEL SECURITY;
+        //    ALTER TABLE scorer_edit_log ENABLE ROW LEVEL SECURITY;
+        //
+        // 2. scorer_matches TABLE POLICIES:
+        //    -- Allow anonymous users to read games
+        //    CREATE POLICY "Allow anonymous read access" ON scorer_matches
+        //    FOR SELECT USING (true);
+        //
+        //    -- Allow anonymous users to update only assignments via function
+        //    -- (No direct UPDATE policy needed - use the RPC function)
+        //
+        //    -- Admin users get full access
+        //    CREATE POLICY "Admin full access" ON scorer_matches
+        //    FOR ALL USING (
+        //      auth.jwt() ->> 'user_metadata' ->> 'is_admin' = 'true'
+        //    );
+        //
+        // 3. scorer_scorers TABLE POLICIES:
+        //    -- Allow anonymous users to read basic info (id, fname, lname only)
+        //    CREATE POLICY "Allow anonymous basic read" ON scorer_scorers
+        //    FOR SELECT USING (true);
+        //
+        //    -- Admin users get full access
+        //    CREATE POLICY "Admin full access" ON scorer_scorers
+        //    FOR ALL USING (
+        //      auth.jwt() ->> 'user_metadata' ->> 'is_admin' = 'true'
+        //    );
+        //
+        // 4. scorer_edit_log TABLE POLICIES:
+        //    -- Only admin users can read/write logs
+        //    CREATE POLICY "Admin only access" ON scorer_edit_log
+        //    FOR ALL USING (
+        //      auth.jwt() ->> 'user_metadata' ->> 'is_admin' = 'true'
+        //    );
+        //
+        // 5. CREATE THE ASSIGNMENT UPDATE FUNCTION:
+        //    CREATE OR REPLACE FUNCTION update_scorer_assignments(
+        //      match_id UUID,
+        //      new_scorer_id UUID DEFAULT NULL,
+        //      new_taefeler_id UUID DEFAULT NULL
+        //    )
+        //    RETURNS void
+        //    LANGUAGE plpgsql
+        //    SECURITY DEFINER
+        //    AS $$
+        //    BEGIN
+        //      UPDATE scorer_matches 
+        //      SET 
+        //        scorer_id = COALESCE(new_scorer_id, scorer_id),
+        //        taefeler_id = COALESCE(new_taefeler_id, taefeler_id)
+        //      WHERE match_id = update_scorer_assignments.match_id;
+        //    END;
+        //    $$;
+        //
+        //    GRANT EXECUTE ON FUNCTION update_scorer_assignments TO anon;
+        //
+        // ============================================================================
+
         // Global variables
         let supabase;
         let currentUser = null;
@@ -364,6 +428,12 @@
                 renderGamesTable();
             } else if (tabName === 'scorers') {
                 console.log('Switching to scorers tab');
+                // Only show scorers tab for admin users
+                if (!canAccessScorerData()) {
+                    console.log('User not authorized to access scorers tab');
+                    alert('You do not have permission to access the Scorers tab.');
+                    return;
+                }
                 console.log('Current scorers array length:', scorers.length);
                 // Ensure scorers are loaded before rendering
                 if (scorers.length === 0) {
@@ -378,18 +448,65 @@
                     console.log('Scorers already loaded, rendering table');
                     renderScorersTable();
                 }
+            } else if (tabName === 'logs') {
+                console.log('Switching to logs tab');
+                // Only show logs tab for admin users
+                if (!canAccessLogs()) {
+                    console.log('User not authorized to access logs tab');
+                    alert('You do not have permission to access the Logs tab.');
+                    return;
+                }
+                // Redirect to logs.html
+                window.location.href = 'logs.html';
             }
         }
 
-        // Data loading
+        // Function to check if user can update assignments
+        function canUpdateAssignments() {
+            // Admin users can update everything
+            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+                return true;
+            }
+            // Non-admin users can only update assignments
+            return false;
+        }
+
+        // Function to check if user can access scorer data
+        function canAccessScorerData() {
+            // Admin users can access everything
+            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+                return true;
+            }
+            // Non-admin users can only read scorer data (for assignments)
+            return false;
+        }
+
+        // Function to check if user can access logs
+        function canAccessLogs() {
+            // Only admin users can access logs
+            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+                return true;
+            }
+            return false;
+        }
+
+        // Enhanced data loading with permission checks
         async function loadData() {
             try {
                 console.log('Loading all data...');
-                await Promise.all([
-                    loadGames(),
-                    loadScorers(),
-                    loadTeams()
-                ]);
+                
+                // Always load games (needed for assignment updates)
+                await loadGames();
+                
+                // Load scorers based on permissions
+                if (canAccessScorerData()) {
+                    await loadScorers();
+                } else {
+                    // For non-admin users, load only basic scorer info needed for assignments
+                    await loadBasicScorerInfo();
+                }
+                
+                await loadTeams();
                 console.log('All data loaded successfully');
                 console.log('Games:', games.length);
                 console.log('Scorers:', scorers.length);
@@ -397,6 +514,57 @@
                 renderGamesTable();
             } catch (error) {
                 console.error('Error loading data:', error);
+            }
+        }
+
+        // Load basic scorer info for non-admin users (only what's needed for assignments)
+        async function loadBasicScorerInfo() {
+            try {
+                console.log('Loading basic scorer info for non-admin users...');
+                const { data, error } = await supabase
+                    .from('scorer_scorers')
+                    .select('id, fname, lname')
+                    .order('lname', { ascending: true });
+                
+                if (error) {
+                    console.error('Error loading basic scorer info:', error);
+                    throw error;
+                }
+                
+                scorers = data || [];
+                console.log('Basic scorer info loaded:', scorers.length);
+            } catch (error) {
+                console.error('Exception in loadBasicScorerInfo:', error);
+                throw error;
+            }
+        }
+
+        // Enhanced scorer loading with admin check
+        async function loadScorers() {
+            try {
+                console.log('Loading scorers...');
+                
+                // Check if user has permission to access full scorer data
+                if (!canAccessScorerData()) {
+                    console.log('User not authorized to access full scorer data');
+                    return;
+                }
+                
+                const { data, error } = await supabase
+                    .from('scorer_scorers')
+                    .select('*')
+                    .order('lname', { ascending: true });
+                
+                if (error) {
+                    console.error('Error loading scorers:', error);
+                    throw error;
+                }
+                
+                scorers = data || [];
+                console.log('Scorers loaded:', scorers.length, scorers);
+            } catch (error) {
+                console.error('Exception in loadScorers:', error);
+                throw error;
             }
         }
 
@@ -417,27 +585,6 @@
                 console.log('Games loaded:', games.length);
             } catch (error) {
                 console.error('Exception in loadGames:', error);
-                throw error;
-            }
-        }
-
-        async function loadScorers() {
-            try {
-                console.log('Loading scorers...');
-                const { data, error } = await supabase
-                    .from('scorer_scorers')
-                    .select('*')
-                    .order('lname', { ascending: true });
-                
-                if (error) {
-                    console.error('Error loading scorers:', error);
-                    throw error;
-                }
-                
-                scorers = data || [];
-                console.log('Scorers loaded:', scorers.length, scorers);
-            } catch (error) {
-                console.error('Exception in loadScorers:', error);
                 throw error;
             }
         }
@@ -553,17 +700,7 @@
                 // Actions
                 const actionsCell = document.createElement('td');
                 
-                const editBtn = document.createElement('button');
-                editBtn.className = 'btn btn-primary';
-                editBtn.textContent = 'Edit';
-                editBtn.addEventListener('click', () => editGame(game.match_id));
-                actionsCell.appendChild(editBtn);
-                
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'btn btn-danger';
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.addEventListener('click', () => deleteGame(game.match_id));
-                actionsCell.appendChild(deleteBtn);
+                renderActionButtons(game, actionsCell);
                 
                 row.appendChild(actionsCell);
                 tbody.appendChild(row);
@@ -606,6 +743,12 @@
             const container = document.getElementById('scorersTable');
             console.log('Container:', container);
             console.log('Scorers array:', scorers);
+            
+            // Check if user has permission to view scorers
+            if (!canAccessScorerData()) {
+                container.innerHTML = '<div class="error">You do not have permission to view scorer data.</div>';
+                return;
+            }
             
             if (!scorers.length) {
                 console.log('No scorers found, showing loading message');
@@ -873,6 +1016,57 @@
             }
         });
 
+        // Function to update scorer assignments (for non-admin users)
+        async function updateScorerAssignments(matchId, scorerId, taefelerId) {
+            try {
+                const { data, error } = await supabase.rpc('update_scorer_assignments', {
+                    match_id: matchId,
+                    new_scorer_id: scorerId || null,
+                    new_taefeler_id: taefelerId || null
+                });
+                
+                if (error) throw error;
+                
+                // Refresh the games table to show updated assignments
+                await loadGames();
+                renderGamesTable();
+                
+                return { success: true };
+            } catch (error) {
+                console.error('Error updating scorer assignments:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Function to check if user can update assignments
+        function canUpdateAssignments() {
+            // Admin users can update everything
+            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+                return true;
+            }
+            // Non-admin users can only update assignments
+            return false;
+        }
+
+        // Function to check if user can access scorer data
+        function canAccessScorerData() {
+            // Admin users can access everything
+            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+                return true;
+            }
+            // Non-admin users can only read scorer data (for assignments)
+            return false;
+        }
+
+        // Function to check if user can access logs
+        function canAccessLogs() {
+            // Only admin users can access logs
+            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+                return true;
+            }
+            return false;
+        }
+
         document.getElementById('scorerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -1061,19 +1255,7 @@
                 
                 // Actions
                 const actionsCell = document.createElement('td');
-                
-                const editBtn = document.createElement('button');
-                editBtn.className = 'btn btn-primary';
-                editBtn.textContent = 'Edit';
-                editBtn.addEventListener('click', () => editGame(game.match_id));
-                actionsCell.appendChild(editBtn);
-                
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'btn btn-danger';
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.addEventListener('click', () => deleteGame(game.match_id));
-                actionsCell.appendChild(deleteBtn);
-                
+                renderActionButtons(game, actionsCell);
                 row.appendChild(actionsCell);
                 tbody.appendChild(row);
             });
@@ -1188,6 +1370,119 @@
             
             table.appendChild(tbody);
             container.appendChild(table);
+        }
+
+        // Function to handle quick assignment updates
+        async function quickUpdateAssignment(matchId, field, value) {
+            try {
+                let updateData = {};
+                if (field === 'scorer_id') {
+                    updateData.scorer_id = value;
+                } else if (field === 'taefeler_id') {
+                    updateData.taefeler_id = value;
+                }
+                
+                if (Object.keys(updateData).length > 0) {
+                    const { error } = await supabase
+                        .from('scorer_matches')
+                        .update(updateData)
+                        .eq('match_id', matchId);
+                    
+                    if (error) throw error;
+                    
+                    // Refresh the games table
+                    await loadGames();
+                    renderGamesTable();
+                }
+            } catch (error) {
+                console.error('Error updating assignment:', error);
+                alert('Error updating assignment: ' + error.message);
+            }
+        }
+
+        // Function to render action buttons based on user permissions
+        function renderActionButtons(game, actionsCell) {
+            if (canUpdateAssignments()) {
+                // Admin users get full edit/delete access
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-primary';
+                editBtn.textContent = 'Edit';
+                editBtn.addEventListener('click', () => editGame(game.match_id));
+                actionsCell.appendChild(editBtn);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.addEventListener('click', () => deleteGame(game.match_id));
+                actionsCell.appendChild(deleteBtn);
+            } else {
+                // Non-admin users can only update assignments
+                const updateAssignmentsBtn = document.createElement('button');
+                updateAssignmentsBtn.className = 'btn btn-secondary';
+                updateAssignmentsBtn.textContent = 'Update Assignments';
+                updateAssignmentsBtn.addEventListener('click', () => showAssignmentUpdateModal(game));
+                actionsCell.appendChild(updateAssignmentsBtn);
+            }
+        }
+
+        // Function to show assignment update modal for non-admin users
+        function showAssignmentUpdateModal(game) {
+            // Create a simple modal for updating assignments
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.style.maxWidth = '500px';
+            
+            modalContent.innerHTML = `
+                <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                <h2>Update Assignments for Game</h2>
+                <p><strong>${game.home_team} vs ${game.away_team}</strong> on ${formatDate(game.date)} at ${formatTime(game.time)}</p>
+                
+                <div class="form-group">
+                    <label>Täfeler:</label>
+                    <select id="quickTaefelerId">
+                        <option value="">Select Täfeler</option>
+                        ${scorers.map(person => `<option value="${person.id}" ${game.taefeler_id === person.id ? 'selected' : ''}>${person.fname} ${person.lname}</option>`).join('')}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Scorer:</label>
+                    <select id="quickScorerId">
+                        <option value="">Select Scorer</option>
+                        ${scorers.map(person => `<option value="${person.id}" ${game.scorer_id === person.id ? 'selected' : ''}>${person.fname} ${person.lname}</option>`).join('')}
+                    </select>
+                </div>
+                
+                <button class="btn btn-success" onclick="saveQuickAssignments('${game.match_id}')">Save Assignments</button>
+                <button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()">Cancel</button>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+
+        // Function to save quick assignments
+        async function saveQuickAssignments(matchId) {
+            const taefelerId = document.getElementById('quickTaefelerId').value || null;
+            const scorerId = document.getElementById('quickScorerId').value || null;
+            
+            try {
+                const result = await updateScorerAssignments(matchId, scorerId, taefelerId);
+                
+                if (result.success) {
+                    // Close the modal
+                    document.querySelector('.modal').remove();
+                    alert('Assignments updated successfully!');
+                } else {
+                    alert('Error updating assignments: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error updating assignments: ' + error.message);
+            }
         }
     </script>
 </body>
