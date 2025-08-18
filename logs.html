@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Logs - Schreibereinsätze</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+        .content { padding: 20px; }
+        .filters { background: #ecf0f1; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .filter-group { display: inline-block; margin-right: 20px; }
+        .filter-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .filter-group input, .filter-group select { padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; background: #3498db; color: white; }
+        .btn:hover { background: #2980b9; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #ecf0f1; }
+        .table th { background: #34495e; color: white; }
+        .table tr:hover { background: #f8f9fa; }
+        .loading { text-align: center; padding: 40px; color: #7f8c8d; }
+        .error { color: #e74c3c; margin-top: 10px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #3498db; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>System Logs</h1>
+            <p>View all system activity and changes</p>
+        </div>
+        
+        <div class="content">
+            <a href="admin.html" class="back-link">← Back to Admin Panel</a>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Action Type:</label>
+                    <select id="actionFilter" onchange="filterLogs()">
+                        <option value="">All Actions</option>
+                        <option value="CREATE">Create</option>
+                        <option value="UPDATE">Update</option>
+                        <option value="DELETE">Delete</option>
+                        <option value="SYSTEM">System</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Table:</label>
+                    <select id="tableFilter" onchange="filterLogs()">
+                        <option value="">All Tables</option>
+                        <option value="scorer_matches">Games</option>
+                        <option value="scorer_scorers">Scorers</option>
+                        <option value="system_events">System Events</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Date:</label>
+                    <input type="date" id="dateFilter" onchange="filterLogs()">
+                </div>
+                
+                <div class="filter-group">
+                    <label>Search:</label>
+                    <input type="text" id="searchFilter" placeholder="Search in logs..." oninput="filterLogs()">
+                </div>
+                
+                <button class="btn" onclick="clearFilters()">Clear Filters</button>
+            </div>
+            
+            <div id="logsTable"></div>
+        </div>
+    </div>
+
+    <script>
+        let supabase;
+        let allLogs = [];
+        let filteredLogs = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                if (typeof SUPABASE_CONFIG === 'undefined') {
+                    throw new Error('Configuration not loaded');
+                }
+                
+                supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+                await loadLogs();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                document.getElementById('logsTable').innerHTML = '<div class="error">Configuration error. Please check setup.</div>';
+            }
+        });
+
+        // Load logs
+        async function loadLogs() {
+            try {
+                const { data: logs, error } = await supabase
+                    .from('scorer_edit_log')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(1000); // Load more logs for filtering
+
+                if (error) throw error;
+                
+                allLogs = logs || [];
+                filteredLogs = [...allLogs];
+                renderLogsTable();
+            } catch (error) {
+                document.getElementById('logsTable').innerHTML = `<div class="error">Error loading logs: ${error.message}</div>`;
+            }
+        }
+
+        // Filter logs
+        function filterLogs() {
+            const actionFilter = document.getElementById('actionFilter').value;
+            const tableFilter = document.getElementById('tableFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+
+            filteredLogs = allLogs.filter(log => {
+                // Action filter
+                if (actionFilter && log.action !== actionFilter) return false;
+                
+                // Table filter
+                if (tableFilter && log.table_name !== tableFilter) return false;
+                
+                // Date filter
+                if (dateFilter) {
+                    const logDate = new Date(log.timestamp).toISOString().split('T')[0];
+                    if (logDate !== dateFilter) return false;
+                }
+                
+                // Search filter
+                if (searchFilter) {
+                    const searchableText = [
+                        log.action || '',
+                        log.table_name || '',
+                        log.field_name || '',
+                        log.old_value || '',
+                        log.new_value || '',
+                        log.client_ip || '',
+                        log.session_id || ''
+                    ].join(' ').toLowerCase();
+                    
+                    if (!searchableText.includes(searchFilter)) return false;
+                }
+                
+                return true;
+            });
+
+            renderLogsTable();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('actionFilter').value = '';
+            document.getElementById('tableFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            document.getElementById('searchFilter').value = '';
+            
+            filteredLogs = [...allLogs];
+            renderLogsTable();
+        }
+
+        // Render logs table
+        function renderLogsTable() {
+            const container = document.getElementById('logsTable');
+            
+            if (!filteredLogs.length) {
+                container.innerHTML = '<div class="loading">No logs found matching the current filters</div>';
+                return;
+            }
+
+            const table = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>Table</th>
+                            <th>Field</th>
+                            <th>Old Value</th>
+                            <th>New Value</th>
+                            <th>IP Address</th>
+                            <th>Session ID</th>
+                            <th>User Agent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredLogs.map(log => `
+                            <tr>
+                                <td>${new Date(log.timestamp).toLocaleString()}</td>
+                                <td><strong>${log.action}</strong></td>
+                                <td>${log.table_name}</td>
+                                <td>${log.field_name || '-'}</td>
+                                <td title="${log.old_value || ''}">${(log.old_value || '').substring(0, 50)}${(log.old_value || '').length > 50 ? '...' : ''}</td>
+                                <td title="${log.new_value || ''}">${(log.new_value || '').substring(0, 50)}${(log.new_value || '').length > 50 ? '...' : ''}</td>
+                                <td>${log.client_ip || '-'}</td>
+                                <td title="${log.session_id || ''}">${(log.session_id || '').substring(0, 20)}${(log.session_id || '').length > 20 ? '...' : ''}</td>
+                                <td title="${log.user_agent || ''}">${(log.user_agent || '').substring(0, 30)}${(log.user_agent || '').length > 30 ? '...' : ''}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div style="margin-top: 20px; text-align: center; color: #7f8c8d;">
+                    Showing ${filteredLogs.length} of ${allLogs.length} total logs
+                </div>
+            `;
+            
+            container.innerHTML = table;
+        }
+    </script>
+</body>
+</html>

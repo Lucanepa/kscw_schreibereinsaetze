@@ -109,26 +109,32 @@ The `scorer_edit_log` table now captures:
 ## Data Retention Policy
 
 ### IP Address Retention
-- **Retention Period**: 90 days from timestamp
-- **Enforcement Mechanism**: Database row-level TTL policy
+- **Retention Period**: 90 days from created_at
+- **Enforcement Mechanism**: Cron job scheduled deletion
 - **Implementation**: 
   ```sql
-  -- Add TTL policy to scorer_edit_log table
+  -- Add TTL column to scorer_edit_log table
   ALTER TABLE scorer_edit_log 
   ADD COLUMN expires_at TIMESTAMP WITH TIME ZONE 
-  GENERATED ALWAYS AS (timestamp + INTERVAL '90 days') STORED;
+  GENERATED ALWAYS AS ("created_at" + INTERVAL '90 days') STORED;
   
-  -- Create policy to automatically delete expired rows
-  CREATE POLICY "auto_delete_expired_logs" ON scorer_edit_log
+  -- Create policy to govern allowed deletions (does NOT auto-delete)
+  CREATE POLICY "allow_delete_expired_logs" ON scorer_edit_log
   FOR DELETE USING (expires_at < NOW());
   
-  -- Set up scheduled cleanup job (runs daily at 2 AM)
+  -- Set up scheduled cleanup job (runs daily at 2 AM) - THIS is what actually deletes rows
   SELECT cron.schedule(
     'cleanup-expired-logs',
     '0 2 * * *',
     'DELETE FROM scorer_edit_log WHERE expires_at < NOW();'
   );
   ```
+  
+  **Important Notes:**
+  - The RLS DELETE policy only **governs** which rows can be deleted - it does NOT automatically delete rows
+  - The cron job performs the actual deletion of expired rows
+  - The `timestamp` column name is a SQL keyword and should be renamed to `created_at` for clarity and to avoid quoting issues
+  - Recommended: Rename `timestamp` → `created_at` in your table schema for better maintainability
 
 ## Performance Considerations
 
