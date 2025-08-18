@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schreibereinsätze Coaches Panel</title>
+            <title>Schreibereinsätze Admin Panel</title>
     <link rel="icon" type="image/x-icon" href="https://kscw.ch/clubdesk/fileservlet?type=file&id=1000716&s=djEt3z7ABYLi8hd4sWeb8Qisb2m20xnaKr4H9W6HvJnKgDU=">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -574,6 +574,40 @@
             margin-top: 20px;
         }
 
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .form-actions .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-actions .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .form-actions .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .form-actions .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .form-actions .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
         .team-issues {
             margin-bottom: 20px;
         }
@@ -1112,6 +1146,48 @@
                 border-radius: 6px;
             }
 
+            /* Admin Tabs Styles */
+            .admin-tabs {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #e9ecef;
+                padding-bottom: 10px;
+            }
+
+            .tab-button {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px 8px 0 0;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                background: #f8f9fa;
+                color: #666;
+                border-bottom: 3px solid transparent;
+                flex: 1;
+            }
+
+            .tab-button:hover {
+                background: #e9ecef;
+                color: #333;
+            }
+
+            .tab-button.active {
+                background: #667eea;
+                color: white;
+                border-bottom-color: #667eea;
+            }
+
+            .tab-content {
+                display: none;
+            }
+
+            .tab-content.active {
+                display: block;
+            }
+
             .detail-grid {
                 grid-template-columns: 1fr;
             }
@@ -1173,15 +1249,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Schreibereinsätze Coaches Panel</h1>
+            <h1>Schreibereinsätze Admin Panel</h1>
         </div>
 
         <!-- Login Modal -->
         <div id="loginModal" class="modal" style="display: block;">
             <div class="modal-content" style="max-width: 400px; margin: 100px auto;">
                 <div class="modal-header">
-                    <h2>Coaches Login</h2>
-                    <p>Access the coaches panel</p>
+                    <h2>Admin Login</h2>
+                    <p>Access the admin panel (admin users only)</p>
                 </div>
                 
                 <div class="login-form">
@@ -1207,7 +1283,7 @@
         <div id="adminContent" class="main-content" style="display: none;">
             <div class="user-info">
                 <div>
-                    <strong>Coaches Panel</strong>
+                    <strong>Admin Panel</strong>
                 </div>
                 <div>
                     <button class="btn btn-info" onclick="showSummary()">📊 Summary</button>
@@ -1218,9 +1294,17 @@
                 </div>
             </div>
 
-            <!-- Search Section -->
-            <div class="search-section">
-                <h3>🔍 Search Games</h3>
+            <!-- Admin Tabs -->
+            <div class="admin-tabs">
+                <button class="tab-button active" onclick="showTab('games')">🎮 Games</button>
+                <button class="tab-button" onclick="showTab('scorers')">👥 Scorers</button>
+                <button class="tab-button" onclick="showTab('logs')">📋 Logs</button>
+            </div>
+
+            <!-- Games Tab -->
+            <div id="gamesTab" class="tab-content active">
+                <div class="search-section">
+                    <h3>🔍 Search Games</h3>
                 <div class="search-grid">
                     <div class="search-group">
                         <label for="searchHomeTeam">Home Team:</label>
@@ -1253,19 +1337,91 @@
                     </div>
                 </div>
                 <div class="search-actions">
+                    <button class="btn btn-success" onclick="showAddGameModal()">➕ Add New Game</button>
                     <button class="btn btn-secondary" onclick="clearSearch()">Clear Search</button>
                 </div>
             </div>
 
 
 
-            <div id="adminLoading" class="loading">Loading coaches data...</div>
+            <div id="adminLoading" class="loading">Loading games data...</div>
             <div id="adminTableContainer" style="display: none;">
                 <div class="admin-table-container">
                     <!-- Game cards will be populated here -->
                 </div>
                 <div id="showMoreContainer" style="text-align: center; margin-top: 20px;">
                     <!-- Show more button will be populated here -->
+                </div>
+            </div>
+            </div>
+
+            <!-- Scorers Tab -->
+            <div id="scorersTab" class="tab-content">
+                <div class="search-section">
+                    <h3>🔍 Search Scorers</h3>
+                    <div class="search-grid">
+                        <div class="search-group">
+                            <label for="searchScorerName">Name:</label>
+                            <input type="text" id="searchScorerName" placeholder="Enter name" oninput="filterScorers()">
+                        </div>
+                        <div class="search-group">
+                            <label for="searchScorerTeam">Team:</label>
+                            <input type="text" id="searchScorerTeam" placeholder="Enter team" oninput="filterScorerTeam()">
+                        </div>
+                    </div>
+                    <div class="search-actions">
+                        <button class="btn btn-success" onclick="showAddScorerModal()">➕ Add New Scorer</button>
+                        <button class="btn btn-secondary" onclick="clearScorerSearch()">Clear Search</button>
+                    </div>
+                </div>
+
+                <div id="scorersLoading" class="loading">Loading scorers data...</div>
+                <div id="scorersTableContainer" style="display: none;">
+                    <div class="admin-table-container">
+                        <!-- Scorers table will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logsTab" class="tab-content">
+                <div class="search-section">
+                    <h3>🔍 Search Logs</h3>
+                    <div class="search-grid">
+                        <div class="search-group">
+                            <label for="searchLogAction">Action:</label>
+                            <select id="searchLogAction" onchange="filterLogs()">
+                                <option value="">All Actions</option>
+                                <option value="CREATE">Create</option>
+                                <option value="UPDATE">Update</option>
+                                <option value="DELETE">Delete</option>
+                                <option value="SYSTEM">System</option>
+                            </select>
+                        </div>
+                        <div class="search-group">
+                            <label for="searchLogTable">Table:</label>
+                            <select id="searchLogTable" onchange="filterLogs()">
+                                <option value="">All Tables</option>
+                                <option value="scorer_matches">Games</option>
+                                <option value="scorer_scorers">Scorers</option>
+                                <option value="system_events">System Events</option>
+                            </select>
+                        </div>
+                        <div class="search-group">
+                            <label for="searchLogDate">Date:</label>
+                            <input type="date" id="searchLogDate" onchange="filterLogs()">
+                        </div>
+                    </div>
+                    <div class="search-actions">
+                        <button class="btn btn-secondary" onclick="clearLogSearch()">Clear Search</button>
+                    </div>
+                </div>
+
+                <div id="logsLoading" class="loading">Loading logs data...</div>
+                <div id="logsTableContainer" style="display: none;">
+                    <div class="admin-table-container">
+                        <!-- Logs table will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -1495,6 +1651,33 @@
                             <label for="newPersonPhone">Phone</label>
                             <input type="tel" id="newPersonPhone" placeholder="Enter phone number" required>
                         </div>
+                        <div class="form-group">
+                            <label for="newPersonEmail">Email</label>
+                            <input type="email" id="newPersonEmail" placeholder="Enter email address">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newPersonBirthyear">Birth Year</label>
+                            <input type="number" id="newPersonBirthyear" placeholder="Enter birth year" min="1900" max="2024">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPersonTeams">Teams</label>
+                            <input type="text" id="newPersonTeams" placeholder="Enter teams (comma-separated)">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newPersonScorerLicence">Scorer Licence</label>
+                            <select id="newPersonScorerLicence">
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-success" onclick="saveNewPerson()">Add Person</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeAddPersonModal()">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -1576,26 +1759,6 @@ observer.observe(document.body);
             return div.innerHTML;
         }
         
-        // Escape HTML content
-        function escapeHtml(text) {
-            if (text == null) return '';
-            return text.replace(/[&<>"']/g, function(match) {
-                const escape = {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#39;'
-                };
-                return escape[match];
-            });
-        }
-
-        // Escape ICS content
-        function escapeICS(text) {
-            if (text == null) return '';
-            return text.replace(/[\\;,]/g, '\\$&');
-        }
 
         // Go to main page
         function goToMainPage() {
@@ -1638,13 +1801,31 @@ observer.observe(document.body);
                 if (error) {
                     showError(error.message);
                 } else {
-                    showSuccess('Login successful!');
-                    setTimeout(() => {
-                        // Hide login modal and show coaches content
-                        document.getElementById('loginModal').style.display = 'none';
-                        document.getElementById('adminContent').style.display = 'block';
-                        initializeCoachesContent();
-                    }, 1000);
+                    // Check if user has admin role
+                    const { data: userProfile, error: profileError } = await window.supabase
+                        .from('scorer_scorers')
+                        .select('*')
+                        .eq('email', email)
+                        .single();
+
+                    if (profileError || !userProfile) {
+                        showError('User profile not found.');
+                        return;
+                    }
+
+                    // Check if user has admin role (you can customize this logic)
+                    if (userProfile.fname?.toLowerCase() === 'admin' || email.toLowerCase().includes('admin')) {
+                        showSuccess('Admin login successful!');
+                        setTimeout(() => {
+                            // Hide login modal and show admin content
+                            document.getElementById('loginModal').style.display = 'none';
+                            document.getElementById('adminContent').style.display = 'block';
+                            initializeAdminContent();
+                        }, 1000);
+                    } else {
+                        showError('Access denied. Admin privileges required.');
+                        await window.supabase.auth.signOut();
+                    }
                 }
             } catch (error) {
                 showError('An unexpected error occurred. Please try again.');
@@ -1670,7 +1851,7 @@ observer.observe(document.body);
         // Logout function
         async function logout() {
             await window.supabase.auth.signOut();
-            // Show login modal and hide coaches content
+            // Show login modal and hide admin content
             document.getElementById('loginModal').style.display = 'block';
             document.getElementById('adminContent').style.display = 'none';
             // Clear form
@@ -1682,22 +1863,21 @@ observer.observe(document.body);
 
         // Load admin data
         async function loadAdminData() {
-            document.getElementById('adminLoading').style.display = 'block';
-            document.getElementById('adminTableContainer').style.display = 'none';
-
             try {
                 await loadGames();
                 await loadScorers();
                 await loadTaefelers();
                 await loadTeams();
+                
+                // Initialize the filtered games for the games tab
                 const currentGames = filterCurrentGames(allGames);
-                currentFilteredGames = currentGames; // Initialize the filtered games
-                renderAdminTable(currentGames);
+                currentFilteredGames = currentGames;
+                
+                // Show the games tab by default
+                showTab('games');
             } catch (error) {
-                document.getElementById('adminLoading').innerHTML = 'Error loading admin data. Please try again.';
-            } finally {
-                document.getElementById('adminLoading').style.display = 'none';
-                document.getElementById('adminTableContainer').style.display = 'block';
+                console.error('Error loading admin data:', error);
+                alert('Error loading admin data. Please try again.');
             }
         }
 
@@ -1719,7 +1899,6 @@ observer.observe(document.body);
             const { data, error } = await window.supabase
                 .from('scorer_scorers')
                 .select('*')
-                .eq('scorer_licence', true)
                 .order('lname', { ascending: true })
                 .order('fname', { ascending: true });
 
@@ -2135,9 +2314,6 @@ observer.observe(document.body);
         
         // Show more games function
         function showMoreGames() {
-            // Derive total count from the actual games array in scope
-            const totalGames = (allGames || games || []).length;
-            
             // Log the show more action
             logSystemEvent('SHOW_MORE_GAMES', {
                 previous_limit: gamesToShow,
@@ -2773,6 +2949,10 @@ observer.observe(document.body);
             document.getElementById('newPersonFname').value = '';
             document.getElementById('newPersonLname').value = '';
             document.getElementById('newPersonPhone').value = '';
+            document.getElementById('newPersonEmail').value = '';
+            document.getElementById('newPersonBirthyear').value = '';
+            document.getElementById('newPersonTeams').value = '';
+            document.getElementById('newPersonScorerLicence').value = 'false';
         }
 
         // Save new person to database
@@ -2780,6 +2960,10 @@ observer.observe(document.body);
             const fname = document.getElementById('newPersonFname').value.trim();
             const lname = document.getElementById('newPersonLname').value.trim();
             const phone = document.getElementById('newPersonPhone').value.trim();
+            const email = document.getElementById('newPersonEmail').value.trim();
+            const birthyear = document.getElementById('newPersonBirthyear').value ? parseInt(document.getElementById('newPersonBirthyear').value) : null;
+            const teams = document.getElementById('newPersonTeams').value.trim();
+            const scorerLicence = document.getElementById('newPersonScorerLicence').value === 'true';
 
             if (!fname || !lname || !phone) {
                 alert('Please fill in all required fields');
@@ -2793,7 +2977,10 @@ observer.observe(document.body);
                         fname: fname,
                         lname: lname,
                         phone: phone,
-                        scorer_licence: false
+                        email: email || null,
+                        birthyear: birthyear,
+                        teams: teams ? teams.split(',').map(team => team.trim()).filter(team => team) : [],
+                        scorer_licence: scorerLicence
                     })
                     .select();
 
@@ -2807,16 +2994,19 @@ observer.observe(document.body);
                 }, {
                     person_type: 'scorer',
                     phone: phone,
-                    scorer_licence: false
+                    email: email,
+                    birthyear: birthyear,
+                    teams: teams,
+                    scorer_licence: scorerLicence
                 });
 
-                // Reload täfelers and scorers
-                await loadTaefelers();
+                // Reload scorers
                 await loadScorers();
                 
-                // Update dropdowns
-                populateTaefelerDropdown();
-                populateScorerDropdown();
+                // Re-render scorers table if we're on the scorers tab
+                if (document.getElementById('scorersTab').classList.contains('active')) {
+                    renderScorersTable();
+                }
 
                 closeAddPersonModal();
                 alert('Person added successfully!');
@@ -2828,7 +3018,7 @@ observer.observe(document.body);
                     game_info: null
                 }, {
                     error_type: 'person_creation_failed',
-                    attempted_data: { fname, lname, phone }
+                    attempted_data: { fname, lname, phone, email, birthyear, teams, scorer_licence: scorerLicence }
                 });
                 
                 alert('Error adding person. Please try again.');
@@ -2901,12 +3091,12 @@ observer.observe(document.body);
 
 
 
-        // Initialize coaches content after successful authentication
-        async function initializeCoachesContent() {
+        // Initialize admin content after successful authentication
+        async function initializeAdminContent() {
             try {
                 await loadAdminData();
             } catch (error) {
-                alert('Error loading coaches data. Please refresh the page.');
+                alert('Error loading admin data. Please refresh the page.');
             }
         }
 
@@ -2937,10 +3127,10 @@ observer.observe(document.body);
                     return;
                 }
                 
-                // User is authenticated, hide login modal and show coaches content
+                // User is authenticated, hide login modal and show admin content
                 document.getElementById('loginModal').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
-                initializeCoachesContent();
+                initializeAdminContent();
             } catch (error) {
                 // Show login modal on unexpected error
                 document.getElementById('loginModal').style.display = 'block';
@@ -3126,57 +3316,28 @@ observer.observe(document.body);
                                 // Look up names and phone numbers from scorers table using IDs
                                 let scorerName = '';
                                 let scorerPhone = '';
-                                let scorerEmail = '';
                                 if (game.scorer_id) {
                                     const scorer = allScorers.find(s => s.id === game.scorer_id);
                                     if (scorer) {
                                         scorerName = `${scorer.fname} ${scorer.lname}`;
                                         scorerPhone = scorer.phone || 'no phone found';
-                                        scorerEmail = scorer.email || 'no email found';
                                     } else {
                                         scorerName = 'Person not found';
                                         scorerPhone = 'no phone found';
-                                        scorerEmail = 'no email found';
                                     }
                                 }
                                 
                                 let taefelerName = '';
                                 let taefelerPhone = '';
-                                let taefelerEmail = '';
                                 if (game.taefeler_id) {
                                     const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
                                     if (taefeler) {
                                         taefelerName = `${taefeler.fname} ${taefeler.lname}`;
                                         taefelerPhone = taefeler.phone || 'no phone found';
-                                        taefelerEmail = taefeler.email || 'no email found';
                                     } else {
                                         taefelerName = 'Person not found';
                                         taefelerPhone = 'no phone found';
-                                        taefelerEmail = 'no email found';
                                     }
-                                }
-                                
-                                // Compute combined scorer/täfeler information
-                                let scorerTaefelerName = '';
-                                let scorerTaefelerPhone = '';
-                                let scorerTaefelerEmail = '';
-                                
-                                if (game.scorer_taefeler_id) {
-                                    const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
-                                    if (scorerTaefeler) {
-                                        scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`;
-                                        scorerTaefelerPhone = scorerTaefeler.phone || 'no phone found';
-                                        scorerTaefelerEmail = scorerTaefeler.email || 'no email found';
-                                    } else {
-                                        scorerTaefelerName = 'Person not found';
-                                        scorerTaefelerPhone = 'no phone found';
-                                        scorerTaefelerEmail = 'no email found';
-                                    }
-                                } else if (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '') {
-                                    // Fallback for when we have team but no ID
-                                    scorerTaefelerName = 'Person not found';
-                                    scorerTaefelerPhone = 'no phone found';
-                                    scorerTaefelerEmail = 'no email found';
                                 }
                                 
                                 return `
@@ -3215,6 +3376,540 @@ observer.observe(document.body);
         }
 
 
+
+        // Tab management functions
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Load data for the selected tab
+            switch(tabName) {
+                case 'games':
+                    loadGamesData();
+                    break;
+                case 'scorers':
+                    loadScorersData();
+                    break;
+                case 'logs':
+                    loadLogsData();
+                    break;
+            }
+        }
+
+        // Load games data
+        function loadGamesData() {
+            document.getElementById('adminLoading').style.display = 'block';
+            document.getElementById('adminTableContainer').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('adminLoading').style.display = 'none';
+                document.getElementById('adminTableContainer').style.display = 'block';
+                renderGamesTable();
+            }, 500);
+        }
+
+        // Render editable games table
+        function renderGamesTable(games = allGames) {
+            const container = document.querySelector('#gamesTab .admin-table-container');
+            container.innerHTML = '';
+            
+            if (!games || games.length === 0) {
+                container.innerHTML = '<div class="no-games">No games found</div>';
+                return;
+            }
+            
+            const table = document.createElement('table');
+            table.className = 'admin-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Home Team</th>
+                        <th>Away Team</th>
+                        <th>Halle</th>
+                        <th>Täfeler Team</th>
+                        <th>Scorer Team</th>
+                        <th>Game Number</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            
+            const tbody = table.querySelector('tbody');
+            games.forEach(game => {
+                const row = document.createElement('tr');
+                const gameDate = new Date(game.date);
+                const formattedDate = gameDate.toISOString().split('T')[0]; // YYYY-MM-DD format for date input
+                
+                row.innerHTML = `
+                    <td><input type="date" value="${formattedDate}" onchange="updateGame(${game.match_id}, 'date', this.value)"></td>
+                    <td><input type="time" value="${game.time || ''}" onchange="updateGame(${game.match_id}, 'time', this.value)"></td>
+                    <td><input type="text" value="${game.home_team || ''}" onchange="updateGame(${game.match_id}, 'home_team', this.value)"></td>
+                    <td><input type="text" value="${game.away_team || ''}" onchange="updateGame(${game.match_id}, 'away_team', this.value)"></td>
+                    <td><input type="text" value="${game.halle || ''}" onchange="updateGame(${game.match_id}, 'halle', this.value)"></td>
+                    <td><input type="text" value="${game.taefeler_team || ''}" onchange="updateGame(${game.match_id}, 'taefeler_team', this.value)"></td>
+                    <td><input type="text" value="${game.scorer_team || ''}" onchange="updateGame(${game.match_id}, 'scorer_team', this.value)"></td>
+                    <td><input type="number" value="${game.gamen || ''}" onchange="updateGame(${game.match_id}, 'gamen', this.value)"></td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteGame(${game.match_id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            container.appendChild(table);
+        }
+
+        // Update game
+        async function updateGame(matchId, field, value) {
+            try {
+                const { error } = await window.supabase
+                    .from('scorer_matches')
+                    .update({ [field]: value })
+                    .eq('match_id', matchId);
+                
+                if (error) throw error;
+                
+                // Log the change
+                await logChange('UPDATE', field, null, value, {
+                    table_name: 'scorer_matches',
+                    record_id: matchId,
+                    game_info: null
+                });
+                
+                // Update local data
+                const gameIndex = allGames.findIndex(g => g.match_id === matchId);
+                if (gameIndex !== -1) {
+                    allGames[gameIndex][field] = value;
+                }
+                
+                console.log(`Game ${matchId} updated: ${field} = ${value}`);
+            } catch (error) {
+                console.error('Error updating game:', error);
+                alert('Error updating game: ' + error.message);
+            }
+        }
+
+        // Delete game
+        async function deleteGame(matchId) {
+            if (!confirm('Are you sure you want to delete this game?')) return;
+            
+            try {
+                const { error } = await window.supabase
+                    .from('scorer_matches')
+                    .delete()
+                    .eq('match_id', matchId);
+                
+                if (error) throw error;
+                
+                // Log the deletion
+                await logChange('DELETE', 'game', null, null, {
+                    table_name: 'scorer_matches',
+                    record_id: matchId,
+                    game_info: null
+                });
+                
+                // Remove from local data
+                allGames = allGames.filter(g => g.match_id !== matchId);
+                
+                // Re-render table
+                renderGamesTable();
+                alert('Game deleted successfully!');
+            } catch (error) {
+                alert('Error deleting game: ' + error.message);
+            }
+        }
+
+        // Load scorers data
+        function loadScorersData() {
+            document.getElementById('scorersLoading').style.display = 'block';
+            document.getElementById('scorersTableContainer').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('scorersLoading').style.display = 'none';
+                document.getElementById('scorersTableContainer').style.display = 'block';
+                renderScorersTable();
+            }, 500);
+        }
+
+        // Load scorers from database
+        async function loadScorers() {
+            try {
+                const { data: scorers, error } = await window.supabase
+                    .from('scorer_scorers')
+                    .select('*')
+                    .order('lname', { ascending: true });
+                
+                if (error) throw error;
+                
+                window.allScorers = scorers || [];
+                return scorers;
+            } catch (error) {
+                console.error('Error loading scorers:', error);
+                window.allScorers = [];
+                return [];
+            }
+        }
+
+        // Load logs data
+        function loadLogsData() {
+            document.getElementById('logsLoading').style.display = 'block';
+            document.getElementById('logsTableContainer').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('logsLoading').style.display = 'none';
+                document.getElementById('logsTableContainer').style.display = 'block';
+                renderLogsTable();
+            }, 500);
+        }
+
+        // Filter scorers
+        function filterScorers() {
+            const searchName = document.getElementById('searchScorerName').value.toLowerCase();
+            const searchTeam = document.getElementById('searchScorerTeam').value.toLowerCase();
+            
+            const filtered = allScorers.filter(scorer => {
+                const nameMatch = !searchName || 
+                    scorer.fname.toLowerCase().includes(searchName) || 
+                    scorer.lname.toLowerCase().includes(searchName);
+                const teamMatch = !searchTeam || 
+                    (scorer.teams && scorer.teams.some(team => team.toLowerCase().includes(searchTeam)));
+                return nameMatch && teamMatch;
+            });
+            
+            renderScorersTable(filtered);
+        }
+
+        // Filter scorer teams
+        function filterScorerTeam() {
+            filterScorers();
+        }
+
+        // Clear scorer search
+        function clearScorerSearch() {
+            document.getElementById('searchScorerName').value = '';
+            document.getElementById('searchScorerTeam').value = '';
+            filterScorers();
+        }
+
+        // Render scorers table
+        function renderScorersTable(scorers = allScorers) {
+            const container = document.querySelector('#scorersTab .admin-table-container');
+            container.innerHTML = '';
+            
+            if (!scorers || scorers.length === 0) {
+                container.innerHTML = '<div class="no-games">No scorers found</div>';
+                return;
+            }
+            
+            const table = document.createElement('table');
+            table.className = 'admin-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Birth Year</th>
+                        <th>Teams</th>
+                        <th>Scorer Licence</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            
+            const tbody = table.querySelector('tbody');
+            scorers.forEach(scorer => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <input type="text" value="${scorer.fname || ''}" onchange="updateScorer(${scorer.id}, 'fname', this.value)">
+                        <input type="text" value="${scorer.lname || ''}" onchange="updateScorer(${scorer.id}, 'lname', this.value)">
+                    </td>
+                    <td><input type="tel" value="${scorer.phone || ''}" onchange="updateScorer(${scorer.id}, 'phone', this.value)"></td>
+                    <td><input type="email" value="${scorer.email || ''}" onchange="updateScorer(${scorer.id}, 'email', this.value)"></td>
+                    <td><input type="number" value="${scorer.birthyear || ''}" onchange="updateScorer(${scorer.id}, 'birthyear', this.value)"></td>
+                    <td><input type="text" value="${scorer.teams ? scorer.teams.join(', ') : ''}" onchange="updateScorer(${scorer.id}, 'teams', this.value)"></td>
+                    <td>
+                        <select onchange="updateScorer(${scorer.id}, 'scorer_licence', this.value)">
+                            <option value="true" ${scorer.scorer_licence ? 'selected' : ''}>Yes</option>
+                            <option value="false" ${!scorer.scorer_licence ? 'selected' : ''}>No</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteScorer(${scorer.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            container.appendChild(table);
+        }
+
+        // Update scorer
+        async function updateScorer(id, field, value) {
+            try {
+                let updateValue = value;
+                if (field === 'teams') {
+                    updateValue = value.split(',').map(team => team.trim()).filter(team => team);
+                } else if (field === 'scorer_licence') {
+                    updateValue = value === 'true';
+                } else if (field === 'birthyear') {
+                    updateValue = value ? parseInt(value) : null;
+                }
+                
+                const { error } = await window.supabase
+                    .from('scorer_scorers')
+                    .update({ [field]: updateValue })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                // Log the change
+                await logChange('UPDATE', field, null, value, {
+                    table_name: 'scorer_scorers',
+                    record_id: id,
+                    game_info: null
+                });
+                
+                alert('Scorer updated successfully!');
+            } catch (error) {
+                alert('Error updating scorer: ' + error.message);
+            }
+        }
+
+        // Delete scorer
+        async function deleteScorer(id) {
+            if (!confirm('Are you sure you want to delete this scorer?')) return;
+            
+            try {
+                const { error } = await window.supabase
+                    .from('scorer_scorers')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                // Log the deletion
+                await logChange('DELETE', 'scorer', null, null, {
+                    table_name: 'scorer_scorers',
+                    record_id: id,
+                    game_info: null
+                });
+                
+                // Reload scorers
+                await loadScorers();
+                renderScorersTable();
+                alert('Scorer deleted successfully!');
+            } catch (error) {
+                alert('Error deleting scorer: ' + error.message);
+            }
+        }
+
+        // Show add scorer modal
+        function showAddScorerModal() {
+            document.getElementById('addPersonModal').style.display = 'block';
+        }
+
+        // Show add game modal
+        function showAddGameModal() {
+            // Create a simple modal for adding games
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    <h2>Add New Game</h2>
+                    <form id="addGameForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newGameDate">Date:</label>
+                                <input type="date" id="newGameDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newGameTime">Time:</label>
+                                <input type="time" id="newGameTime" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newGameHomeTeam">Home Team:</label>
+                                <input type="text" id="newGameHomeTeam" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newGameAwayTeam">Away Team:</label>
+                                <input type="text" id="newGameAwayTeam" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newGameHalle">Halle:</label>
+                                <input type="text" id="newGameHalle">
+                            </div>
+                            <div class="form-group">
+                                <label for="newGameNumber">Game Number:</label>
+                                <input type="number" id="newGameNumber">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newGameTaefelerTeam">Täfeler Team:</label>
+                                <input type="text" id="newGameTaefelerTeam">
+                            </div>
+                            <div class="form-group">
+                                <label for="newGameScorerTeam">Scorer Team:</label>
+                                <input type="text" id="newGameScorerTeam">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-success">Add Game</button>
+                            <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Handle form submission
+            document.getElementById('addGameForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const newGame = {
+                    date: document.getElementById('newGameDate').value,
+                    time: document.getElementById('newGameTime').value,
+                    home_team: document.getElementById('newGameHomeTeam').value,
+                    away_team: document.getElementById('newGameAwayTeam').value,
+                    halle: document.getElementById('newGameHalle').value,
+                    gamen: document.getElementById('newGameNumber').value ? parseInt(document.getElementById('newGameNumber').value) : null,
+                    taefeler_team: document.getElementById('newGameTaefelerTeam').value,
+                    scorer_team: document.getElementById('newGameScorerTeam').value
+                };
+                
+                try {
+                    const { data, error } = await window.supabase
+                        .from('scorer_matches')
+                        .insert([newGame])
+                        .select();
+                    
+                    if (error) throw error;
+                    
+                    // Log the creation
+                    await logChange('CREATE', 'game', null, null, {
+                        table_name: 'scorer_matches',
+                        record_id: data[0].match_id,
+                        game_info: newGame
+                    });
+                    
+                    // Add to local data
+                    allGames.push(data[0]);
+                    
+                    // Re-render table
+                    renderGamesTable();
+                    
+                    // Close modal
+                    modal.remove();
+                    
+                    alert('Game added successfully!');
+                } catch (error) {
+                    alert('Error adding game: ' + error.message);
+                }
+            });
+        }
+
+        // Filter logs
+        function filterLogs() {
+            const searchAction = document.getElementById('searchLogAction').value;
+            const searchTable = document.getElementById('searchLogTable').value;
+            const searchDate = document.getElementById('searchLogDate').value;
+            
+            // This will be implemented when we load logs
+            renderLogsTable();
+        }
+
+        // Clear log search
+        function clearLogSearch() {
+            document.getElementById('searchLogAction').value = '';
+            document.getElementById('searchLogTable').value = '';
+            document.getElementById('searchLogDate').value = '';
+            filterLogs();
+        }
+
+        // Render logs table
+        async function renderLogsTable() {
+            const container = document.querySelector('#logsTab .admin-table-container');
+            container.innerHTML = '<div class="loading">Loading logs...</div>';
+            
+            try {
+                const { data: logs, error } = await window.supabase
+                    .from('scorer_edit_log')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(100);
+                
+                if (error) throw error;
+                
+                if (!logs || logs.length === 0) {
+                    container.innerHTML = '<div class="no-games">No logs found</div>';
+                    return;
+                }
+                
+                const table = document.createElement('table');
+                table.className = 'admin-table';
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>Table</th>
+                            <th>Field</th>
+                            <th>Old Value</th>
+                            <th>New Value</th>
+                            <th>IP Address</th>
+                            <th>Session ID</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                `;
+                
+                const tbody = table.querySelector('tbody');
+                logs.forEach(log => {
+                    const row = document.createElement('tr');
+                    const timestamp = new Date(log.timestamp).toLocaleString();
+                    row.innerHTML = `
+                        <td>${timestamp}</td>
+                        <td>${log.action}</td>
+                        <td>${log.table_name}</td>
+                        <td>${log.field_name || '-'}</td>
+                        <td>${log.old_value || '-'}</td>
+                        <td>${log.new_value || '-'}</td>
+                        <td>${log.client_ip || '-'}</td>
+                        <td>${log.session_id || '-'}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                container.innerHTML = '';
+                container.appendChild(table);
+            } catch (error) {
+                container.innerHTML = '<div class="no-games">Error loading logs: ' + error.message + '</div>';
+            }
+        }
 
         // Show summary modal
         function showSummary() {
@@ -3345,30 +4040,30 @@ observer.observe(document.body);
                 const gameClass = gameHasIssues ? 'team-game-item has-issues' : 'team-game-item';
 
                 teamGamesHTML += `
-                    <div class="${escapeHtml(gameClass)}">
+                    <div class="${gameClass}">
                         <div class="team-game-header">
-                            <div class="team-game-date">${escapeHtml(formattedDate)}</div>
-                            <div class="team-game-time">${escapeHtml(formattedTime)}</div>
+                            <div class="team-game-date">${formattedDate}</div>
+                            <div class="team-game-time">${formattedTime}</div>
                         </div>
-                        <div class="team-game-teams">${escapeHtml(game.home_team)} vs ${escapeHtml(game.away_team)}</div>
-                        <div class="team-game-location">📍 ${escapeHtml(game.halle || 'TBD')}</div>
+                        <div class="team-game-teams">${game.home_team} vs ${game.away_team}</div>
+                        <div class="team-game-location">📍 ${game.halle || 'TBD'}</div>
                         <div class="team-game-roles">
                             ${game.scorer_team && game.scorer_team.trim() !== '' ? `
                                 <div class="team-role-item ${!game.scorer_id ? 'has-issue' : ''}">
-                                    📝 Scorer: ${escapeHtml(game.scorer_team)}${(() => {
+                                    📝 Scorer: ${game.scorer_team}${(() => {
                                         if (game.scorer_id) {
                                             const scorer = allScorers.find(s => s.id === game.scorer_id);
-                                            return scorer ? ` (${escapeHtml(scorer.fname)} ${escapeHtml(scorer.lname)})` : '';
+                                            return scorer ? ` (${scorer.fname} ${scorer.lname})` : '';
                                         }
                                         return '';
                                     })()}
                                 </div>
                             ` : ''}
                             <div class="team-role-item ${!game.taefeler_id ? 'has-issue' : ''}">
-                                🏐 ${game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Scorer/Täfeler'}: ${escapeHtml(game.taefeler_team || 'TBD')}${(() => {
+                                🏐 ${game.scorer_team && game.scorer_team.trim() !== '' ? 'Täfeler' : 'Scorer/Täfeler'}: ${game.taefeler_team || 'TBD'}${(() => {
                                     if (game.taefeler_id) {
                                         const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                                        return taefeler ? ` (${escapeHtml(taefeler.fname)} ${escapeHtml(taefeler.lname)})` : '';
+                                        return taefeler ? ` (${taefeler.fname} ${taefeler.lname})` : '';
                                     }
                                     return '';
                                 })()}
@@ -3389,7 +4084,7 @@ observer.observe(document.body);
         }
 
         // Close summary modal when clicking outside
-        window.addEventListener('click', function(event) {
+        window.onclick = function(event) {
             const gameModal = document.getElementById('gameModal');
             const summaryModal = document.getElementById('summaryModal');
             const teamGamesModal = document.getElementById('teamGamesModal');
@@ -3402,7 +4097,7 @@ observer.observe(document.body);
             if (event.target === teamGamesModal) {
                 closeTeamGamesModal();
             }
-        });
+        }
 
 
 
@@ -3430,9 +4125,9 @@ observer.observe(document.body);
                 `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-                `SUMMARY:${escapeICS(`${currentGame.home_team} vs ${currentGame.away_team}`)}`,
-                `DESCRIPTION:Volleyball match at ${escapeICS(currentGame.halle || 'TBD')}. Scorer: ${escapeICS(currentGame.scorer_team || 'TBD')}. Täfeler: ${escapeICS(currentGame.taefeler_team || 'TBD')}.`,
-                `LOCATION:${escapeICS(currentGame.halle || 'TBD')}`,
+                `SUMMARY:${currentGame.home_team} vs ${currentGame.away_team}`,
+                `DESCRIPTION:Volleyball match at ${currentGame.halle || 'TBD'}. Scorer: ${currentGame.scorer_team || 'TBD'}. Täfeler: ${currentGame.taefeler_team || 'TBD'}.`,
+                `LOCATION:${currentGame.halle || 'TBD'}`,
                 'BEGIN:VALARM',
                 `TRIGGER:-P1D`,
                 'ACTION:DISPLAY',
