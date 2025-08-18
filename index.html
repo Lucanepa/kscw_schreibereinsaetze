@@ -140,16 +140,22 @@
                             <input type="date" id="searchDate" oninput="filterGames()">
                         </div>
                         <div class="search-group">
-                            <label for="searchTime">Time:</label>
-                            <input type="time" id="searchTime" oninput="filterGames()">
+                            <label for="searchTeamDuty">Team Duty Search:</label>
+                                                           <input type="text" id="searchTeamDuty" placeholder="Enter täfeler or scorer name/team" oninput="filterGames()">
                         </div>
                         <div class="search-group">
-                            <label for="searchTaefeler">Täfeler:</label>
-                            <input type="text" id="searchTaefeler" placeholder="Enter täfeler name or team" oninput="filterGames()">
-                        </div>
-                        <div class="search-group">
-                            <label for="searchScorer">Scorer:</label>
-                            <input type="text" id="searchScorer" placeholder="Enter scorer name or team" oninput="filterGames()">
+                            <label>Search for:</label>
+                            <div class="radio-group" style="display: flex; gap: 10px; margin-top: 5px;">
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">
+                                    <input type="radio" name="searchType" value="any" checked> Any
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">
+                                    <input type="radio" name="searchType" value="taefeler"> Täfeler
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">
+                                    <input type="radio" name="searchType" value="scorer"> Scorer
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="search-actions">
@@ -667,9 +673,8 @@ observer.observe(document.body);
             const searchHomeTeam = document.getElementById('searchHomeTeam').value.toLowerCase();
             const searchAwayTeam = document.getElementById('searchAwayTeam').value.toLowerCase();
             const searchDate = document.getElementById('searchDate').value;
-            const searchTime = document.getElementById('searchTime').value;
-            const searchTaefeler = document.getElementById('searchTaefeler').value.toLowerCase();
-            const searchScorer = document.getElementById('searchScorer').value.toLowerCase();
+            const searchTeamDuty = document.getElementById('searchTeamDuty').value.toLowerCase();
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
 
             let filtered = filterCurrentGames(allGames);
 
@@ -690,77 +695,115 @@ observer.observe(document.body);
                 filtered = filtered.filter(game => game.date === searchDate);
             }
 
-            if (searchTime) {
-                filtered = filtered.filter(game => 
-                    game.time && game.time.substring(0, 5) === searchTime
-                );
-            }
-
-            if (searchTaefeler) {
+            // Filter by team duty (täfeler or scorer)
+            if (searchTeamDuty) {
                 filtered = filtered.filter(game => {
-                    // Check täfeler team
-                    if (game.taefeler_team && game.taefeler_team.toLowerCase().includes(searchTaefeler)) {
-                        return true;
-                    }
-                    // Check täfeler name
-                    if (game.taefeler_id) {
-                        const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                        if (taefeler) {
-                            const taefelerName = `${taefeler.fname} ${taefeler.lname}`.toLowerCase();
-                            if (taefelerName.includes(searchTaefeler)) {
-                                return true;
+                    let dutyMatch = false;
+                    
+                    if (searchType === 'taefeler') {
+                        // Check täfeler team
+                        if (game.taefeler_team && game.taefeler_team.toLowerCase().includes(searchTeamDuty)) {
+                            dutyMatch = true;
+                        }
+                        // Check täfeler name
+                        if (game.taefeler_id) {
+                            const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                            if (taefeler) {
+                                const taefelerName = `${taefeler.fname} ${taefeler.lname}`.toLowerCase();
+                                if (taefelerName.includes(searchTeamDuty)) {
+                                    dutyMatch = true;
+                                }
+                            }
+                        }
+                        // Check combined scorer/täfeler team
+                        if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchTeamDuty)) {
+                            dutyMatch = true;
+                        }
+                        // Check combined scorer/täfeler name
+                        if (game.scorer_taefeler_id) {
+                            const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
+                            if (scorerTaefeler) {
+                                const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
+                                if (scorerTaefelerName.includes(searchTeamDuty)) {
+                                    dutyMatch = true;
+                                }
+                            }
+                        }
+                    } else if (searchType === 'scorer') {
+                        // Check scorer team
+                        if (game.scorer_team && game.scorer_team.toLowerCase().includes(searchTeamDuty)) {
+                            dutyMatch = true;
+                        }
+                        // Check scorer name
+                        if (game.scorer_id) {
+                            const scorer = allScorers.find(s => s.id === game.scorer_id);
+                            if (scorer) {
+                                const scorerName = `${scorer.fname} ${scorer.lname}`.toLowerCase();
+                                if (scorerName.includes(searchTeamDuty)) {
+                                    dutyMatch = true;
+                                }
+                            }
+                        }
+                        // Check combined scorer/täfeler team
+                        if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchTeamDuty)) {
+                            dutyMatch = true;
+                        }
+                        // Check combined scorer/täfeler name
+                        if (game.scorer_taefeler_id) {
+                            const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
+                            if (scorerTaefeler) {
+                                const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
+                                if (scorerTaefelerName.includes(searchTeamDuty)) {
+                                    dutyMatch = true;
+                                }
+                            }
+                        }
+                    } else if (searchType === 'any') {
+                        // Check täfeler team
+                        if (game.taefeler_team && game.taefeler_team.toLowerCase().includes(searchTeamDuty)) {
+                            dutyMatch = true;
+                        }
+                        // Check täfeler name
+                        if (game.taefeler_id) {
+                            const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                            if (taefeler) {
+                                const taefelerName = `${taefeler.fname} ${taefeler.lname}`.toLowerCase();
+                                if (taefelerName.includes(searchTeamDuty)) {
+                                    dutyMatch = true;
+                                }
+                            }
+                        }
+                        // Check scorer team
+                        if (game.scorer_team && game.scorer_team.toLowerCase().includes(searchTeamDuty)) {
+                            dutyMatch = true;
+                        }
+                        // Check scorer name
+                        if (game.scorer_id) {
+                            const scorer = allScorers.find(s => s.id === game.scorer_id);
+                            if (scorer) {
+                                const scorerName = `${scorer.fname} ${scorer.lname}`.toLowerCase();
+                                if (scorerName.includes(searchTeamDuty)) {
+                                    dutyMatch = true;
+                                }
+                            }
+                        }
+                        // Check combined scorer/täfeler team
+                        if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchTeamDuty)) {
+                            dutyMatch = true;
+                        }
+                        // Check combined scorer/täfeler name
+                        if (game.scorer_taefeler_id) {
+                            const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
+                            if (scorerTaefeler) {
+                                const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
+                                if (scorerTaefelerName.includes(searchTeamDuty)) {
+                                    dutyMatch = true;
+                                }
                             }
                         }
                     }
-                    // Check combined scorer/täfeler team
-                    if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchTaefeler)) {
-                        return true;
-                    }
-                    // Check combined scorer/täfeler name
-                    if (game.scorer_taefeler_id) {
-                        const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
-                        if (scorerTaefeler) {
-                            const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
-                            if (scorerTaefelerName.includes(searchTaefeler)) {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                });
-            }
-
-            if (searchScorer) {
-                filtered = filtered.filter(game => {
-                    // Check scorer team
-                    if (game.scorer_team && game.scorer_team.toLowerCase().includes(searchScorer)) {
-                        return true;
-                    }
-                    // Check scorer name
-                    if (game.scorer_id) {
-                        const scorer = allScorers.find(s => s.id === game.scorer_id);
-                        if (scorer) {
-                            const scorerName = `${scorer.fname} ${scorer.lname}`.toLowerCase();
-                            if (scorerName.includes(searchScorer)) {
-                                return true;
-                            }
-                        }
-                    }
-                    // Check combined scorer/täfeler team
-                    if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchScorer)) {
-                        return true;
-                    }
-                    // Check combined scorer/täfeler name
-                    if (game.scorer_taefeler_id) {
-                        const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
-                        if (scorerTaefeler) {
-                            const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
-                            if (scorerTaefelerName.includes(searchScorer)) {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
+                    
+                    return dutyMatch;
                 });
             }
 
@@ -779,9 +822,9 @@ observer.observe(document.body);
             document.getElementById('searchHomeTeam').value = '';
             document.getElementById('searchAwayTeam').value = '';
             document.getElementById('searchDate').value = '';
-            document.getElementById('searchTime').value = '';
-            document.getElementById('searchTaefeler').value = '';
-            document.getElementById('searchScorer').value = '';
+            document.getElementById('searchTeamDuty').value = '';
+            // Reset radio button to "Any"
+            document.querySelector('input[name="searchType"][value="any"]').checked = true;
             filterGames();
         }
 
@@ -2638,7 +2681,6 @@ window.addEventListener('message', function(event) {
     }
 });
 
-// ... existing code ...
 </script>
     </body>
 </html>
