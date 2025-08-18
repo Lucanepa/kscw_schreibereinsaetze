@@ -38,12 +38,17 @@
         .loading { text-align: center; padding: 40px; color: #7f8c8d; }
         .error { color: #e74c3c; margin-top: 10px; }
         .success { color: #27ae60; margin-top: 10px; }
+        .missing-assignment { color: #e74c3c; font-style: italic; }
+        .person-not-found { color: #f39c12; font-style: italic; }
     </style>
 </head>
 <body>
     <!-- Login Form -->
     <div id="loginForm" class="login-form">
-        <h2>Admin Login</h2>
+        <h2>Admin Panel Access</h2>
+        <p style="text-align: center; margin-bottom: 20px; color: #7f8c8d; font-size: 14px;">
+            Only users with admin privileges can access this panel.
+        </p>
         <div class="form-group">
             <label>Email:</label>
             <input type="email" id="email" placeholder="Enter email">
@@ -229,14 +234,34 @@
                 const { data: { user } } = await supabase.auth.getUser();
                 console.log('Auth result:', user);
                 if (user) {
+                    // Check if user is admin
+                    const { data: profile, error: profileError } = await supabase
+                        .from('scorer_scorers')
+                        .select('is_admin')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (profileError) {
+                        console.error('Error fetching user profile:', profileError);
+                        document.getElementById('loginError').textContent = 'Error checking admin status. Please contact support.';
+                        return;
+                    }
+                    
+                    if (!profile || !profile.is_admin) {
+                        console.log('User is not admin');
+                        document.getElementById('loginError').textContent = 'Access denied. Admin privileges required.';
+                        return;
+                    }
+                    
                     currentUser = user;
-                    console.log('User authenticated, showing admin panel');
+                    console.log('Admin user authenticated, showing admin panel');
                     showAdminPanel();
                 } else {
                     console.log('No user found, staying on login form');
                 }
             } catch (error) {
                 console.error('Error checking auth:', error);
+                document.getElementById('loginError').textContent = 'Authentication error. Please try again.';
             }
         }
 
@@ -248,6 +273,23 @@
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 
+                // Check if user is admin
+                const { data: profile, error: profileError } = await supabase
+                    .from('scorer_scorers')
+                    .select('is_admin')
+                    .eq('id', data.user.id)
+                    .single();
+                
+                if (profileError) {
+                    throw new Error('Error checking admin status. Please contact support.');
+                }
+                
+                if (!profile || !profile.is_admin) {
+                    // Sign out the user since they're not admin
+                    await supabase.auth.signOut();
+                    throw new Error('Access denied. Admin privileges required.');
+                }
+                
                 currentUser = data.user;
                 showAdminPanel();
             } catch (error) {
@@ -256,6 +298,7 @@
         }
 
         async function logout() {
+            stopAdminStatusCheck();
             await supabase.auth.signOut();
             currentUser = null;
             hideAdminPanel();
@@ -267,11 +310,74 @@
             document.getElementById('adminPanel').style.display = 'block';
             console.log('Admin panel displayed, loading data...');
             loadData();
+            
+            // Start periodic admin status check
+            startAdminStatusCheck();
         }
 
         function hideAdminPanel() {
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('adminPanel').style.display = 'none';
+            stopAdminStatusCheck();
+        }
+
+        // Admin status monitoring
+        let adminStatusCheckInterval;
+
+        function startAdminStatusCheck() {
+            // Check admin status every 5 minutes
+            adminStatusCheckInterval = setInterval(checkAdminStatus, 5 * 60 * 1000);
+        }
+
+        function stopAdminStatusCheck() {
+            if (adminStatusCheckInterval) {
+                clearInterval(adminStatusCheckInterval);
+                adminStatusCheckInterval = null;
+            }
+        }
+
+        async function checkAdminStatus() {
+            try {
+                if (!currentUser) return;
+                
+                const { data: profile, error: profileError } = await supabase
+                    .from('scorer_scorers')
+                    .select('is_admin')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (profileError || !profile || !profile.is_admin) {
+                    console.log('User no longer has admin privileges');
+                    await logout();
+                    document.getElementById('loginError').textContent = 'Admin privileges revoked. Please log in again.';
+                }
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+            }
+        }
+
+        // Verify admin status before sensitive operations
+        async function verifyAdminStatus() {
+            if (!currentUser) return false;
+            
+            try {
+                const { data: profile, error: profileError } = await supabase
+                    .from('scorer_scorers')
+                    .select('is_admin')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (profileError || !profile || !profile.is_admin) {
+                    await logout();
+                    document.getElementById('loginError').textContent = 'Admin privileges revoked. Please log in again.';
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error verifying admin status:', error);
+                return false;
+            }
         }
 
         // Tab management
@@ -412,7 +518,7 @@
             // Create header
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            const headers = ['Date', 'Time', 'Home Team', 'Away Team', 'Gym', 'Täfeler', 'Scorer', 'Actions'];
+            const headers = ['Date', 'Time', 'Home Team', 'Away Team', 'Gym', 'Täfeler (Team)', 'Scorer (Team)', 'Actions'];
             
             headers.forEach(headerText => {
                 const th = document.createElement('th');
@@ -431,12 +537,12 @@
                 
                 // Date
                 const dateCell = document.createElement('td');
-                dateCell.textContent = new Date(game.date).toLocaleDateString();
+                dateCell.textContent = formatDate(game.date);
                 row.appendChild(dateCell);
                 
                 // Time
                 const timeCell = document.createElement('td');
-                timeCell.textContent = game.time || '-';
+                timeCell.textContent = formatTime(game.time);
                 row.appendChild(timeCell);
                 
                 // Home Team
@@ -456,12 +562,24 @@
                 
                 // Täfeler
                 const taefelerCell = document.createElement('td');
-                taefelerCell.textContent = getPersonName(game.taefeler_id, scorers) || '-';
+                const taefelerText = getPersonWithTeam(game.taefeler_id, scorers, game.taefeler_team);
+                taefelerCell.textContent = taefelerText;
+                if (taefelerText === 'Missing assignment') {
+                    taefelerCell.className = 'missing-assignment';
+                } else if (taefelerText === 'Person not found') {
+                    taefelerCell.className = 'person-not-found';
+                }
                 row.appendChild(taefelerCell);
                 
                 // Scorer
                 const scorerCell = document.createElement('td');
-                scorerCell.textContent = getPersonName(game.scorer_id, scorers) || '-';
+                const scorerText = getPersonWithTeam(game.scorer_id, scorers, game.scorer_team);
+                scorerCell.textContent = scorerText;
+                if (scorerText === 'Missing assignment') {
+                    scorerCell.className = 'missing-assignment';
+                } else if (scorerText === 'Person not found') {
+                    scorerCell.className = 'person-not-found';
+                }
                 row.appendChild(scorerCell);
                 
                 // Actions
@@ -485,6 +603,33 @@
             
             table.appendChild(tbody);
             container.appendChild(table);
+            
+            // Add summary statistics
+            const missingTaefeler = games.filter(game => !game.taefeler_id).length;
+            const missingScorer = games.filter(game => !game.scorer_id).length;
+            const totalGames = games.length;
+            
+            if (missingTaefeler > 0 || missingScorer > 0) {
+                const summaryDiv = document.createElement('div');
+                summaryDiv.style.marginTop = '15px';
+                summaryDiv.style.padding = '10px';
+                summaryDiv.style.backgroundColor = '#fff3cd';
+                summaryDiv.style.border = '1px solid #ffeaa7';
+                summaryDiv.style.borderRadius = '4px';
+                summaryDiv.style.color = '#856404';
+                
+                let summaryText = `Summary: ${totalGames} total games`;
+                if (missingTaefeler > 0) {
+                    summaryText += `, ${missingTaefeler} missing täfeler`;
+                }
+                if (missingScorer > 0) {
+                    summaryText += `, ${missingScorer} missing scorer`;
+                }
+                
+                summaryDiv.textContent = summaryText;
+                container.appendChild(summaryDiv);
+            }
+            
             console.log('Games table rendered successfully');
         }
 
@@ -585,6 +730,32 @@
             if (!id) return null;
             const person = people.find(p => p.id === id);
             return person ? `${person.fname} ${person.lname}` : null;
+        }
+
+        function getPersonWithTeam(id, people, assignedTeam) {
+            if (!id) return 'Missing assignment';
+            const person = people.find(p => p.id === id);
+            if (!person) return 'Person not found';
+            
+            let displayText = `${person.fname} ${person.lname}`;
+            if (assignedTeam) {
+                displayText += ` (${assignedTeam})`;
+            }
+            return displayText;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear().toString().slice(-2);
+            return `${day}.${month}.${year}`;
+        }
+
+        function formatTime(timeString) {
+            if (!timeString) return '-';
+            // Extract HH:MM from time string (remove seconds if present)
+            return timeString.substring(0, 5);
         }
 
         function populateTeamDropdowns() {
@@ -698,6 +869,8 @@
         document.getElementById('gameForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!await verifyAdminStatus()) return; // Verify admin status
+            
             const gameData = {
                 date: document.getElementById('gameDate').value,
                 time: document.getElementById('gameTime').value,
@@ -735,6 +908,8 @@
         document.getElementById('scorerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!await verifyAdminStatus()) return; // Verify admin status
+            
             const scorerData = {
                 fname: document.getElementById('scorerFname').value,
                 lname: document.getElementById('scorerLname').value,
@@ -768,6 +943,7 @@
 
         // Delete functions
         async function deleteGame(id) {
+            if (!await verifyAdminStatus()) return; // Verify admin status
             if (!confirm('Are you sure you want to delete this game?')) return;
             
             try {
@@ -787,6 +963,7 @@
 
         async function deleteScorer(id) {
             console.log('deleteScorer called with id:', id);
+            if (!await verifyAdminStatus()) return; // Verify admin status
             if (!confirm('Are you sure you want to delete this scorer?')) return;
             
             try {
@@ -850,7 +1027,7 @@
             // Create header
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            const headers = ['Date', 'Time', 'Home Team', 'Away Team', 'Gym', 'Täfeler', 'Scorer', 'Actions'];
+            const headers = ['Date', 'Time', 'Home Team', 'Away Team', 'Gym', 'Täfeler (Team)', 'Scorer (Team)', 'Actions'];
             
             headers.forEach(headerText => {
                 const th = document.createElement('th');
@@ -869,12 +1046,12 @@
                 
                 // Date
                 const dateCell = document.createElement('td');
-                dateCell.textContent = new Date(game.date).toLocaleDateString();
+                dateCell.textContent = formatDate(game.date);
                 row.appendChild(dateCell);
                 
                 // Time
                 const timeCell = document.createElement('td');
-                timeCell.textContent = game.time || '-';
+                timeCell.textContent = formatTime(game.time);
                 row.appendChild(timeCell);
                 
                 // Home Team
@@ -894,12 +1071,24 @@
                 
                 // Täfeler
                 const taefelerCell = document.createElement('td');
-                taefelerCell.textContent = getPersonName(game.taefeler_id, scorers) || '-';
+                const taefelerText = getPersonWithTeam(game.taefeler_id, scorers, game.taefeler_team);
+                taefelerCell.textContent = taefelerText;
+                if (taefelerText === 'Missing assignment') {
+                    taefelerCell.className = 'missing-assignment';
+                } else if (taefelerText === 'Person not found') {
+                    taefelerCell.className = 'person-not-found';
+                }
                 row.appendChild(taefelerCell);
                 
                 // Scorer
                 const scorerCell = document.createElement('td');
-                scorerCell.textContent = getPersonName(game.scorer_id, scorers) || '-';
+                const scorerText = getPersonWithTeam(game.scorer_id, scorers, game.scorer_team);
+                scorerCell.textContent = scorerText;
+                if (scorerText === 'Missing assignment') {
+                    scorerCell.className = 'missing-assignment';
+                } else if (scorerText === 'Person not found') {
+                    scorerCell.className = 'person-not-found';
+                }
                 row.appendChild(scorerCell);
                 
                 // Actions
@@ -923,6 +1112,32 @@
             
             table.appendChild(tbody);
             container.appendChild(table);
+            
+            // Add summary statistics for filtered games
+            const missingTaefeler = filteredGames.filter(game => !game.taefeler_id).length;
+            const missingScorer = filteredGames.filter(game => !game.scorer_id).length;
+            const totalFiltered = filteredGames.length;
+            
+            if (missingTaefeler > 0 || missingScorer > 0) {
+                const summaryDiv = document.createElement('div');
+                summaryDiv.style.marginTop = '15px';
+                summaryDiv.style.padding = '10px';
+                summaryDiv.style.backgroundColor = '#fff3cd';
+                summaryDiv.style.border = '1px solid #ffeaa7';
+                summaryDiv.style.borderRadius = '4px';
+                summaryDiv.style.color = '#856404';
+                
+                let summaryText = `Filtered Results: ${totalFiltered} games`;
+                if (missingTaefeler > 0) {
+                    summaryText += `, ${missingTaefeler} missing täfeler`;
+                }
+                if (missingScorer > 0) {
+                    summaryText += `, ${missingScorer} missing scorer`;
+                }
+                
+                summaryDiv.textContent = summaryText;
+                container.appendChild(summaryDiv);
+            }
         }
 
         function renderFilteredScorers(filteredScorers) {
