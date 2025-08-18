@@ -141,21 +141,20 @@
                         </div>
                         <div class="search-group">
                             <label for="searchTeamDuty">Team Duty Search:</label>
-                                                           <input type="text" id="searchTeamDuty" placeholder="Enter täfeler or scorer name/team" oninput="filterGames()">
-                        </div>
-                        <div class="search-group">
-                            <label>Search for:</label>
                             <div class="radio-group" style="display: flex; gap: 10px; margin-top: 5px;">
                                 <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">
-                                    <input type="radio" name="searchType" value="any" checked onchange="filterGames()"> Any
+                                    <input type="radio" name="searchType" value="any" checked> Any
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">
-                                    <input type="radio" name="searchType" value="taefeler" onchange="filterGames()"> Täfeler
+                                    <input type="radio" name="searchType" value="taefeler"> Täfeler
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">
-                                    <input type="radio" name="searchType" value="scorer" onchange="filterGames()"> Scorer
+                                    <input type="radio" name="searchType" value="scorer"> Scorer
                                 </label>
                             </div>
+                            <input type="text" id="searchAny" placeholder="Enter täfeler or scorer name/team" style="margin-top: 5px;" oninput="filterGames()">
+                            <input type="text" id="searchTaefeler" placeholder="Enter täfeler name/team" style="margin-top: 5px; display: none;" oninput="filterGames()">
+                            <input type="text" id="searchScorer" placeholder="Enter scorer name/team" style="margin-top: 5px; display: none;" oninput="filterGames()">
                         </div>
                     </div>
                     <div class="search-actions">
@@ -673,8 +672,17 @@ observer.observe(document.body);
             const searchHomeTeam = document.getElementById('searchHomeTeam').value.toLowerCase();
             const searchAwayTeam = document.getElementById('searchAwayTeam').value.toLowerCase();
             const searchDate = document.getElementById('searchDate').value;
-            const searchTeamDuty = document.getElementById('searchTeamDuty').value.toLowerCase();
             const searchType = document.querySelector('input[name="searchType"]:checked').value;
+            
+            // Get the search term from the currently visible input field
+            let searchTeamDuty = '';
+            if (searchType === 'any') {
+                searchTeamDuty = document.getElementById('searchAny').value.toLowerCase();
+            } else if (searchType === 'taefeler') {
+                searchTeamDuty = document.getElementById('searchTaefeler').value.toLowerCase();
+            } else if (searchType === 'scorer') {
+                searchTeamDuty = document.getElementById('searchScorer').value.toLowerCase();
+            }
 
             let filtered = filterCurrentGames(allGames);
 
@@ -822,9 +830,13 @@ observer.observe(document.body);
             document.getElementById('searchHomeTeam').value = '';
             document.getElementById('searchAwayTeam').value = '';
             document.getElementById('searchDate').value = '';
-            document.getElementById('searchTeamDuty').value = '';
+            document.getElementById('searchAny').value = '';
+            document.getElementById('searchTaefeler').value = '';
+            document.getElementById('searchScorer').value = '';
             // Reset radio button to "Any"
             document.querySelector('input[name="searchType"][value="any"]').checked = true;
+            // Update visibility to show the "Any" input field
+            updateSearchFieldVisibility();
             filterGames();
         }
 
@@ -2688,6 +2700,48 @@ window.addEventListener('message', function(event) {
     }
 });
 
+</script>
+
+<script>
+            // ... existing code ...
+            
+            // Function to show/hide input fields based on radio button selection
+            function updateSearchFieldVisibility() {
+                const searchType = document.querySelector('input[name="searchType"]:checked').value;
+                const searchAny = document.getElementById('searchAny');
+                const searchTaefeler = document.getElementById('searchTaefeler');
+                const searchScorer = document.getElementById('searchScorer');
+                
+                // Hide all input fields first
+                searchAny.style.display = 'none';
+                searchTaefeler.style.display = 'none';
+                searchScorer.style.display = 'none';
+                
+                // Show the appropriate input field based on selection
+                if (searchType === 'any') {
+                    searchAny.style.display = 'block';
+                } else if (searchType === 'taefeler') {
+                    searchTaefeler.style.display = 'block';
+                } else if (searchType === 'scorer') {
+                    searchScorer.style.display = 'block';
+                }
+            }
+            
+            // Add event listeners to radio buttons
+            document.addEventListener('DOMContentLoaded', function() {
+                const radioButtons = document.querySelectorAll('input[name="searchType"]');
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        updateSearchFieldVisibility();
+                        filterGames();
+                    });
+                });
+                
+                // Initialize the visibility
+                updateSearchFieldVisibility();
+            });
+            
+            // ... existing code ...
 </script>
     </body>
 </html>
