@@ -234,8 +234,8 @@
                 const { data: { user } } = await supabase.auth.getUser();
                 console.log('Auth result:', user);
                 if (user) {
-                    // Check if user is admin from raw_user_meta_data
-                    if (!user.raw_user_meta_data || !user.raw_user_meta_data.is_admin) {
+                    // Check if user is admin from user_metadata
+                    if (!user.user_metadata || !user.user_metadata.is_admin) {
                         console.log('User is not admin');
                         document.getElementById('loginError').textContent = 'Access denied. Admin privileges required.';
                         return;
@@ -261,8 +261,8 @@
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 
-                // Check if user is admin from raw_user_meta_data
-                if (!data.user.raw_user_meta_data || !data.user.raw_user_meta_data.is_admin) {
+                // Check if user is admin from user_metadata
+                if (!data.user.user_metadata || !data.user.user_metadata.is_admin) {
                     // Sign out the user since they're not admin
                     await supabase.auth.signOut();
                     throw new Error('Access denied. Admin privileges required.');
@@ -319,7 +319,7 @@
                 if (!currentUser) return;
                 
                 // Check admin status from user metadata
-                if (!currentUser.raw_user_meta_data || !currentUser.raw_user_meta_data.is_admin) {
+                if (!currentUser.user_metadata || !currentUser.user_metadata.is_admin) {
                     console.log('User no longer has admin privileges');
                     await logout();
                     document.getElementById('loginError').textContent = 'Admin privileges revoked. Please log in again.';
@@ -335,7 +335,7 @@
             
             try {
                 // Check admin status from user metadata
-                if (!currentUser.raw_user_meta_data || !currentUser.raw_user_meta_data.is_admin) {
+                if (!currentUser.user_metadata || !currentUser.user_metadata.is_admin) {
                     await logout();
                     document.getElementById('loginError').textContent = 'Admin privileges revoked. Please log in again.';
                     return false;
