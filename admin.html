@@ -574,7 +574,8 @@
                 const { data, error } = await supabase
                     .from('scorer_matches')
                     .select('*')
-                    .order('gamen', { ascending: true });
+                    .order('date', { ascending: true })
+                    .order('time', { ascending: true });
                 
                 if (error) {
                     console.error('Error loading games:', error);
