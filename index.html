@@ -822,6 +822,8 @@ observer.observe(document.body);
         function filterGames() {
             const filtered = getFilteredGamesWithSearch();
             currentFilteredGames = filtered; // Update the global variable for pagination
+            // Reset pagination when filtering
+            gamesToShow = 6;
             renderGames(filtered);
         }
 
@@ -2106,6 +2108,8 @@ observer.observe(document.body);
 
             if (!games || games.length === 0) {
                 gamesContainer.innerHTML = '<div class="no-games">No games found</div>';
+                // Update the "Show More" button to hide it when no games are found
+                updateShowMoreButton();
                 return;
             }
 
