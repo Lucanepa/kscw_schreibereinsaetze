@@ -116,6 +116,9 @@
             background-repeat: no-repeat;
             background-size: 16px;
             padding-right: 32px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         .radio-group {
@@ -305,8 +308,8 @@
                         </div>
 
                         <div class="search-group compact">
-                            <label for="filterDateTime">Date & Time</label>
-                            <input type="datetime-local" id="filterDateTime" onchange="filterGames()">
+                            <label for="filterDateTime">Date</label>
+                            <input type="date" id="filterDateTime" onchange="filterGames()">
                         </div>
 
                         <div class="search-group compact">
@@ -877,166 +880,61 @@ observer.observe(document.body);
             const filterDutyTeam = document.getElementById('filterDutyTeam').value;
             const filterDutyType = document.getElementById('filterDutyType').value;
             
-            console.log('Filter values:', { filterHomeTeam, filterDateTime, filterDutyTeam, filterDutyType });
+            console.log('Filter values:', { filterHomeTeam, filterDate: filterDateTime, filterDutyTeam, filterDutyType });
             
-            // Get the search term from the currently visible input field
-            let searchTeamDuty = '';
-            if (searchType === 'any') {
-                searchTeamDuty = document.getElementById('searchAny').value.toLowerCase();
-            } else if (searchType === 'taefeler') {
-                searchTeamDuty = document.getElementById('searchTaefeler').value.toLowerCase();
-            } else if (searchType === 'scorer') {
-                searchTeamDuty = document.getElementById('searchScorer').value.toLowerCase();
-            } else if (searchType === 'combined') {
-                searchTeamDuty = document.getElementById('searchAny').value.toLowerCase();
-            }
-            
-            console.log('Search team duty:', searchTeamDuty);
-
             let filtered = filterCurrentGames(allGames);
+            console.log('Games after current filter:', filtered.length);
 
-            // Search filters
-            if (searchHomeTeam) {
+            // Home team filter
+            if (filterHomeTeam) {
                 filtered = filtered.filter(game => 
-                    game.home_team && game.home_team.toLowerCase().includes(searchHomeTeam)
+                    game.home_team && game.home_team.toLowerCase().includes(filterHomeTeam.toLowerCase())
                 );
+                console.log('Games after home team filter:', filtered.length);
             }
 
-
-
-            if (searchDate) {
-                filtered = filtered.filter(game => game.date === searchDate);
+            // Date filter - filter by date only (time not required)
+            if (filterDateTime) {
+                filtered = filtered.filter(game => game.date === filterDateTime);
+                console.log('Games after date filter:', filtered.length);
             }
 
-            // Filter by team duty (täfeler or scorer)
-            if (searchTeamDuty) {
+            // Duty team filter
+            if (filterDutyTeam) {
                 filtered = filtered.filter(game => {
-                    let dutyMatch = false;
-                    
-                    if (searchType === 'taefeler') {
-                        // Check täfeler team
-                        if (game.taefeler_team && game.taefeler_team.toLowerCase().includes(searchTeamDuty)) {
-                            dutyMatch = true;
-                        }
-                        // Check täfeler name
-                        if (game.taefeler_id) {
-                            const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                            if (taefeler) {
-                                const taefelerName = `${taefeler.fname} ${taefeler.lname}`.toLowerCase();
-                                if (taefelerName.includes(searchTeamDuty)) {
-                                    dutyMatch = true;
-                                }
-                            }
-                        }
-                        // Check combined scorer/täfeler team
-                        if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchTeamDuty)) {
-                            dutyMatch = true;
-                        }
-                        // Check combined scorer/täfeler name
-                        if (game.scorer_taefeler_id) {
-                            const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
-                            if (scorerTaefeler) {
-                                const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
-                                if (scorerTaefelerName.includes(searchTeamDuty)) {
-                                    dutyMatch = true;
-                                }
-                            }
-                        }
-                    } else if (searchType === 'scorer') {
-                        // Check scorer team
-                        if (game.scorer_team && game.scorer_team.toLowerCase().includes(searchTeamDuty)) {
-                            dutyMatch = true;
-                        }
-                        // Check scorer name
-                        if (game.scorer_id) {
-                            const scorer = allScorers.find(s => s.id === game.scorer_id);
-                            if (scorer) {
-                                const scorerName = `${scorer.fname} ${scorer.lname}`.toLowerCase();
-                                if (scorerName.includes(searchTeamDuty)) {
-                                    dutyMatch = true;
-                                }
-                            }
-                        }
-                        // Check combined scorer/täfeler team
-                        if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchTeamDuty)) {
-                            dutyMatch = true;
-                        }
-                        // Check combined scorer/täfeler name
-                        if (game.scorer_taefeler_id) {
-                            const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
-                            if (scorerTaefeler) {
-                                const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
-                                if (scorerTaefelerName.includes(searchTeamDuty)) {
-                                    dutyMatch = true;
-                                }
-                            }
-                        }
-                    } else if (searchType === 'any') {
-                        // Check täfeler team
-                        if (game.taefeler_team && game.taefeler_team.toLowerCase().includes(searchTeamDuty)) {
-                            dutyMatch = true;
-                        }
-                        // Check täfeler name
-                        if (game.taefeler_id) {
-                            const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                            if (taefeler) {
-                                const taefelerName = `${taefeler.fname} ${taefeler.lname}`.toLowerCase();
-                                if (taefelerName.includes(searchTeamDuty)) {
-                                    dutyMatch = true;
-                                }
-                            }
-                        }
-                        // Check scorer team
-                        if (game.scorer_team && game.scorer_team.toLowerCase().includes(searchTeamDuty)) {
-                            dutyMatch = true;
-                        }
-                        // Check scorer name
-                        if (game.scorer_id) {
-                            const scorer = allScorers.find(s => s.id === game.scorer_id);
-                            if (scorer) {
-                                const scorerName = `${scorer.fname} ${scorer.lname}`.toLowerCase();
-                                if (scorerName.includes(searchTeamDuty)) {
-                                    dutyMatch = true;
-                                }
-                            }
-                        }
-                        // Check combined scorer/täfeler team
-                        if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchTeamDuty)) {
-                            dutyMatch = true;
-                        }
-                        // Check combined scorer/täfeler name
-                        if (game.scorer_taefeler_id) {
-                            const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
-                            if (scorerTaefeler) {
-                                const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
-                                if (scorerTaefelerName.includes(searchTeamDuty)) {
-                                    dutyMatch = true;
-                                }
-                            }
-                        }
-                    } else if (searchType === 'combined') {
-                        // Check combined scorer/täfeler team
-                        if (game.scorer_taefeler_team && game.scorer_taefeler_team.toLowerCase().includes(searchTeamDuty)) {
-                            dutyMatch = true;
-                        }
-                        // Check combined scorer/täfeler name
-                        if (game.scorer_taefeler_id) {
-                            const scorerTaefeler = allTaefelers.find(t => t.id === game.scorer_taefeler_id);
-                            if (scorerTaefeler) {
-                                const scorerTaefelerName = `${scorerTaefeler.fname} ${scorerTaefeler.lname}`.toLowerCase();
-                                if (scorerTaefelerName.includes(searchTeamDuty)) {
-                                    dutyMatch = true;
-                                }
-                            }
-                        }
-                        // Also check if this is a combined duty game (has both scorer and täfeler teams)
-                        if (game.scorer_team && game.taefeler_team) {
-                            dutyMatch = true;
-                        }
-                    }
-                    
-                    return dutyMatch;
+                    return (game.scorer_team === filterDutyTeam) ||
+                           (game.taefeler_team === filterDutyTeam) ||
+                           (game.scorer_taefeler_team === filterDutyTeam);
                 });
+                console.log('Games after duty team filter:', filtered.length);
+            }
+
+            // Duty type filter - must be combined with duty team filter
+            if (filterDutyType && filterDutyTeam) {
+                filtered = filtered.filter(game => {
+                    if (filterDutyType === 'scorer') {
+                        return game.scorer_team === filterDutyTeam;
+                    } else if (filterDutyType === 'taefeler') {
+                        return game.taefeler_team === filterDutyTeam;
+                    } else if (filterDutyType === 'combined') {
+                        return game.scorer_taefeler_team === filterDutyTeam;
+                    }
+                    return false;
+                });
+                console.log('Games after duty type filter:', filtered.length);
+            } else if (filterDutyType && !filterDutyTeam) {
+                // If only duty type is selected (no specific team), show all games of that type
+                filtered = filtered.filter(game => {
+                    if (filterDutyType === 'scorer') {
+                        return game.scorer_team && game.scorer_team.trim() !== '';
+                    } else if (filterDutyType === 'taefeler') {
+                        return game.taefeler_team && game.taefeler_team.trim() !== '';
+                    } else if (filterDutyType === 'combined') {
+                        return game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '';
+                    }
+                    return true;
+                });
+                console.log('Games after duty type filter (no team):', filtered.length);
             }
 
             return filtered;
@@ -1051,16 +949,6 @@ observer.observe(document.body);
             // Reset pagination when filtering
             gamesToShow = 6;
             
-            // Log the filter application
-            logSystemEvent('FILTER_APPLIED', {
-                filter_home_team: document.getElementById('filterHomeTeam').value,
-                filter_date_time: document.getElementById('filterDateTime').value,
-                filter_duty_team: document.getElementById('filterDutyTeam').value,
-                filter_duty_type: document.getElementById('filterDutyType').value,
-                results_count: filtered.length,
-                total_games: allGames.length
-            });
-            
             renderGames(filtered);
         }
 
@@ -1070,11 +958,6 @@ observer.observe(document.body);
             document.getElementById('filterDateTime').value = '';
             document.getElementById('filterDutyTeam').value = '';
             document.getElementById('filterDutyType').value = '';
-            
-            // Log the filter clear action
-            logSystemEvent('FILTERS_CLEARED', {
-                timestamp: new Date().toISOString()
-            });
             
             filterGames();
         }
@@ -2000,16 +1883,6 @@ observer.observe(document.body);
         function openGameModal(game) {
             currentGame = game;
             
-            // Log the game view action
-            logSystemEvent('GAME_VIEWED', {
-                game_id: game.match_id,
-                home_team: game.home_team,
-                away_team: game.away_team,
-                date: game.date,
-                time: game.time,
-                halle: game.halle
-            });
-            
             // Hide main content and show focused game view
             document.querySelector('.main-content').style.display = 'none';
             document.getElementById('focusedGameView').style.display = 'block';
@@ -2189,16 +2062,6 @@ observer.observe(document.body);
 
         // Back to main view
         function backToMainView() {
-            // Log the return to main view action
-            if (currentGame) {
-                logSystemEvent('RETURN_TO_MAIN_VIEW', {
-                    game_id: currentGame.match_id,
-                    home_team: currentGame.home_team,
-                    away_team: currentGame.away_team,
-                    date: currentGame.date
-                });
-            }
-            
             document.getElementById('focusedGameView').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             currentGame = null;
@@ -2225,12 +2088,6 @@ observer.observe(document.body);
 
         // Open coach access
         async function openCoachAccess() {
-            // Log the navigation to coaches page
-            logSystemEvent('NAVIGATE_TO_COACHES', {
-                from_page: 'index.html',
-                timestamp: new Date().toISOString()
-            });
-            
             window.location.href = 'coaches.html';
         }
 
@@ -2542,14 +2399,6 @@ observer.observe(document.body);
                 showMoreButton.textContent = `Show More Games (${gamesToShow} of ${totalGames})`;
                 showMoreButton.disabled = false;
                 showMoreButton.onclick = () => {
-                    // Log the show more action
-                    logSystemEvent('SHOW_MORE_GAMES', {
-                        previous_limit: gamesToShow,
-                        new_limit: gamesToShow + 6,
-                        total_games: totalGames,
-                        filtered_games: currentFilteredGames.length
-                    });
-                    
                     gamesToShow += 6;
                     // Re-render games with the new limit
                     renderGames(currentFilteredGames);
@@ -2734,21 +2583,14 @@ observer.observe(document.body);
             }
         }
 
-        // Log page load event
-        window.addEventListener('load', () => {
-            logSystemEvent('PAGE_LOAD', {
-                page: 'index.html',
-                timestamp: new Date().toISOString()
-            });
-        });
-
         // Log filter changes
-        function logFilterChange(filterType, filterValue) {
-            logSystemEvent('FILTER_CHANGE', {
-                filter_type: filterType,
-                filter_value: filterValue
-            });
-        }
+        // Removed filter change logging to prevent Supabase errors
+        // function logFilterChange(filterType, filterValue) {
+        //     logSystemEvent('FILTER_CHANGE', {
+        //         filter_type: filterType,
+        //         filter_value: filterValue
+        //     });
+        // }
 
         // Save game details
         async function saveGameDetails() {
@@ -3074,10 +2916,6 @@ window.addEventListener('message', function(event) {
 
 </script>
 
-<script>
-            // ... existing code ...
-            
 
-</script>
     </body>
 </html>

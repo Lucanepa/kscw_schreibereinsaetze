@@ -18,11 +18,12 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            min-height: 100dvh;
             margin: 0;
             padding: 0;
             color: #333;
-            overflow: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
         }
 
         .container {
@@ -143,7 +144,19 @@
         }
 
         .team-radio-item input[type="radio"] {
-            display: none; /* Hide the radio button */
+            /* Remove display: none to keep radios accessible */
+        }
+
+        /* Visual hide class that keeps elements in accessibility tree */
+        .visual-hide {
+            position: absolute !important;
+            left: -10000px !important;
+            width: 1px !important;
+            height: 1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
         }
 
         .team-radio-item.selected {
@@ -152,50 +165,7 @@
             border-color: #007bff;
         }
 
-        .filter-chips {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
 
-        .filter-chip {
-            padding: 10px 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 25px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            position: relative;
-        }
-
-        .filter-chip:hover {
-            border-color: #007bff;
-            transform: translateY(-2px);
-        }
-
-        .filter-chip.active {
-            background: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-
-        .filter-chip .count {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #dc3545;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
 
         .loading {
             text-align: center;
@@ -261,14 +231,6 @@
             color: #333;
         }
 
-        .team-section-status {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
         .team-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(0,0,0,0.15);
@@ -287,32 +249,6 @@
             font-size: 1.5rem;
             font-weight: bold;
             color: #333;
-        }
-
-        .team-status {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-ready {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
-        .status-issues {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
         }
 
         .games-list {
@@ -391,61 +327,47 @@
             border-radius: 50%;
             font-size: 0.9rem;
             font-weight: bold;
+            color: white;
         }
 
-        .duty-scorer {
+        .duty-icon.scorer {
             background: #e83e8c;
-            color: white;
         }
 
-        .duty-taefeler {
+        .duty-icon.taefeler {
             background: #007bff;
-            color: white;
         }
 
-        .duty-combined {
+        .duty-icon.combined {
             background: #6f42c1;
-            color: white;
         }
 
-        .duty-label {
-            font-weight: 500;
-            color: #495057;
-            min-width: 80px;
-        }
-
-        .assignment-status {
+        .duty-details {
             display: flex;
-            align-items: center;
-            gap: 8px;
+            flex-direction: column;
+            gap: 4px;
             flex: 1;
         }
 
-        .status-icon {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-        }
-
-        .status-assigned {
-            background: #28a745;
-        }
-
-        .status-unassigned {
-            background: #dc3545;
-        }
-
-        .assigned-name {
+        .duty-type {
             font-weight: 500;
-            color: #28a745;
+            color: #495057;
+            font-size: 0.9rem;
         }
 
-        .unassigned-text {
+        .duty-status {
+            font-size: 0.85rem;
+        }
+
+        .duty-status.confirmed {
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .duty-status.unconfirmed {
             color: #dc3545;
             font-style: italic;
         }
-
-
 
         @media (max-width: 768px) {
             .container {
@@ -483,9 +405,7 @@
                     <!-- Team radio buttons will be rendered here -->
                 </div>
             </div>
-            <div class="filter-chips" id="filterChips">
-                <!-- Filter chips will be rendered here -->
-            </div>
+
         </div>
 
         <div class="loading" id="loading">
@@ -504,7 +424,6 @@
         let allTeams = [];
         let allScorers = [];
         let allTaefelers = [];
-        let currentFilter = 'all';
 
         // Initialize Supabase
         const supabaseUrl = SUPABASE_CONFIG.url;
@@ -531,22 +450,20 @@
                 if (gamesError) throw gamesError;
                 allGames = games || [];
 
-                // Fetch all scorers (from scorer_scorers table, only those with scorer_licence)
+                // Fetch all scorers (from scorer_scorers table, all people)
                 const { data: scorers, error: scorersError } = await supabaseClient
                     .from('scorer_scorers')
                     .select('*')
-                    .eq('scorer_licence', true)
                     .order('lname', { ascending: true })
                     .order('fname', { ascending: true });
 
                 if (scorersError) throw scorersError;
                 allScorers = scorers || [];
 
-                // Fetch all täfelers (from scorer_scorers table, those without scorer_licence)
+                // Fetch all täfelers (from scorer_scorers table, all people)
                 const { data: taefelers, error: taefelersError } = await supabaseClient
                     .from('scorer_scorers')
                     .select('*')
-                    .or('scorer_licence.is.null,scorer_licence.eq.false')
                     .order('lname', { ascending: true })
                     .order('fname', { ascending: true });
 
@@ -557,7 +474,6 @@
                 extractTeams();
                 // renderStats(); // Commented out since stats-summary section was removed
                 renderTeamRadioButtons();
-                renderFilterChips();
                 renderTeams();
 
                 // Hide loading, show teams
@@ -598,13 +514,13 @@
             const teamRadioButtons = document.getElementById('teamRadioButtons');
             
             teamRadioButtons.innerHTML = `
-                <div class="team-radio-item selected" onclick="selectTeam('all')">
-                    <input type="radio" name="teamFilter" value="all" checked>
+                <div class="team-radio-item selected" data-team="all" aria-pressed="true" tabindex="0" role="button">
+                    <input type="radio" name="teamFilter" value="all" checked class="visual-hide">
                     <span>All Teams</span>
                 </div>
                 ${allTeams.map(team => `
-                    <div class="team-radio-item" onclick="selectTeam('${escapeHtml(team)}')">
-                        <input type="radio" name="teamFilter" value="${escapeHtml(team)}">
+                    <div class="team-radio-item" data-team="${escapeHtml(team)}" aria-pressed="false" tabindex="0" role="button">
+                        <input type="radio" name="teamFilter" value="${escapeHtml(team)}" class="visual-hide">
                         <span>${escapeHtml(team)}</span>
                     </div>
                 `).join('')}
@@ -613,52 +529,60 @@
             // Initialize selected team
             window.selectedTeam = 'all';
 
-            // No need for radio input event listeners since we're hiding the radio buttons
+            // Add delegated event listeners for accessibility
+            addTeamRadioEventListeners();
         }
 
-        function renderFilterChips() {
-            const filterChips = document.getElementById('filterChips');
-            const readyCount = getReadyTeamsCount();
-            const issuesCount = getTeamsWithIssuesCount();
-
-            filterChips.innerHTML = `
-                <div class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" 
-                     onclick="setFilter('all')">
-                    All Teams
-                    <span class="count">${allTeams.length}</span>
-                </div>
-                <div class="filter-chip ${currentFilter === 'ready' ? 'active' : ''}" 
-                     onclick="setFilter('ready')">
-                    Ready
-                    <span class="count">${readyCount}</span>
-                </div>
-                <div class="filter-chip ${currentFilter === 'issues' ? 'active' : ''}" 
-                     onclick="setFilter('issues')">
-                    Has Issues
-                    <span class="count">${issuesCount}</span>
-                </div>
-            `;
+        function addTeamRadioEventListeners() {
+            const teamRadioButtons = document.getElementById('teamRadioButtons');
+            
+            // Click event handler
+            teamRadioButtons.addEventListener('click', (event) => {
+                const teamRadioItem = event.target.closest('.team-radio-item');
+                if (teamRadioItem) {
+                    const team = teamRadioItem.getAttribute('data-team') || 'all';
+                    selectTeam(team);
+                }
+            });
+            
+            // Keyboard event handler for Enter and Space
+            teamRadioButtons.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    const teamRadioItem = event.target.closest('.team-radio-item');
+                    if (teamRadioItem) {
+                        event.preventDefault();
+                        const team = teamRadioItem.getAttribute('data-team') || 'all';
+                        selectTeam(team);
+                    }
+                }
+            });
         }
 
-        function setFilter(filterId) {
-            currentFilter = filterId;
-            renderFilterChips();
-            renderTeams(); // This will now apply both filters
-        }
 
         function selectTeam(teamName) {
-            // Update visual selection
+            // Update visual selection and ARIA states
             const allRadioItems = document.querySelectorAll('.team-radio-item');
-            allRadioItems.forEach(item => item.classList.remove('selected'));
+            allRadioItems.forEach(item => {
+                item.classList.remove('selected');
+                item.setAttribute('aria-pressed', 'false');
+                const radio = item.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = false;
+                }
+            });
             
-            // Find the selected item by team name instead of radio value
+            // Find the selected item by data-team attribute
             const selectedItem = Array.from(allRadioItems).find(item => {
-                const span = item.querySelector('span');
-                return span && span.textContent === teamName;
+                return item.getAttribute('data-team') === teamName;
             });
             
             if (selectedItem) {
                 selectedItem.classList.add('selected');
+                selectedItem.setAttribute('aria-pressed', 'true');
+                const radio = selectedItem.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                }
             }
 
             // Store selected team for combined filtering
@@ -668,40 +592,15 @@
             renderTeams();
         }
 
-        function getReadyTeamsCount() {
-            return allTeams.filter(team => {
-                const teamGames = getTeamGames(team);
-                return teamGames.every(game => !hasGameIssues(game));
-            }).length;
-        }
 
-        function getTeamsWithIssuesCount() {
-            return allTeams.filter(team => {
-                const teamGames = getTeamGames(team);
-                return teamGames.some(game => hasGameIssues(game));
-            }).length;
-        }
 
         function renderTeams(teamsToRender = null) {
             const teamsGrid = document.getElementById('teamsGrid');
             let filteredTeams = allTeams;
 
-            // First apply team filter (from radio buttons)
+            // Apply team filter (from radio buttons)
             if (window.selectedTeam && window.selectedTeam !== 'all') {
                 filteredTeams = [window.selectedTeam];
-            }
-
-            // Then apply status filter on top of team filter
-            if (currentFilter === 'ready') {
-                filteredTeams = filteredTeams.filter(team => {
-                    const teamGames = getTeamGames(team);
-                    return teamGames.every(game => !hasGameIssues(game));
-                });
-            } else if (currentFilter === 'issues') {
-                filteredTeams = filteredTeams.filter(team => {
-                    const teamGames = getTeamGames(team);
-                    return teamGames.some(game => hasGameIssues(game));
-                });
             }
 
             teamsGrid.innerHTML = filteredTeams.map(team => createTeamCard(team)).join('');
@@ -709,25 +608,11 @@
 
                 function createTeamCard(team) {
             const teamGames = getTeamGames(team);
-            const hasIssues = teamGames.some(game => hasGameIssues(game));
-            const isReady = teamGames.every(game => !hasGameIssues(game));
-            
-            let statusClass = 'status-pending';
-            let statusText = 'Pending';
-            
-            if (isReady) {
-                statusClass = 'status-ready';
-                statusText = 'Ready';
-            } else if (hasIssues) {
-                statusClass = 'status-issues';
-                statusText = 'Issues';
-            }
 
             return `
                 <div class="team-section">
                     <div class="team-section-header">
                         <div class="team-section-title">${escapeHtml(team)}</div>
-                        <div class="team-section-status ${statusClass}">${statusText}</div>
                     </div>
                      <div class="games-list">
                          ${teamGames.map(game => createGameItemHTML(game, team)).join('')}
@@ -769,25 +654,6 @@
             });
         }
 
-        function hasGameIssues(game) {
-            // Check if teams with duties have people assigned
-            let hasIssues = false;
-            
-            if (game.scorer_team && !game.scorer_id) {
-                hasIssues = true;
-            }
-            
-            if (game.taefeler_team && !game.taefeler_id) {
-                hasIssues = true;
-            }
-            
-            if (game.scorer_taefeler_team && (!game.scorer_id || !game.taefeler_id)) {
-                hasIssues = true;
-            }
-            
-            return hasIssues;
-        }
-
         function isCombinedGameMatch(game) {
             // Check if this is a combined scorer/täfeler game
             // For now, we'll assume all games need both scorer and täfeler
@@ -801,9 +667,12 @@
             if (isNaN(date.getTime())) return 'Invalid Date';
             
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const day = days[date.getDay()];
+            const dayNum = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear().toString().slice(-2); // Get last 2 digits of year
             
-            return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+            return `${day} ${dayNum}.${month}.${year}`;
         }
 
         function formatTime(timeString) {
@@ -815,76 +684,77 @@
             if (game.scorer_team === team) {
                 // Team has scorer duty
                 const hasScorer = game.scorer_id;
-                const scorerName = hasScorer ? 
-                    (() => {
-                        const scorer = allScorers.find(s => s.id === game.scorer_id);
-                        return scorer ? `${scorer.fname} ${scorer.lname}` : 'Unknown';
-                    })() : '';
+                let scorerName = '';
+                
+                if (game.scorer_id) {
+                    // Look up by ID
+                    const scorer = allScorers.find(s => s.id === game.scorer_id);
+                    scorerName = scorer ? `${scorer.fname} ${scorer.lname}` : 'Unknown';
+                }
                 
                 return `
                     <div class="duty-item">
-                        <div class="duty-icon duty-scorer">S</div>
-                        <div class="duty-label">Scorer</div>
-                        <div class="assignment-status">
-                            <div class="status-icon ${hasScorer ? 'status-assigned' : 'status-unassigned'}"></div>
-                            ${hasScorer ? 
-                                `<span class="assigned-name">${escapeHtml(scorerName)}</span>` : 
-                                `<span class="unassigned-text">Unassigned</span>`
-                            }
+                        <div class="duty-icon scorer">S</div>
+                        <div class="duty-details">
+                            <div class="duty-type">Scorer</div>
+                            <div class="duty-status ${hasScorer ? 'confirmed' : 'unconfirmed'}">
+                                ${hasScorer ? scorerName : 'Unconfirmed'}
+                            </div>
                         </div>
                     </div>
                 `;
             } else if (game.taefeler_team === team) {
                 // Team has täfeler duty
                 const hasTaefeler = game.taefeler_id;
-                const taefelerName = hasTaefeler ? 
-                    (() => {
-                        const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                        return taefeler ? `${taefeler.fname} ${taefeler.lname}` : 'Unknown';
-                    })() : '';
+                let taefelerName = '';
+                
+                if (game.taefeler_id) {
+                    // Look up by ID
+                    const taefeler = allTaefelers.find(s => s.id === game.taefeler_id);
+                    taefelerName = taefeler ? `${taefeler.fname} ${taefeler.lname}` : 'Unknown';
+                }
                 
                 return `
                     <div class="duty-item">
-                        <div class="duty-icon duty-taefeler">T</div>
-                        <div class="duty-label">Täfeler</div>
-                        <div class="assignment-status">
-                            <div class="status-icon ${hasTaefeler ? 'status-assigned' : 'status-unassigned'}"></div>
-                            ${hasTaefeler ? 
-                                `<span class="assigned-name">${escapeHtml(taefelerName)}</span>` : 
-                                `<span class="unassigned-text">Unassigned</span>`
-                            }
+                        <div class="duty-icon taefeler">T</div>
+                        <div class="duty-details">
+                            <div class="duty-type">Täfeler</div>
+                            <div class="duty-status ${hasTaefeler ? 'confirmed' : 'unconfirmed'}">
+                                ${hasTaefeler ? taefelerName : 'Unconfirmed'}
+                            </div>
                         </div>
                     </div>
                 `;
             } else if (game.scorer_taefeler_team === team) {
-                // Team has combined duty
+                // Team has combined scorer/täfeler duty
                 const hasScorer = game.scorer_id;
                 const hasTaefeler = game.taefeler_id;
-                const scorerName = hasScorer ? 
-                    (() => {
-                        const scorer = allScorers.find(s => s.id === game.scorer_id);
-                        return scorer ? `${scorer.fname} ${scorer.lname}` : 'Unknown';
-                    })() : '';
-                const taefelerName = hasTaefeler ? 
-                    (() => {
-                        const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
-                        return taefeler ? `${taefeler.fname} ${taefeler.lname}` : 'Unknown';
-                    })() : '';
+                let scorerName = '';
+                let taefelerName = '';
+                
+                if (game.scorer_id) {
+                    const scorer = allScorers.find(s => s.id === game.scorer_id);
+                    scorerName = scorer ? `${scorer.fname} ${scorer.lname}` : 'Unknown';
+                }
+                
+                if (game.taefeler_id) {
+                    const taefeler = allTaefelers.find(s => s.id === game.taefeler_id);
+                    taefelerName = taefeler ? `${taefeler.fname} ${taefeler.lname}` : 'Unknown';
+                }
                 
                 return `
                     <div class="duty-item">
-                        <div class="duty-icon duty-combined">S/T</div>
-                        <div class="duty-label">Scorer/Täfeler</div>
-                        <div class="assignment-status">
-                            <div class="status-icon ${hasScorer && hasTaefeler ? 'status-assigned' : 'status-unassigned'}"></div>
-                            ${hasScorer && hasTaefeler ? 
-                                `<span class="assigned-name">${escapeHtml(scorerName)} / ${escapeHtml(taefelerName)}</span>` : 
-                                `<span class="unassigned-text">Unassigned</span>`
-                            }
+                        <div class="duty-icon combined">S/T</div>
+                        <div class="duty-details">
+                            <div class="duty-type">Scorer/Täfeler</div>
+                            <div class="duty-status ${hasScorer && hasTaefeler ? 'confirmed' : 'unconfirmed'}">
+                                ${hasScorer && hasTaefeler ? `${scorerName} / ${taefelerName}` : 'Unconfirmed'}
+                            </div>
                         </div>
                     </div>
                 `;
             }
+            
             return '';
         }
 
