@@ -681,18 +681,19 @@
         }
 
         function getTeamDutyHTML(game, team) {
+            let duties = [];
+            
+            // Check if team has scorer duty
             if (game.scorer_team === team) {
-                // Team has scorer duty
                 const hasScorer = game.scorer_id;
                 let scorerName = '';
                 
                 if (game.scorer_id) {
-                    // Look up by ID
                     const scorer = allScorers.find(s => s.id === game.scorer_id);
                     scorerName = scorer ? `${scorer.fname} ${scorer.lname}` : 'Unknown';
                 }
                 
-                return `
+                duties.push(`
                     <div class="duty-item">
                         <div class="duty-icon scorer">S</div>
                         <div class="duty-details">
@@ -702,19 +703,20 @@
                             </div>
                         </div>
                     </div>
-                `;
-            } else if (game.taefeler_team === team) {
-                // Team has täfeler duty
+                `);
+            }
+            
+            // Check if team has täfeler duty
+            if (game.taefeler_team === team) {
                 const hasTaefeler = game.taefeler_id;
                 let taefelerName = '';
                 
                 if (game.taefeler_id) {
-                    // Look up by ID
                     const taefeler = allTaefelers.find(s => s.id === game.taefeler_id);
                     taefelerName = taefeler ? `${taefeler.fname} ${taefeler.lname}` : 'Unknown';
                 }
                 
-                return `
+                duties.push(`
                     <div class="duty-item">
                         <div class="duty-icon taefeler">T</div>
                         <div class="duty-details">
@@ -724,9 +726,11 @@
                             </div>
                         </div>
                     </div>
-                `;
-            } else if (game.scorer_taefeler_team === team) {
-                // Team has combined scorer/täfeler duty
+                `);
+            }
+            
+            // Check if team has combined scorer/täfeler duty
+            if (game.scorer_taefeler_team === team) {
                 const hasScorer = game.scorer_id;
                 const hasTaefeler = game.taefeler_id;
                 let scorerName = '';
@@ -742,7 +746,7 @@
                     taefelerName = taefeler ? `${taefeler.fname} ${taefeler.lname}` : 'Unknown';
                 }
                 
-                return `
+                duties.push(`
                     <div class="duty-item">
                         <div class="duty-icon combined">S/T</div>
                         <div class="duty-details">
@@ -752,10 +756,11 @@
                             </div>
                         </div>
                     </div>
-                `;
+                `);
             }
             
-            return '';
+            // Return all duties for this team
+            return duties.join('');
         }
 
         function escapeHtml(text) {
