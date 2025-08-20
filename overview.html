@@ -18,14 +18,21 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
             color: #333;
+            overflow: hidden;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .header {
@@ -86,48 +93,7 @@
             transform: translateY(-2px);
         }
 
-        .stats-summary {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 12px;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .stat-item:hover {
-            transform: translateY(-5px);
-            border-color: #007bff;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #007bff;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-            color: #6c757d;
-            font-weight: 500;
-        }
+        /* Stats summary section removed by user */
 
         .filter-section {
             background: rgba(255, 255, 255, 0.95);
@@ -177,8 +143,7 @@
         }
 
         .team-radio-item input[type="radio"] {
-            margin: 0;
-            cursor: pointer;
+            display: none; /* Hide the radio button */
         }
 
         .team-radio-item.selected {
@@ -258,6 +223,9 @@
             display: flex;
             flex-direction: column;
             gap: 30px;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
         }
 
         .team-card {
@@ -415,28 +383,28 @@
         }
 
         .duty-icon {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             font-weight: bold;
         }
 
         .duty-scorer {
-            background: #28a745;
+            background: #e83e8c;
             color: white;
         }
 
         .duty-taefeler {
-            background: #ffc107;
-            color: #212529;
+            background: #007bff;
+            color: white;
         }
 
         .duty-combined {
-            background: linear-gradient(45deg, #28a745, #ffc107);
+            background: #6f42c1;
             color: white;
         }
 
@@ -492,9 +460,7 @@
                 padding: 20px;
             }
 
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+
 
             .filter-chips {
                 justify-content: center;
@@ -505,37 +471,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏐 Team Overview</h1>
+            <h1>Team Overview</h1>
         </div>
 
         <div class="nav-buttons">
             <a href="index.html" class="btn btn-secondary">← Back to Main</a>
         </div>
-
-        <div class="stats-summary">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number" id="totalTeams">-</div>
-                    <div class="stat-label">Total Teams</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="totalGames">-</div>
-                    <div class="stat-label">Total Games</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="readyTeams">-</div>
-                    <div class="stat-label">Ready Teams</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="teamsWithIssues">-</div>
-                    <div class="stat-label">Teams with Issues</div>
-                </div>
-            </div>
-        </div>
-
         <div class="filter-section">
             <div class="team-filter">
-                <div class="filter-title">Filter by Team:</div>
                 <div class="team-radio-buttons" id="teamRadioButtons">
                     <!-- Team radio buttons will be rendered here -->
                 </div>
@@ -612,7 +555,7 @@
 
                 // Process data
                 extractTeams();
-                renderStats();
+                // renderStats(); // Commented out since stats-summary section was removed
                 renderTeamRadioButtons();
                 renderFilterChips();
                 renderTeams();
@@ -644,12 +587,12 @@
             allTeams = Array.from(teamSet).sort();
         }
 
-        function renderStats() {
-            document.getElementById('totalTeams').textContent = allTeams.length;
-            document.getElementById('totalGames').textContent = allGames.length;
-            document.getElementById('readyTeams').textContent = getReadyTeamsCount();
-            document.getElementById('teamsWithIssues').textContent = getTeamsWithIssuesCount();
-        }
+        // function renderStats() {
+        //     document.getElementById('totalTeams').textContent = allTeams.length;
+        //     document.getElementById('totalGames').textContent = allGames.length;
+        //     document.getElementById('readyTeams').textContent = getReadyTeamsCount();
+        //     document.getElementById('teamsWithIssues').textContent = getTeamsWithIssuesCount();
+        // }
 
         function renderTeamRadioButtons() {
             const teamRadioButtons = document.getElementById('teamRadioButtons');
@@ -670,13 +613,7 @@
             // Initialize selected team
             window.selectedTeam = 'all';
 
-            // Add event listeners to radio inputs
-            const radioInputs = teamRadioButtons.querySelectorAll('input[type="radio"]');
-            radioInputs.forEach(input => {
-                input.addEventListener('change', function() {
-                    selectTeam(this.value);
-                });
-            });
+            // No need for radio input event listeners since we're hiding the radio buttons
         }
 
         function renderFilterChips() {
@@ -714,7 +651,12 @@
             const allRadioItems = document.querySelectorAll('.team-radio-item');
             allRadioItems.forEach(item => item.classList.remove('selected'));
             
-            const selectedItem = document.querySelector(`[value="${teamName}"]`).closest('.team-radio-item');
+            // Find the selected item by team name instead of radio value
+            const selectedItem = Array.from(allRadioItems).find(item => {
+                const span = item.querySelector('span');
+                return span && span.textContent === teamName;
+            });
+            
             if (selectedItem) {
                 selectedItem.classList.add('selected');
             }
@@ -803,7 +745,6 @@
                     <div class="game-header">
                         <div class="game-info">
                             <div class="game-date">${gameDate} ${gameTime}</div>
-                            <div class="team-duty">${getTeamDuty(game, team)}</div>
                         </div>
                          <div class="game-number">#${game.gamen || 'N/A'}</div>
                     </div>
@@ -868,17 +809,6 @@
         function formatTime(timeString) {
             if (!timeString) return '';
             return timeString.substring(0, 5); // Only hours and minutes
-        }
-
-        function getTeamDuty(game, team) {
-            if (game.scorer_team === team) {
-                return `🏐`;
-            } else if (game.taefeler_team === team) {
-                return `📝`;
-            } else if (game.scorer_taefeler_team === team) {
-                return `🏐📝`;
-            }
-            return '';
         }
 
         function getTeamDutyHTML(game, team) {
