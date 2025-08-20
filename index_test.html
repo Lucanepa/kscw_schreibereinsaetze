@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>KSCW Game Assignments - Test Version</title>
+        <link rel="icon" type="image/x-icon" href="https://kscw.ch/clubdesk/fileservlet?type=file&id=1000716&s=djEt3z7ABYLi8hd4sWeb8Qisb2m20xnaKr4H9W6HvJnKgDU=">
+        <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+        <script src="teamUtils.js"></script>
+        <style>
+            * { 
+                margin: 0; 
+                padding: 0; 
+                box-sizing: border-box; 
+            } 
+            
+            body { 
+                font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                height: 100vh; 
+                font-feature-settings: "liga" 1, "kern" 1; 
+                -webkit-font-smoothing: antialiased; 
+                -moz-osx-font-smoothing: grayscale; 
+                overflow-x: hidden; 
+                overflow-y: auto;
+                margin: 0; 
+                padding: 0; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            } 
+
+            .container { 
+                max-width: 1400px; 
+                margin: 0 auto; 
+                background: white; 
+                border-radius: 20px; 
+                box-shadow: 0 25px 50px rgba(0,0,0,0.12); 
+                overflow: hidden; 
+                margin-top: 20px; 
+                margin-bottom: 20px; 
+                backdrop-filter: blur(10px);
+                min-height: calc(100vh - 40px);
+            }
+
+            .main-content { 
+                padding: 30px; 
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+
+            .admin-access {
+                margin-bottom: 20px;
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .btn {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin: 5px;
+                letter-spacing: 0.01em;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+                color: white;
+            }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(30, 58, 138, 0.4);
+            }
+
+            .btn-secondary {
+                background: #6c757d;
+                color: white;
+            }
+
+            .btn-secondary:hover {
+                background: #5a6268;
+            }
+
+            .btn-info {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+
+            .btn-info:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            }
+
+            /* Compact Professional Filter System */
+            .search-section {
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                padding: 16px 20px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                border: 1px solid #dee2e6;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                position: relative;
+            }
+
+            .search-section::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #007bff, #28a745, #ffc107);
+                border-radius: 12px 12px 0 0;
+            }
+
+            .search-section h3 {
+                margin: 0 0 16px 0;
+                color: #495057;
+                font-size: 1.1rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .search-section h3::before {
+                content: "🔍";
+                font-size: 1rem;
+            }
+
+            .search-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                align-items: end;
+                margin-bottom: 16px;
+            }
+
+            .search-group {
+                display: flex;
+                flex-direction: column;
+                min-width: 180px;
+                flex: 1;
+            }
+
+            .search-group.compact {
+                min-width: 140px;
+                flex: 0 0 auto;
+            }
+
+            .search-group label {
+                font-weight: 600;
+                color: #495057;
+                margin-bottom: 6px;
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .search-group input,
+            .search-group select {
+                padding: 8px 12px;
+                border: 1px solid #ced4da;
+                border-radius: 6px;
+                font-size: 0.9rem;
+                background: white;
+                transition: all 0.2s ease;
+                font-family: inherit;
+            }
+
+            .search-group input:focus,
+            .search-group select:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+                transform: translateY(-1px);
+            }
+
+            .search-group select {
+                cursor: pointer;
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+                background-position: right 8px center;
+                background-repeat: no-repeat;
+                background-size: 16px;
+                padding-right: 32px;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+
+            .search-actions {
+                display: flex;
+                justify-content: center;
+                gap: 12px;
+            }
+            
+            .search-actions .btn {
+                padding: 8px 20px;
+                font-size: 0.9rem;
+                border-radius: 20px;
+                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+                border: 1px solid #495057;
+                transition: all 0.3s ease;
+                margin: 0;
+            }
+            
+            .search-actions .btn:hover {
+                background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+
+            .results-count {
+                background: #e8f5e8;
+                padding: 10px 15px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+                border-left: 4px solid #28a745;
+            }
+
+            .results-count p {
+                margin: 0;
+                color: #155724;
+                font-weight: 600;
+                font-size: 0.9rem;
+            }
+
+            /* Games Table Layout */
+            .games-table {
+                width: 100%;
+                border-collapse: collapse;
+                background: white;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            }
+
+            .games-table thead {
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            }
+
+            .games-table th {
+                padding: 16px 12px;
+                text-align: left;
+                font-weight: 600;
+                color: #495057;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border-bottom: 2px solid #dee2e6;
+            }
+
+            .games-table td {
+                padding: 16px 12px;
+                border-bottom: 1px solid #f1f3f4;
+                vertical-align: top;
+            }
+
+            .games-table tbody tr {
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .games-table tbody tr:hover {
+                background-color: #f8f9fa;
+                transform: translateX(4px);
+            }
+
+            .games-table tbody tr.expanded {
+                background-color: #f0f7ff;
+                border-left: 4px solid #007bff;
+            }
+
+            .games-table tbody tr.expanded:hover {
+                background-color: #e6f3ff;
+            }
+
+            /* Game Row Content */
+            .game-basic-info {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .game-date-time {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                min-width: 120px;
+            }
+
+            .game-date {
+                font-weight: 700;
+                color: #333;
+                font-size: 1rem;
+            }
+
+            .game-time {
+                background: #667eea;
+                color: white;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-align: center;
+                width: fit-content;
+            }
+
+            .game-teams {
+                flex: 1;
+                font-weight: 500;
+                color: #333;
+                font-size: 1rem;
+            }
+
+            .game-duties {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .duty-badge {
+                padding: 6px 12px;
+                border-radius: 16px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: white;
+                min-width: 80px;
+                text-align: center;
+            }
+
+            .duty-badge.scorer {
+                background: #e83e8c;
+            }
+
+            .duty-badge.taefeler {
+                background: #007bff;
+            }
+
+            .duty-badge.combined {
+                background: #6f42c1;
+            }
+
+            .duty-badge.unassigned {
+                background: #6c757d;
+                opacity: 0.7;
+            }
+
+            /* Expanded Game Details */
+            .game-expanded-details {
+                display: none;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                margin-top: 12px;
+                border: 1px solid #dee2e6;
+            }
+
+            .game-expanded-details.show {
+                display: block;
+            }
+
+            .expanded-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+
+            .expanded-item {
+                background: white;
+                padding: 15px;
+                border-radius: 8px;
+                border-left: 4px solid #1e3a8a;
+            }
+
+            .expanded-item label {
+                font-weight: 600;
+                color: #666;
+                display: block;
+                margin-bottom: 5px;
+                font-size: 0.9rem;
+            }
+
+            .expanded-item span {
+                color: #333;
+                font-weight: 500;
+                font-size: 1.1rem;
+            }
+
+            .role-selection-section {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                margin-top: 20px;
+            }
+
+            .role-section {
+                background: white;
+                padding: 25px;
+                border-radius: 12px;
+                border: 2px solid #e9ecef;
+            }
+
+            .role-section h3 {
+                color: #1e3a8a;
+                margin-bottom: 15px;
+                font-size: 1.2rem;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .current-selection {
+                margin-bottom: 20px;
+                padding: 15px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border: 1px solid #e9ecef;
+            }
+
+            .current-selection label {
+                font-weight: 600;
+                color: #666;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .current-selection span {
+                color: #333;
+                font-weight: 500;
+                font-size: 1.1rem;
+            }
+
+            .selection-controls {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .loading {
+                text-align: center;
+                padding: 60px;
+                color: #666;
+                font-size: 1.2rem;
+            }
+
+            .loading::after {
+                content: "";
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                border: 3px solid #f3f3f3;
+                border-top: 3px solid #667eea;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-left: 15px;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            /* Mobile optimizations */
+            @media (max-width: 768px) {
+                .container {
+                    margin: 10px;
+                    border-radius: 15px;
+                }
+
+                .main-content {
+                    padding: 15px;
+                }
+
+                .search-grid {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .search-group {
+                    min-width: 100%;
+                    flex: 1 1 100%;
+                }
+
+                .search-group.compact {
+                    min-width: 100%;
+                }
+
+                .games-table {
+                    font-size: 0.9rem;
+                }
+
+                .games-table th,
+                .games-table td {
+                    padding: 12px 8px;
+                }
+
+                .game-basic-info {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 12px;
+                }
+
+                .game-date-time {
+                    min-width: auto;
+                }
+
+                .expanded-grid {
+                    grid-template-columns: 1fr;
+                    gap: 15px;
+                }
+
+                .role-selection-section {
+                    grid-template-columns: 1fr;
+                    gap: 20px;
+                }
+
+                .role-section {
+                    padding: 20px 15px;
+                }
+
+                .selection-controls {
+                    flex-direction: column;
+                }
+
+                .selection-controls .btn {
+                    width: 100%;
+                    margin-bottom: 10px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="main-content" id="mainContent">
+                <div class="admin-access">
+                    <button class="btn btn-info" onclick="showSummary()">📊 Summary</button>
+                    <a href="overview.html" class="btn btn-primary">🏐 Team Overview</a>
+                    <button class="btn btn-secondary" onclick="openCoachAccess()">Coach Access</button>
+                </div>
+
+                <!-- Compact Search Section -->
+                <div class="search-section">
+                    <h3>Filter Games</h3>
+                    <div class="search-grid">
+                        <div class="search-group compact">
+                            <label for="filterHomeTeam">Home Team</label>
+                            <input type="text" id="filterHomeTeam" placeholder="Enter team name" onchange="filterGames()">
+                        </div>
+                        <div class="search-group compact">
+                            <label for="filterDateTime">Date</label>
+                            <input type="date" id="filterDateTime" onchange="filterGames()">
+                        </div>
+                        <div class="search-group compact">
+                            <label for="filterDutyTeam">Duty Team</label>
+                            <select id="filterDutyTeam" onchange="filterGames()">
+                                <option value="">All Teams</option>
+                            </select>
+                        </div>
+                        <div class="search-group compact">
+                            <label for="filterDutyType">Duty Type</label>
+                            <select id="filterDutyType" onchange="filterGames()">
+                                <option value="">All Types</option>
+                                <option value="scorer">Scorer</option>
+                                <option value="taefeler">Täfeler</option>
+                                <option value="scorer_taefeler">Scorer/Täfeler</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="search-actions">
+                        <button class="btn" onclick="clearFilters()">Clear Filters</button>
+                    </div>
+                </div>
+
+                <div class="results-count" id="resultsCount" style="display: none;">
+                    <p>Showing <span id="filteredCount">0</span> games</p>
+                </div>
+
+                <div class="loading" id="loading">
+                    Loading games...
+                </div>
+
+                <div id="gamesTableContainer" style="display: none;">
+                    <table class="games-table">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Teams</th>
+                                <th>Duties</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gamesTableBody">
+                            <!-- Games will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Global variables
+            let allGames = [];
+            let currentFilteredGames = [];
+            let expandedGameId = null;
+
+            // Initialize Supabase
+            const supabaseUrl = SUPABASE_CONFIG.url;
+            const supabaseKey = SUPABASE_CONFIG.anonKey;
+            const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+            // Load data when page loads
+            document.addEventListener('DOMContentLoaded', loadData);
+
+            async function loadData() {
+                try {
+                    // Fetch all games
+                    const { data: games, error: gamesError } = await supabaseClient
+                        .from('scorer_matches')
+                        .select('*')
+                        .order('date', { ascending: true })
+                        .order('time', { ascending: true });
+
+                    if (gamesError) throw gamesError;
+                    allGames = games || [];
+                    currentFilteredGames = [...allGames];
+
+                    // Populate duty team filter
+                    populateDutyTeamFilter();
+
+                    // Render games
+                    renderGames();
+
+                    // Hide loading, show games
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('gamesTableContainer').style.display = 'block';
+
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    document.getElementById('loading').innerHTML = `
+                        <div style="color: #dc3545;">
+                            <div>❌ Error loading data</div>
+                            <div style="font-size: 0.9rem; margin-top: 10px;">${error.message}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            function populateDutyTeamFilter() {
+                const dutyTeamSelect = document.getElementById('filterDutyTeam');
+                const teamSet = new Set();
+                
+                allGames.forEach(game => {
+                    if (game.scorer_team) teamSet.add(game.scorer_team);
+                    if (game.taefeler_team) teamSet.add(game.taefeler_team);
+                    if (game.scorer_taefeler_team) teamSet.add(game.scorer_taefeler_team);
+                });
+
+                const sortedTeams = Array.from(teamSet).sort();
+                sortedTeams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team;
+                    option.textContent = team;
+                    dutyTeamSelect.appendChild(option);
+                });
+            }
+
+            function filterGames() {
+                const filterHomeTeam = document.getElementById('filterHomeTeam').value;
+                const filterDateTime = document.getElementById('filterDateTime').value;
+                const filterDutyTeam = document.getElementById('filterDutyTeam').value;
+                const filterDutyType = document.getElementById('filterDutyType').value;
+
+                let filtered = [...allGames];
+
+                // Home team filter
+                if (filterHomeTeam) {
+                    filtered = filtered.filter(game => 
+                        game.home_team && game.home_team.toLowerCase().includes(filterHomeTeam.toLowerCase())
+                    );
+                }
+
+                // Date filter
+                if (filterDateTime) {
+                    filtered = filtered.filter(game => game.date === filterDateTime);
+                }
+
+                // Duty team filter
+                if (filterDutyTeam) {
+                    filtered = filtered.filter(game => {
+                        return (game.scorer_team === filterDutyTeam) ||
+                               (game.taefeler_team === filterDutyTeam) ||
+                               (game.scorer_taefeler_team === filterDutyTeam);
+                    });
+                }
+
+                // Duty type filter
+                if (filterDutyType && filterDutyTeam) {
+                    filtered = filtered.filter(game => {
+                        if (filterDutyType === 'scorer') {
+                            return game.scorer_team === filterDutyTeam;
+                        } else if (filterDutyType === 'taefeler') {
+                            return game.taefeler_team === filterDutyTeam;
+                        } else if (filterDutyType === 'scorer_taefeler') {
+                            return game.scorer_taefeler_team === filterDutyTeam;
+                        }
+                        return true;
+                    });
+                }
+
+                currentFilteredGames = filtered;
+                renderGames();
+                updateResultsCount();
+            }
+
+            function updateResultsCount() {
+                const resultsCount = document.getElementById('resultsCount');
+                const filteredCount = document.getElementById('filteredCount');
+                
+                if (currentFilteredGames.length !== allGames.length) {
+                    resultsCount.style.display = 'block';
+                    filteredCount.textContent = currentFilteredGames.length;
+                } else {
+                    resultsCount.style.display = 'none';
+                }
+            }
+
+            function clearFilters() {
+                document.getElementById('filterHomeTeam').value = '';
+                document.getElementById('filterDateTime').value = '';
+                document.getElementById('filterDutyTeam').value = '';
+                document.getElementById('filterDutyType').value = '';
+                
+                currentFilteredGames = [...allGames];
+                renderGames();
+                updateResultsCount();
+            }
+
+            function renderGames() {
+                const tbody = document.getElementById('gamesTableBody');
+                tbody.innerHTML = '';
+
+                currentFilteredGames.forEach(game => {
+                    const row = createGameRow(game);
+                    tbody.appendChild(row);
+                });
+            }
+
+            function createGameRow(game) {
+                const row = document.createElement('tr');
+                row.setAttribute('data-game-id', game.match_id);
+                
+                const gameDate = formatDate(game.date);
+                const gameTime = formatTime(game.time);
+                const duties = getGameDuties(game);
+
+                row.innerHTML = `
+                    <td>
+                        <div class="game-date-time">
+                            <div class="game-date">${gameDate}</div>
+                            <div class="game-time">${gameTime}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="game-teams">
+                            ${game.home_team} vs ${game.away_team}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="game-duties">
+                            ${duties}
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" onclick="toggleGameExpansion(${game.match_id})">
+                            ${expandedGameId === game.match_id ? 'Collapse' : 'Expand'}
+                        </button>
+                    </td>
+                `;
+
+                // Add expanded details row
+                const expandedRow = document.createElement('tr');
+                expandedRow.className = 'expanded-row';
+                expandedRow.setAttribute('data-expanded-for', game.match_id);
+                expandedRow.style.display = 'none';
+                
+                expandedRow.innerHTML = `
+                    <td colspan="4">
+                        <div class="game-expanded-details" id="expanded-${game.match_id}">
+                            <div class="expanded-grid">
+                                <div class="expanded-item">
+                                    <label>Home Team</label>
+                                    <span>${game.home_team || 'N/A'}</span>
+                                </div>
+                                <div class="expanded-item">
+                                    <label>Away Team</label>
+                                    <span>${game.away_team || 'N/A'}</span>
+                                </div>
+                                <div class="expanded-item">
+                                    <label>Date</label>
+                                    <span>${gameDate}</span>
+                                </div>
+                                <div class="expanded-item">
+                                    <label>Time</label>
+                                    <span>${gameTime}</span>
+                                </div>
+                                <div class="expanded-item">
+                                    <label>Location</label>
+                                    <span>${game.halle || 'N/A'}</span>
+                                </div>
+                                <div class="expanded-item">
+                                    <label>Game ID</label>
+                                    <span>#${game.gamen || 'N/A'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="role-selection-section">
+                                <div class="role-section">
+                                    <h3>🎯 Scorer Assignment</h3>
+                                    <div class="current-selection">
+                                        <label>Current Scorer Team:</label>
+                                        <span>${game.scorer_team || 'Unassigned'}</span>
+                                    </div>
+                                    <div class="selection-controls">
+                                        <button class="btn btn-primary" onclick="assignScorer(${game.match_id})">
+                                            Assign Scorer
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="role-section">
+                                    <h3>📊 Täfeler Assignment</h3>
+                                    <div class="current-selection">
+                                        <label>Current Täfeler Team:</label>
+                                        <span>${game.taefeler_team || 'Unassigned'}</span>
+                                    </div>
+                                    <div class="selection-controls">
+                                        <button class="btn btn-primary" onclick="assignTaefeler(${game.match_id})">
+                                            Assign Täfeler
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(expandedRow);
+                
+                return row;
+            }
+
+            function getGameDuties(game) {
+                let duties = [];
+                
+                if (game.scorer_team) {
+                    const hasScorer = game.scorer_id;
+                    duties.push(`
+                        <div class="duty-badge scorer ${hasScorer ? '' : 'unassigned'}">
+                            ${hasScorer ? 'Scorer' : 'Scorer (Unconfirmed)'}
+                        </div>
+                    `);
+                }
+                
+                if (game.taefeler_team) {
+                    const hasTaefeler = game.taefeler_id;
+                    duties.push(`
+                        <div class="duty-badge taefeler ${hasTaefeler ? '' : 'unassigned'}">
+                            ${hasTaefeler ? 'Täfeler' : 'Täfeler (Unconfirmed)'}
+                        </div>
+                    `);
+                }
+                
+                if (game.scorer_taefeler_team) {
+                    const hasBoth = game.scorer_id && game.taefeler_id;
+                    duties.push(`
+                        <div class="duty-badge combined ${hasBoth ? '' : 'unassigned'}">
+                            ${hasBoth ? 'S/T' : 'S/T (Unconfirmed)'}
+                        </div>
+                    `);
+                }
+                
+                return duties.join('');
+            }
+
+            function toggleGameExpansion(gameId) {
+                const tbody = document.getElementById('gamesTableBody');
+                const allRows = tbody.querySelectorAll('tr');
+                
+                // Close previously expanded game
+                if (expandedGameId && expandedGameId !== gameId) {
+                    const prevExpandedRow = tbody.querySelector(`tr[data-expanded-for="${expandedGameId}"]`);
+                    if (prevExpandedRow) {
+                        prevExpandedRow.style.display = 'none';
+                    }
+                    
+                    const prevMainRow = tbody.querySelector(`tr[data-game-id="${expandedGameId}"]`);
+                    if (prevMainRow) {
+                        prevMainRow.classList.remove('expanded');
+                        const prevBtn = prevMainRow.querySelector('button');
+                        if (prevBtn) prevBtn.textContent = 'Expand';
+                    }
+                }
+                
+                // Toggle current game
+                const expandedRow = tbody.querySelector(`tr[data-expanded-for="${gameId}"]`);
+                const mainRow = tbody.querySelector(`tr[data-game-id="${gameId}"]`);
+                
+                if (expandedRow && mainRow) {
+                    if (expandedRow.style.display === 'none') {
+                        // Expand
+                        expandedRow.style.display = 'table-row';
+                        mainRow.classList.add('expanded');
+                        expandedGameId = gameId;
+                        
+                        const btn = mainRow.querySelector('button');
+                        if (btn) btn.textContent = 'Collapse';
+                    } else {
+                        // Collapse
+                        expandedRow.style.display = 'none';
+                        mainRow.classList.remove('expanded');
+                        expandedGameId = null;
+                        
+                        const btn = mainRow.querySelector('button');
+                        if (btn) btn.textContent = 'Expand';
+                    }
+                }
+            }
+
+            function formatDate(dateString) {
+                if (!dateString) return 'Unknown Date';
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return 'Invalid Date';
+                
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const day = days[date.getDay()];
+                const dayNum = date.getDate().toString().padStart(2, '0');
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const year = date.getFullYear().toString().slice(-2);
+                
+                return `${day} ${dayNum}.${month}.${year}`;
+            }
+
+            function formatTime(timeString) {
+                if (!timeString) return '';
+                return timeString.substring(0, 5);
+            }
+
+            function assignScorer(gameId) {
+                // Placeholder for scorer assignment logic
+                alert(`Scorer assignment for game ${gameId} - Implementation needed`);
+            }
+
+            function assignTaefeler(gameId) {
+                // Placeholder for täfeler assignment logic
+                alert(`Täfeler assignment for game ${gameId} - Implementation needed`);
+            }
+
+            function showSummary() {
+                // Placeholder for summary functionality
+                alert('Summary functionality - Implementation needed');
+            }
+
+            function openCoachAccess() {
+                window.location.href = 'coaches.html';
+            }
+        </script>
+    </body>
+</html>
