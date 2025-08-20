@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Overview - KSCW Schreibereinsätze</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏐</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="teamUtils.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+
+        .stats-summary {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            border-color: #007bff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .filter-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .team-filter {
+            margin-bottom: 20px;
+        }
+
+        .filter-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .team-radio-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .team-radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .team-radio-item:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+        }
+
+        .team-radio-item input[type="radio"] {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .team-radio-item.selected {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-chip {
+            padding: 10px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .filter-chip:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+        }
+
+        .filter-chip.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .filter-chip .count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .teams-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .team-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .team-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .team-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .team-section-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .team-section-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .team-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .team-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .team-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status-issues {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .games-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .game-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            transition: all 0.3s ease;
+        }
+
+        .game-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .game-date {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .game-teams {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .game-number {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .game-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .duty-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .duty-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .duty-scorer {
+            background: #28a745;
+            color: white;
+        }
+
+        .duty-taefeler {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .duty-combined {
+            background: linear-gradient(45deg, #28a745, #ffc107);
+            color: white;
+        }
+
+        .duty-label {
+            font-weight: 500;
+            color: #495057;
+            min-width: 80px;
+        }
+
+        .assignment-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .status-assigned {
+            background: #28a745;
+        }
+
+        .status-unassigned {
+            background: #dc3545;
+        }
+
+        .assigned-name {
+            font-weight: 500;
+            color: #28a745;
+        }
+
+        .unassigned-text {
+            color: #dc3545;
+            font-style: italic;
+        }
+
+
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .teams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-card {
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filter-chips {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏐 Team Overview</h1>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="index.html" class="btn btn-secondary">← Back to Main</a>
+            <a href="admin.html" class="btn btn-primary">Admin Panel</a>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalTeams">-</div>
+                    <div class="stat-label">Total Teams</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalGames">-</div>
+                    <div class="stat-label">Total Games</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="readyTeams">-</div>
+                    <div class="stat-label">Ready Teams</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="teamsWithIssues">-</div>
+                    <div class="stat-label">Teams with Issues</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="team-filter">
+                <div class="filter-title">Filter by Team:</div>
+                <div class="team-radio-buttons" id="teamRadioButtons">
+                    <!-- Team radio buttons will be rendered here -->
+                </div>
+            </div>
+            <div class="filter-chips" id="filterChips">
+                <!-- Filter chips will be rendered here -->
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Loading team data...</div>
+        </div>
+
+        <div class="teams-grid" id="teamsGrid" style="display: none;">
+            <!-- Team cards will be rendered here -->
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let allGames = [];
+        let allTeams = [];
+        let allScorers = [];
+        let allTaefelers = [];
+        let currentFilter = 'all';
+
+        // Initialize Supabase
+        const supabaseUrl = SUPABASE_CONFIG.url;
+        const supabaseKey = SUPABASE_CONFIG.anonKey;
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadData);
+
+        // Add team filter functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // This will be initialized after teams are loaded
+        });
+
+        async function loadData() {
+            try {
+                // Fetch all games
+                const { data: games, error: gamesError } = await supabaseClient
+                    .from('scorer_matches')
+                    .select('*')
+                    .order('date', { ascending: true })
+                    .order('time', { ascending: true });
+
+                if (gamesError) throw gamesError;
+                allGames = games || [];
+
+                // Fetch all scorers (from scorer_scorers table, only those with scorer_licence)
+                const { data: scorers, error: scorersError } = await supabaseClient
+                    .from('scorer_scorers')
+                    .select('*')
+                    .eq('scorer_licence', true)
+                    .order('lname', { ascending: true })
+                    .order('fname', { ascending: true });
+
+                if (scorersError) throw scorersError;
+                allScorers = scorers || [];
+
+                // Fetch all täfelers (from scorer_scorers table, those without scorer_licence)
+                const { data: taefelers, error: taefelersError } = await supabaseClient
+                    .from('scorer_scorers')
+                    .select('*')
+                    .or('scorer_licence.is.null,scorer_licence.eq.false')
+                    .order('lname', { ascending: true })
+                    .order('fname', { ascending: true });
+
+                if (taefelersError) throw taefelersError;
+                allTaefelers = taefelers || [];
+
+                // Process data
+                extractTeams();
+                renderStats();
+                renderTeamRadioButtons();
+                renderFilterChips();
+                renderTeams();
+
+                // Hide loading, show teams
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('teamsGrid').style.display = 'grid';
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loading').innerHTML = `
+                    <div style="color: #dc3545;">
+                        <div>❌ Error loading data</div>
+                        <div style="font-size: 0.9rem; margin-top: 10px;">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function extractTeams() {
+            const teamSet = new Set();
+            
+            allGames.forEach(game => {
+                if (game.scorer_team) teamSet.add(game.scorer_team);
+                if (game.taefeler_team) teamSet.add(game.taefeler_team);
+                if (game.scorer_taefeler_team) teamSet.add(game.scorer_taefeler_team);
+            });
+
+            allTeams = Array.from(teamSet).sort();
+        }
+
+        function renderStats() {
+            document.getElementById('totalTeams').textContent = allTeams.length;
+            document.getElementById('totalGames').textContent = allGames.length;
+            document.getElementById('readyTeams').textContent = getReadyTeamsCount();
+            document.getElementById('teamsWithIssues').textContent = getTeamsWithIssuesCount();
+        }
+
+        function renderTeamRadioButtons() {
+            const teamRadioButtons = document.getElementById('teamRadioButtons');
+            
+            teamRadioButtons.innerHTML = `
+                <div class="team-radio-item selected" onclick="selectTeam('all')">
+                    <input type="radio" name="teamFilter" value="all" checked>
+                    <span>All Teams</span>
+                </div>
+                ${allTeams.map(team => `
+                    <div class="team-radio-item" onclick="selectTeam('${escapeHtml(team)}')">
+                        <input type="radio" name="teamFilter" value="${escapeHtml(team)}">
+                        <span>${escapeHtml(team)}</span>
+                    </div>
+                `).join('')}
+            `;
+
+            // Initialize selected team
+            window.selectedTeam = 'all';
+
+            // Add event listeners to radio inputs
+            const radioInputs = teamRadioButtons.querySelectorAll('input[type="radio"]');
+            radioInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    selectTeam(this.value);
+                });
+            });
+        }
+
+        function renderFilterChips() {
+            const filterChips = document.getElementById('filterChips');
+            const readyCount = getReadyTeamsCount();
+            const issuesCount = getTeamsWithIssuesCount();
+
+            filterChips.innerHTML = `
+                <div class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" 
+                     onclick="setFilter('all')">
+                    All Teams
+                    <span class="count">${allTeams.length}</span>
+                </div>
+                <div class="filter-chip ${currentFilter === 'ready' ? 'active' : ''}" 
+                     onclick="setFilter('ready')">
+                    Ready
+                    <span class="count">${readyCount}</span>
+                </div>
+                <div class="filter-chip ${currentFilter === 'issues' ? 'active' : ''}" 
+                     onclick="setFilter('issues')">
+                    Has Issues
+                    <span class="count">${issuesCount}</span>
+                </div>
+            `;
+        }
+
+        function setFilter(filterId) {
+            currentFilter = filterId;
+            renderFilterChips();
+            renderTeams(); // This will now apply both filters
+        }
+
+        function selectTeam(teamName) {
+            // Update visual selection
+            const allRadioItems = document.querySelectorAll('.team-radio-item');
+            allRadioItems.forEach(item => item.classList.remove('selected'));
+            
+            const selectedItem = document.querySelector(`[value="${teamName}"]`).closest('.team-radio-item');
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+            }
+
+            // Store selected team for combined filtering
+            window.selectedTeam = teamName;
+            
+            // Re-render teams with current status filter
+            renderTeams();
+        }
+
+        function getReadyTeamsCount() {
+            return allTeams.filter(team => {
+                const teamGames = getTeamGames(team);
+                return teamGames.every(game => !hasGameIssues(game));
+            }).length;
+        }
+
+        function getTeamsWithIssuesCount() {
+            return allTeams.filter(team => {
+                const teamGames = getTeamGames(team);
+                return teamGames.some(game => hasGameIssues(game));
+            }).length;
+        }
+
+        function renderTeams(teamsToRender = null) {
+            const teamsGrid = document.getElementById('teamsGrid');
+            let filteredTeams = allTeams;
+
+            // First apply team filter (from radio buttons)
+            if (window.selectedTeam && window.selectedTeam !== 'all') {
+                filteredTeams = [window.selectedTeam];
+            }
+
+            // Then apply status filter on top of team filter
+            if (currentFilter === 'ready') {
+                filteredTeams = filteredTeams.filter(team => {
+                    const teamGames = getTeamGames(team);
+                    return teamGames.every(game => !hasGameIssues(game));
+                });
+            } else if (currentFilter === 'issues') {
+                filteredTeams = filteredTeams.filter(team => {
+                    const teamGames = getTeamGames(team);
+                    return teamGames.some(game => hasGameIssues(game));
+                });
+            }
+
+            teamsGrid.innerHTML = filteredTeams.map(team => createTeamCard(team)).join('');
+        }
+
+                function createTeamCard(team) {
+            const teamGames = getTeamGames(team);
+            const hasIssues = teamGames.some(game => hasGameIssues(game));
+            const isReady = teamGames.every(game => !hasGameIssues(game));
+            
+            let statusClass = 'status-pending';
+            let statusText = 'Pending';
+            
+            if (isReady) {
+                statusClass = 'status-ready';
+                statusText = 'Ready';
+            } else if (hasIssues) {
+                statusClass = 'status-issues';
+                statusText = 'Issues';
+            }
+
+            return `
+                <div class="team-section">
+                    <div class="team-section-header">
+                        <div class="team-section-title">${escapeHtml(team)}</div>
+                        <div class="team-section-status ${statusClass}">${statusText}</div>
+                    </div>
+                     <div class="games-list">
+                         ${teamGames.map(game => createGameItemHTML(game, team)).join('')}
+                     </div>
+                 </div>
+             `;
+         }
+
+                function createGameItemHTML(game, team) {
+            const gameDate = formatDate(game.date);
+            const gameTime = formatTime(game.time);
+
+            return `
+                <div class="game-item">
+                    <div class="game-header">
+                        <div class="game-info">
+                            <div class="game-date">${gameDate} ${gameTime}</div>
+                            <div class="team-duty">${getTeamDuty(game, team)}</div>
+                        </div>
+                         <div class="game-number">#${game.gamen || 'N/A'}</div>
+                    </div>
+                     
+                     <div class="game-details">
+                         ${getTeamDutyHTML(game, team)}
+                     </div>
+                 </div>
+             `;
+         }
+
+        function getTeamGames(team) {
+            return allGames.filter(game => 
+                game.scorer_team === team || 
+                game.taefeler_team === team || 
+                game.scorer_taefeler_team === team
+            ).sort((a, b) => {
+                // Sort by date first, then by time
+                const dateComparison = new Date(a.date) - new Date(b.date);
+                if (dateComparison !== 0) return dateComparison;
+                return (a.time || '00:00').localeCompare(b.time || '00:00');
+            });
+        }
+
+        function hasGameIssues(game) {
+            // Check if teams with duties have people assigned
+            let hasIssues = false;
+            
+            if (game.scorer_team && !game.scorer_id) {
+                hasIssues = true;
+            }
+            
+            if (game.taefeler_team && !game.taefeler_id) {
+                hasIssues = true;
+            }
+            
+            if (game.scorer_taefeler_team && (!game.scorer_id || !game.taefeler_id)) {
+                hasIssues = true;
+            }
+            
+            return hasIssues;
+        }
+
+        function isCombinedGameMatch(game) {
+            // Check if this is a combined scorer/täfeler game
+            // For now, we'll assume all games need both scorer and täfeler
+            // This logic can be adjusted based on your specific requirements
+            return false; // No combined games in current structure
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown Date';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Invalid Date';
+            
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+        }
+
+        function formatTime(timeString) {
+            if (!timeString) return '';
+            return timeString.substring(0, 5); // Only hours and minutes
+        }
+
+        function getTeamDuty(game, team) {
+            if (game.scorer_team === team) {
+                return `🏐`;
+            } else if (game.taefeler_team === team) {
+                return `📝`;
+            } else if (game.scorer_taefeler_team === team) {
+                return `🏐📝`;
+            }
+            return '';
+        }
+
+        function getTeamDutyHTML(game, team) {
+            if (game.scorer_team === team) {
+                // Team has scorer duty
+                const hasScorer = game.scorer_id;
+                const scorerName = hasScorer ? 
+                    (() => {
+                        const scorer = allScorers.find(s => s.id === game.scorer_id);
+                        return scorer ? `${scorer.fname} ${scorer.lname}` : 'Unknown';
+                    })() : '';
+                
+                return `
+                    <div class="duty-item">
+                        <div class="duty-icon duty-scorer">S</div>
+                        <div class="duty-label">Scorer</div>
+                        <div class="assignment-status">
+                            <div class="status-icon ${hasScorer ? 'status-assigned' : 'status-unassigned'}"></div>
+                            ${hasScorer ? 
+                                `<span class="assigned-name">${escapeHtml(scorerName)}</span>` : 
+                                `<span class="unassigned-text">Unassigned</span>`
+                            }
+                        </div>
+                    </div>
+                `;
+            } else if (game.taefeler_team === team) {
+                // Team has täfeler duty
+                const hasTaefeler = game.taefeler_id;
+                const taefelerName = hasTaefeler ? 
+                    (() => {
+                        const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                        return taefeler ? `${taefeler.fname} ${taefeler.lname}` : 'Unknown';
+                    })() : '';
+                
+                return `
+                    <div class="duty-item">
+                        <div class="duty-icon duty-taefeler">T</div>
+                        <div class="duty-label">Täfeler</div>
+                        <div class="assignment-status">
+                            <div class="status-icon ${hasTaefeler ? 'status-assigned' : 'status-unassigned'}"></div>
+                            ${hasTaefeler ? 
+                                `<span class="assigned-name">${escapeHtml(taefelerName)}</span>` : 
+                                `<span class="unassigned-text">Unassigned</span>`
+                            }
+                        </div>
+                    </div>
+                `;
+            } else if (game.scorer_taefeler_team === team) {
+                // Team has combined duty
+                const hasScorer = game.scorer_id;
+                const hasTaefeler = game.taefeler_id;
+                const scorerName = hasScorer ? 
+                    (() => {
+                        const scorer = allScorers.find(s => s.id === game.scorer_id);
+                        return scorer ? `${scorer.fname} ${scorer.lname}` : 'Unknown';
+                    })() : '';
+                const taefelerName = hasTaefeler ? 
+                    (() => {
+                        const taefeler = allTaefelers.find(t => t.id === game.taefeler_id);
+                        return taefeler ? `${taefeler.fname} ${taefeler.lname}` : 'Unknown';
+                    })() : '';
+                
+                return `
+                    <div class="duty-item">
+                        <div class="duty-icon duty-combined">S/T</div>
+                        <div class="duty-label">Scorer/Täfeler</div>
+                        <div class="assignment-status">
+                            <div class="status-icon ${hasScorer && hasTaefeler ? 'status-assigned' : 'status-unassigned'}"></div>
+                            ${hasScorer && hasTaefeler ? 
+                                `<span class="assigned-name">${escapeHtml(scorerName)} / ${escapeHtml(taefelerName)}</span>` : 
+                                `<span class="unassigned-text">Unassigned</span>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
