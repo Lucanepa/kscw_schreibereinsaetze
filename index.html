@@ -938,14 +938,14 @@
                 }
 
                 // Duty type filter
-                if (filterDutyType && filterDutyTeam) {
+                if (filterDutyType) {
                     filtered = filtered.filter(game => {
                         if (filterDutyType === 'scorer') {
-                            return game.scorer_team === filterDutyTeam;
+                            return game.scorer_team && !game.scorer_taefeler_team;
                         } else if (filterDutyType === 'taefeler') {
-                            return game.taefeler_team === filterDutyTeam;
+                            return game.taefeler_team && !game.scorer_taefeler_team;
                         } else if (filterDutyType === 'scorer_taefeler') {
-                            return game.scorer_taefeler_team === filterDutyTeam;
+                            return game.scorer_taefeler_team;
                         }
                         return true;
                     });
