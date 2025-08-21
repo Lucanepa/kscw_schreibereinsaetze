@@ -2883,9 +2883,9 @@ observer.observe(document.body);
                     );
                 }
                 if (currentGame.scorer_name !== scorerName) {
-                    await logChange('UPDATE', 'scorer_name', 
-                        currentGame.scorer_name || 'unassigned', 
-                        taefelerName || 'unassigned', 
+                    await logChange('UPDATE', 'scorer_name',
+                        (currentGame.scorer_name?.trim() || 'unassigned'),
+                        (scorerName?.trim() || 'unassigned'),
                         {
                             table_name: 'scorer_matches',
                             record_id: currentGame.match_id,
@@ -2897,8 +2897,7 @@ observer.observe(document.body);
                                 halle: currentGame.halle
                             }
                         }
-                    );
-                }
+                    );                }
                 if (currentGame.scorer_phone !== scorerPhone) {
                     await logChange('UPDATE', 'scorer_phone', 
                         currentGame.scorer_phone || 'unassigned', 
