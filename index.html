@@ -727,7 +727,7 @@
                     <table class="games-table">
                         <thead>
                             <tr>
-                                <th>📅</th>
+                                <th>Date</th>
                                 <th>Game</th>
                                 <th>Duties</th>
                                 <th>Gym</th>
@@ -747,6 +747,7 @@
             let currentFilteredGames = [];
             let expandedGameId = null;
             let allScorers = []; // Add this global variable
+            let locationData = {}; // Add location data storage
 
             // Initialize Supabase
             const supabaseUrl = SUPABASE_CONFIG.url;
@@ -769,22 +770,18 @@
                     allGames = games || [];
                     currentFilteredGames = [...allGames];
 
-                                         // Fetch all scorers
-                     const { data: scorers, error: scorersError } = await supabaseClient
-                         .from('scorer_scorers')
-                         .select('*')
-                         .order('lname', { ascending: true })
-                         .order('fname', { ascending: true });
+                    // Fetch all scorers
+                    const { data: scorers, error: scorersError } = await supabaseClient
+                        .from('scorer_scorers')
+                        .select('*')
+                        .order('lname', { ascending: true })
+                        .order('fname', { ascending: true });
 
-                     if (scorersError) throw scorersError;
-                     allScorers = scorers || [];
-                     
-                                           // Debug: Log the scorers data structure
-                      allScorers.forEach(scorer => {
-                          if (scorer.fname === 'Leandro' && scorer.lname === 'Wittlinger') {
-                              // Found Leandro Wittlinger - teams data available
-                          }
-                      });
+                    if (scorersError) throw scorersError;
+                    allScorers = scorers || [];
+                    
+                    // Load location data from scorer_places table
+                    await loadLocationData();
 
                     // Populate duty team filter
                     populateDutyTeamFilter();
@@ -804,6 +801,27 @@
                             <div style="font-size: 0.85rem; margin-top: 10px;">${error.message}</div>
                         </div>
                     `;
+                }
+            }
+
+            async function loadLocationData() {
+                try {
+                    const { data: locations, error } = await supabaseClient
+                        .from('scorer_places')
+                        .select('*');
+                    
+                    if (error) throw error;
+                    
+                    // Create a mapping from hall name to plus code
+                    locationData = {};
+                    (locations || []).forEach(location => {
+                        locationData[location.halle_name] = location.halle_pluscode;
+                    });
+                    
+
+                } catch (error) {
+                    console.error('Error loading location data:', error);
+                    locationData = {};
                 }
             }
 
@@ -1031,6 +1049,12 @@
                                     <label>Game ID</label>
                                     <span>#${game.gamen || 'N/A'}</span>
                                 </div>
+                            </div>
+                            
+                            <div style="text-align: center; margin: 20px 0;">
+                                <button class="btn btn-info" onclick="exportToICS(${JSON.stringify(game).replace(/"/g, '&quot;')})">
+                                    📅 Export to Calendar (ICS)
+                                </button>
                             </div>
                             
                             <div class="role-selection-section">
@@ -1571,6 +1595,46 @@
                 return null;
             }
 
+            function exportToICS(game) {
+                try {
+                    // Format date and time for ICS
+                    const gameDate = new Date(game.date + 'T' + game.time);
+                    const endDate = new Date(gameDate.getTime() + 90 * 60000); // 90 minutes duration
+                    
+                    // Get location plus code
+                    const plusCode = locationData[game.halle] || '';
+                    const location = game.halle + (plusCode ? ` (${plusCode})` : '');
+                    
+                    // Create ICS content
+                    const icsContent = [
+                        'BEGIN:VCALENDAR',
+                        'VERSION:2.0',
+                        'PRODID:-//KSCW//Game Assignment//EN',
+                        'BEGIN:VEVENT',
+                        `UID:${game.match_id}@kscw.ch`,
+                        `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                        `DTSTART:${gameDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                        `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                        `SUMMARY:${game.home_team} vs ${game.away_team}`,
+                        `DESCRIPTION:Volleyball game assignment${game.halle ? '\\nLocation: ' + game.halle : ''}`,
+                        `LOCATION:${location}`,
+                        'END:VEVENT',
+                        'END:VCALENDAR'
+                    ].join('\r\n');
+                    
+                    // Create and download file
+                    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `game_${game.gamen || game.match_id}_${game.date}.ics`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                    
+                } catch (error) {
+                    console.error('Error exporting to ICS:', error);
+                    alert('Error exporting calendar event: ' + error.message);
+                }
+            }
 
 
             function openCoachAccess() {
