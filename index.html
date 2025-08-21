@@ -112,6 +112,12 @@
                 position: relative;
             }
 
+            @media (max-width: 768px) {
+                .search-section {
+                    padding: 16px 12px;
+                }
+            }
+
             .search-section::before {
                 content: '';
                 position: absolute;
@@ -410,7 +416,7 @@
             /* Gym Information Styling */
             .gym-info {
                 text-align: left;
-                padding: 8px;
+                padding: 8px 4px;
                 transition: all 0.3s ease;
                 width: 100%;
                 display: flex;
@@ -549,7 +555,7 @@
                 }
 
                 .main-content {
-                    padding: 15px;
+                    padding: 15px 8px;
                 }
 
                 .search-grid {
@@ -570,10 +576,10 @@
                     font-size: 0.85rem;
                 }
 
-                .games-table th,
-                .games-table td {
-                    padding: 12px 8px;
-                }
+                            .games-table th,
+            .games-table td {
+                padding: 12px 4px;
+            }
 
                 .game-basic-info {
                     flex-direction: column;
@@ -1563,29 +1569,8 @@
                 window.location.href = 'coaches.html';
             }
 
-            // Enhanced iframe communication
-            function sendDimensionsToParent() {
-                // Send both height and width
-                window.parent.postMessage({
-                    type: 'resize',
-                    height: document.body.scrollHeight,
-                    width: document.body.scrollWidth
-                }, '*'); // Use '*' to work across domains if needed
-            }
-
-            // Call on important events
-            window.addEventListener('load', sendDimensionsToParent);
-            window.addEventListener('resize', sendDimensionsToParent);
-
-            // Observe DOM changes
-            const observer = new ResizeObserver(sendDimensionsToParent);
-            observer.observe(document.body);
-
-            // Listen for modal open/close events
-            document.addEventListener('click', function(e) {
-                // Wait for modal animation to complete
-                setTimeout(sendDimensionsToParent, 300);
-            });
+            // Removed iframe communication since we're using fixed height embedding
+            // The iframe will handle its own scrolling internally
         </script>
     </body>
 </html>
