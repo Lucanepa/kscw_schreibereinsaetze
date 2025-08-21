@@ -74,6 +74,7 @@
             .btn-primary {
                 background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
                 color: white;
+                text-align: center;
             }
 
             .btn-primary:hover {
@@ -667,11 +668,10 @@
 
                 <!-- Compact Search Section -->
                 <div class="search-section">
-                    <h3>Filter Games</h3>
                     <div class="search-grid">
                         <div class="search-group compact">
-                            <label for="filterHomeTeam">Home Team</label>
-                            <input type="text" id="filterHomeTeam" placeholder="Enter team name" onchange="filterGames()">
+                            <label for="filterFreeSearch">Free Search</label>
+                            <input type="text" id="filterFreeSearch" placeholder="Search teams, names, etc." onchange="filterGames()">
                         </div>
                         <div class="search-group compact">
                             <label for="filterDateTime">Date</label>
@@ -752,15 +752,22 @@
                     allGames = games || [];
                     currentFilteredGames = [...allGames];
 
-                    // Fetch all scorers
-                    const { data: scorers, error: scorersError } = await supabaseClient
-                        .from('scorer_scorers')
-                        .select('*')
-                        .order('lname', { ascending: true })
-                        .order('fname', { ascending: true });
+                                         // Fetch all scorers
+                     const { data: scorers, error: scorersError } = await supabaseClient
+                         .from('scorer_scorers')
+                         .select('*')
+                         .order('lname', { ascending: true })
+                         .order('fname', { ascending: true });
 
-                    if (scorersError) throw scorersError;
-                    allScorers = scorers || [];
+                     if (scorersError) throw scorersError;
+                     allScorers = scorers || [];
+                     
+                                           // Debug: Log the scorers data structure
+                      allScorers.forEach(scorer => {
+                          if (scorer.fname === 'Leandro' && scorer.lname === 'Wittlinger') {
+                              // Found Leandro Wittlinger - teams data available
+                          }
+                      });
 
                     // Populate duty team filter
                     populateDutyTeamFilter();
@@ -803,18 +810,56 @@
             }
 
             function filterGames() {
-                const filterHomeTeam = document.getElementById('filterHomeTeam').value;
+                const filterFreeSearch = document.getElementById('filterFreeSearch').value;
                 const filterDateTime = document.getElementById('filterDateTime').value;
                 const filterDutyTeam = document.getElementById('filterDutyTeam').value;
                 const filterDutyType = document.getElementById('filterDutyType').value;
 
                 let filtered = [...allGames];
 
-                // Home team filter
-                if (filterHomeTeam) {
-                    filtered = filtered.filter(game => 
-                        game.home_team && game.home_team.toLowerCase().includes(filterHomeTeam.toLowerCase())
-                    );
+                // Free search filter - searches across multiple fields
+                if (filterFreeSearch) {
+                    const searchTerm = filterFreeSearch.toLowerCase();
+                    filtered = filtered.filter(game => {
+                        // Search in home team
+                        if (game.home_team && game.home_team.toLowerCase().includes(searchTerm)) {
+                            return true;
+                        }
+                        // Search in away team
+                        if (game.away_team && game.away_team.toLowerCase().includes(searchTerm)) {
+                            return true;
+                        }
+                        // Search in scorer names
+                        if (game.scorer_id) {
+                            const scorer = allScorers.find(s => s.id === game.scorer_id);
+                            if (scorer && (scorer.fname.toLowerCase().includes(searchTerm) || scorer.lname.toLowerCase().includes(searchTerm))) {
+                                return true;
+                            }
+                        }
+                        // Search in täfeler names
+                        if (game.taefeler_id) {
+                            const taefeler = allScorers.find(s => s.id === game.taefeler_id);
+                            if (taefeler && (taefeler.fname.toLowerCase().includes(searchTerm) || taefeler.lname.toLowerCase().includes(searchTerm))) {
+                                return true;
+                            }
+                        }
+                        // Search in combined scorer/täfeler names
+                        if (game.scorer_taefeler_id) {
+                            const combined = allScorers.find(s => s.id === game.scorer_taefeler_id);
+                            if (combined && (combined.fname.toLowerCase().includes(searchTerm) || combined.lname.toLowerCase().includes(searchTerm))) {
+                                return true;
+                            }
+                        }
+                        // Search in gym/halle
+                        if (game.halle && game.halle.toLowerCase().includes(searchTerm)) {
+                            return true;
+                        }
+                        // Search in game ID
+                        if (game.gamen && game.gamen.toString().toLowerCase().includes(searchTerm)) {
+                            return true;
+                        }
+                        return false;
+                    });
                 }
 
                 // Date filter
@@ -862,16 +907,16 @@
                 }
             }
 
-            function clearFilters() {
-                document.getElementById('filterHomeTeam').value = '';
-                document.getElementById('filterDateTime').value = '';
-                document.getElementById('filterDutyTeam').value = '';
-                document.getElementById('filterDutyType').value = '';
-                
-                currentFilteredGames = [...allGames];
-                renderGames();
-                updateResultsCount();
-            }
+                         function clearFilters() {
+                 document.getElementById('filterFreeSearch').value = '';
+                 document.getElementById('filterDateTime').value = '';
+                 document.getElementById('filterDutyTeam').value = '';
+                 document.getElementById('filterDutyType').value = '';
+                 
+                 currentFilteredGames = [...allGames];
+                 renderGames();
+                 updateResultsCount();
+             }
 
             function renderGames() {
                 const tbody = document.getElementById('gamesTableBody');
@@ -1184,45 +1229,77 @@
                         .order('lname', { ascending: true })
                         .order('fname', { ascending: true });
 
-                    // Add license filter for scorers
-                    if (roleType === 'scorer' || roleType === 'scorerTaefeler') {
-                        query = query.eq('scorer_licence', true);
-                    }
+                                         // Add license filter ONLY for scorer assignments (not for täfeler or combined)
+                     if (roleType === 'scorer') {
+                         query = query.eq('scorer_licence', true);
+                     }
 
                     const { data: people, error } = await query;
                     if (error) throw error;
 
-                    // Filter by team if we have a team filter
-                    let filteredPeople = people || [];
-                    if (teamFilter) {
-                        console.log('Filtering by team:', teamFilter);
-                        console.log('Available people before filtering:', people.length);
-                        
-                        filteredPeople = filteredPeople.filter(person => {
-                            if (!person.teams || !Array.isArray(person.teams)) {
-                                console.log('Person has no teams array:', person.fname, person.lname);
-                                return false;
-                            }
-                            
-                            // Try to match team names with more flexible logic
-                            const personTeams = person.teams.map(team => team.toString().toLowerCase().trim());
-                            const targetTeam = teamFilter.toString().toLowerCase().trim();
-                            
-                            const hasMatchingTeam = personTeams.some(team => 
-                                team.includes(targetTeam) || targetTeam.includes(team)
-                            );
-                            
-                            if (!hasMatchingTeam) {
-                                console.log('Person teams do not match:', person.fname, person.lname, 'teams:', person.teams, 'target:', teamFilter);
-                            }
-                            
-                            return hasMatchingTeam;
-                        });
-                        
-                        console.log('People after team filtering:', filteredPeople.length);
-                    } else {
-                        console.log('No team filter applied, showing all people:', filteredPeople.length);
-                    }
+                                         // Filter by team if we have a team filter
+                     let filteredPeople = people || [];
+                     if (teamFilter) {
+                         console.log('Filtering by team:', teamFilter);
+                         console.log('Available people before filtering:', people.length);
+                         
+                         // Debug: Log all people and their teams
+                         console.log('=== ALL PEOPLE AND THEIR TEAMS ===');
+                         people.forEach(person => {
+                             console.log(`${person.fname} ${person.lname}:`, {
+                                 teams: person.teams,
+                                 teamsType: typeof person.teams,
+                                 isArray: Array.isArray(person.teams),
+                                 teamsLength: person.teams ? person.teams.length : 'N/A'
+                             });
+                         });
+                         console.log('=== END ALL PEOPLE ===');
+                         
+                         filteredPeople = filteredPeople.filter(person => {
+                             if (!person.teams || !Array.isArray(person.teams)) {
+                                 console.log(`❌ ${person.fname} ${person.lname} has no teams array:`, person.teams);
+                                 return false;
+                             }
+                             
+                             // Log the person's teams for debugging
+                             console.log(`\n🔍 Checking person: ${person.fname} ${person.lname}`);
+                             console.log(`   Raw teams:`, person.teams);
+                             console.log(`   Teams type:`, typeof person.teams);
+                             console.log(`   Is array:`, Array.isArray(person.teams));
+                             
+                             // Try to match team names with more flexible logic
+                             const personTeams = person.teams.map(team => {
+                                 const normalized = team.toString().toLowerCase().trim();
+                                 console.log(`   Normalizing team "${team}" -> "${normalized}"`);
+                                 return normalized;
+                             });
+                             const targetTeam = teamFilter.toString().toLowerCase().trim();
+                             
+                             console.log(`   Person teams (normalized):`, personTeams);
+                             console.log(`   Target team (normalized):`, targetTeam);
+                             
+                             const hasMatchingTeam = personTeams.some(team => {
+                                 const matches = team.includes(targetTeam) || targetTeam.includes(team);
+                                 console.log(`   Team "${team}" vs target "${targetTeam}": ${matches ? '✅ MATCH' : '❌ no match'}`);
+                                 return matches;
+                             });
+                             
+                             if (hasMatchingTeam) {
+                                 console.log(`✅ ${person.fname} ${person.lname} MATCHES team filter`);
+                             } else {
+                                 console.log(`❌ ${person.fname} ${person.lname} does NOT match team filter`);
+                             }
+                             
+                             return hasMatchingTeam;
+                         });
+                         
+                         console.log('\n=== FILTERING RESULTS ===');
+                         console.log('People after team filtering:', filteredPeople.length);
+                         console.log('Filtered people:', filteredPeople.map(p => `${p.fname} ${p.lname} (teams: ${p.teams})`));
+                         console.log('=== END FILTERING RESULTS ===\n');
+                     } else {
+                         console.log('No team filter applied, showing all people:', filteredPeople.length);
+                     }
                     
                     // If team filtering resulted in no people, show all people as fallback
                     if (filteredPeople.length === 0 && teamFilter) {
