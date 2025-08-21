@@ -404,6 +404,19 @@
                 font-size: 0.75rem;
             }
 
+            .kscw-team-chip {
+                background: linear-gradient(135deg, #1e3a8a 0%, #ffffff 50%, #ffd700 100%);
+                color: #1e3a8a;
+                font-weight: 700;
+                padding: 6px 12px;
+                border-radius: 16px;
+                display: inline-block;
+                border: 2px solid #1e3a8a;
+                font-size: 0.7rem;
+                text-align: center;
+                min-width: 60px;
+            }
+
             .game-duties {
                 display: flex;
                 gap: 8px;
@@ -787,7 +800,7 @@
                         <thead>
                             <tr>
                                                              <th>Date</th>
-                             <th>Game #</th>
+                             <th>KSCW TEAM</th>
                              <th>Duties</th>
                              <th>Gym</th>
                             </tr>
@@ -997,7 +1010,7 @@
                     </td>
                                          <td>
                          <div class="game-teams">
-                             #${game.gamen || game.match_id}
+                             <span class="kscw-team-chip">${(game.home_team || '').replace('KSC Wiedikon', '')}</span>
                          </div>
                      </td>
                     <td>
