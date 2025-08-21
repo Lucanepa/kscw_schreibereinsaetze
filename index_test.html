@@ -355,18 +355,52 @@
                 opacity: 0.7;
             }
 
+            .duty-badge.assigned {
+                background: #28a745;
+            }
+
+            /* Expand Arrow Styling */
+            .expand-arrow {
+                cursor: pointer;
+                text-align: center;
+                padding: 8px;
+                transition: all 0.3s ease;
+                border-radius: 50%;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto;
+            }
+
+            .expand-arrow:hover {
+                background-color: #f8f9fa;
+                transform: scale(1.1);
+            }
+
+            .arrow {
+                font-size: 16px;
+                color: #667eea;
+                transition: all 0.3s ease;
+                font-weight: bold;
+            }
+
+            .arrow-down {
+                transform: rotate(0deg);
+            }
+
+            .arrow-up {
+                transform: rotate(180deg);
+            }
+
             /* Expanded Game Details */
             .game-expanded-details {
-                display: none;
                 padding: 20px;
                 background: #f8f9fa;
                 border-radius: 8px;
                 margin-top: 12px;
                 border: 1px solid #dee2e6;
-            }
-
-            .game-expanded-details.show {
-                display: block;
             }
 
             .expanded-grid {
@@ -538,6 +572,53 @@
                     margin-bottom: 10px;
                 }
             }
+
+            /* Fix potential horizontal scrolling */
+            @media (max-width: 768px) {
+                /* Force all elements to respect container width */
+                * {
+                    max-width: 100%;
+                    box-sizing: border-box;
+                }
+                
+                /* Ensure inputs and selects don't overflow */
+                input, select {
+                    width: 100%;
+                }
+                
+                /* Ensure modals and focused views fit within viewport */
+                .modal-content, .focused-game-view {
+                    width: 100%;
+                    max-width: 100vw;
+                    left: 0;
+                    margin: 0;
+                    box-sizing: border-box;
+                }
+                
+                /* Prevent text overflow */
+                h2, h3, .btn, .detail-value, span {
+                    overflow-wrap: break-word;
+                    word-wrap: break-word;
+                }
+            }
+
+            /* Ensure buttons don't get too small or text gets cut off */
+            @media (max-width: 480px) {
+                .admin-access .btn,
+                .search-actions .btn {
+                    padding: 8px;
+                    font-size: 0.8rem;
+                    min-width: 0;
+                    flex: 1;
+                }
+                
+                /* Ensure proper scrolling in all containers */
+                .games-container,
+                .focused-game-container,
+                .modal-content {
+                    -webkit-overflow-scrolling: touch;
+                }
+            }
         </style>
     </head>
     <body>
@@ -595,9 +676,9 @@
                         <thead>
                             <tr>
                                 <th>Date & Time</th>
-                                <th>Teams</th>
+                                <th>Game</th>
                                 <th>Duties</th>
-                                <th>Actions</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody id="gamesTableBody">
@@ -747,16 +828,37 @@
             }
 
             function renderGames() {
+                console.log('🎨 renderGames called with', currentFilteredGames.length, 'games');
+                
                 const tbody = document.getElementById('gamesTableBody');
                 tbody.innerHTML = '';
 
-                currentFilteredGames.forEach(game => {
+                currentFilteredGames.forEach((game, index) => {
+                    console.log(`📋 Creating row ${index + 1} for game:`, game.match_id);
                     const row = createGameRow(game);
                     tbody.appendChild(row);
+                    
+                    // Also append the expanded row right after the main row
+                    if (row.expandedRow) {
+                        console.log(`📋 Appending expanded row for game:`, game.match_id);
+                        tbody.appendChild(row.expandedRow);
+                    } else {
+                        console.warn(`⚠️ No expanded row found for game:`, game.match_id);
+                    }
                 });
+                
+                console.log('📊 Final tbody has', tbody.children.length, 'children');
+                console.log('🔍 All rows in tbody:', Array.from(tbody.children).map(child => ({
+                    tagName: child.tagName,
+                    className: child.className,
+                    'data-game-id': child.getAttribute('data-game-id'),
+                    'data-expanded-for': child.getAttribute('data-expanded-for')
+                })));
             }
 
             function createGameRow(game) {
+                console.log('🔧 Creating row for game:', game.match_id);
+                
                 const row = document.createElement('tr');
                 row.setAttribute('data-game-id', game.match_id);
                 
@@ -782,9 +884,9 @@
                         </div>
                     </td>
                     <td>
-                        <button class="btn btn-primary" onclick="toggleGameExpansion(${game.match_id})">
-                            ${expandedGameId === game.match_id ? 'Collapse' : 'Expand'}
-                        </button>
+                        <div class="expand-arrow" onclick="toggleGameExpansion(${game.match_id})">
+                            <span class="arrow ${expandedGameId === game.match_id ? 'arrow-up' : 'arrow-down'}">▼</span>
+                        </div>
                     </td>
                 `;
 
@@ -855,7 +957,9 @@
                     </td>
                 `;
 
-                tbody.appendChild(expandedRow);
+                // Store the expanded row reference in the main row for easier access
+                row.expandedRow = expandedRow;
+                console.log('📋 Created expanded row for game:', game.match_id, 'with data-expanded-for:', expandedRow.getAttribute('data-expanded-for'));
                 
                 return row;
             }
@@ -866,8 +970,8 @@
                 if (game.scorer_team) {
                     const hasScorer = game.scorer_id;
                     duties.push(`
-                        <div class="duty-badge scorer ${hasScorer ? '' : 'unassigned'}">
-                            ${hasScorer ? 'Scorer' : 'Scorer (Unconfirmed)'}
+                        <div class="duty-badge scorer ${hasScorer ? 'assigned' : 'unassigned'}">
+                            ${hasScorer ? 'Scorer' : `Scorer (${game.scorer_team})`}
                         </div>
                     `);
                 }
@@ -875,8 +979,8 @@
                 if (game.taefeler_team) {
                     const hasTaefeler = game.taefeler_id;
                     duties.push(`
-                        <div class="duty-badge taefeler ${hasTaefeler ? '' : 'unassigned'}">
-                            ${hasTaefeler ? 'Täfeler' : 'Täfeler (Unconfirmed)'}
+                        <div class="duty-badge taefeler ${hasTaefeler ? 'assigned' : 'unassigned'}">
+                            ${hasTaefeler ? 'Täfeler' : `Täfeler (${game.taefeler_team})`}
                         </div>
                     `);
                 }
@@ -884,8 +988,8 @@
                 if (game.scorer_taefeler_team) {
                     const hasBoth = game.scorer_id && game.taefeler_id;
                     duties.push(`
-                        <div class="duty-badge combined ${hasBoth ? '' : 'unassigned'}">
-                            ${hasBoth ? 'S/T' : 'S/T (Unconfirmed)'}
+                        <div class="duty-badge combined ${hasBoth ? 'assigned' : 'unassigned'}">
+                            ${hasBoth ? 'S/T' : `S/T (${game.scorer_taefeler_team})`}
                         </div>
                     `);
                 }
@@ -894,46 +998,78 @@
             }
 
             function toggleGameExpansion(gameId) {
+                console.log('🔍 toggleGameExpansion called with gameId:', gameId);
+                
                 const tbody = document.getElementById('gamesTableBody');
+                console.log('📋 Found tbody:', tbody);
+                
                 const allRows = tbody.querySelectorAll('tr');
+                console.log('📊 Total rows in tbody:', allRows.length);
                 
                 // Close previously expanded game
                 if (expandedGameId && expandedGameId !== gameId) {
+                    console.log('🔄 Closing previously expanded game:', expandedGameId);
                     const prevExpandedRow = tbody.querySelector(`tr[data-expanded-for="${expandedGameId}"]`);
+                    console.log('📋 Previous expanded row found:', !!prevExpandedRow);
                     if (prevExpandedRow) {
                         prevExpandedRow.style.display = 'none';
                     }
                     
                     const prevMainRow = tbody.querySelector(`tr[data-game-id="${expandedGameId}"]`);
+                    console.log('📋 Previous main row found:', !!prevMainRow);
                     if (prevMainRow) {
                         prevMainRow.classList.remove('expanded');
-                        const prevBtn = prevMainRow.querySelector('button');
-                        if (prevBtn) prevBtn.textContent = 'Expand';
+                        const prevArrow = prevMainRow.querySelector('.arrow');
+                        if (prevArrow) {
+                            prevArrow.classList.remove('arrow-up');
+                            prevArrow.classList.add('arrow-down');
+                        }
                     }
                 }
                 
                 // Toggle current game
                 const expandedRow = tbody.querySelector(`tr[data-expanded-for="${gameId}"]`);
+                console.log('📋 Current expanded row found:', !!expandedRow);
+                
                 const mainRow = tbody.querySelector(`tr[data-game-id="${gameId}"]`);
+                console.log('📋 Current main row found:', !!mainRow);
                 
                 if (expandedRow && mainRow) {
+                    console.log('✅ Both rows found, checking display state');
+                    console.log('📊 Expanded row display:', expandedRow.style.display);
+                    
                     if (expandedRow.style.display === 'none') {
+                        console.log('🔼 Expanding game...');
                         // Expand
                         expandedRow.style.display = 'table-row';
                         mainRow.classList.add('expanded');
                         expandedGameId = gameId;
                         
-                        const btn = mainRow.querySelector('button');
-                        if (btn) btn.textContent = 'Collapse';
+                        const arrow = mainRow.querySelector('.arrow');
+                        if (arrow) {
+                            arrow.classList.remove('arrow-down');
+                            arrow.classList.add('arrow-up');
+                        }
+                        console.log('✅ Game expanded successfully');
                     } else {
+                        console.log('🔽 Collapsing game...');
                         // Collapse
                         expandedRow.style.display = 'none';
                         mainRow.classList.remove('expanded');
                         expandedGameId = null;
                         
-                        const btn = mainRow.querySelector('button');
-                        if (btn) btn.textContent = 'Expand';
+                        const arrow = mainRow.querySelector('.arrow');
+                        if (arrow) {
+                            arrow.classList.remove('arrow-up');
+                            arrow.classList.add('arrow-down');
+                        }
+                        console.log('✅ Game collapsed successfully');
                     }
+                } else {
+                    console.error('❌ Missing rows:', {
+                        expandedRow: !!expandedRow,
+                        mainRow: !!mainRow
+                    });
                 }
             }
 
@@ -974,6 +1110,30 @@
             function openCoachAccess() {
                 window.location.href = 'coaches.html';
             }
+
+            // Enhanced iframe communication
+            function sendDimensionsToParent() {
+                // Send both height and width
+                window.parent.postMessage({
+                    type: 'resize',
+                    height: document.body.scrollHeight,
+                    width: document.body.scrollWidth
+                }, '*'); // Use '*' to work across domains if needed
+            }
+
+            // Call on important events
+            window.addEventListener('load', sendDimensionsToParent);
+            window.addEventListener('resize', sendDimensionsToParent);
+
+            // Observe DOM changes
+            const observer = new ResizeObserver(sendDimensionsToParent);
+            observer.observe(document.body);
+
+            // Listen for modal open/close events
+            document.addEventListener('click', function(e) {
+                // Wait for modal animation to complete
+                setTimeout(sendDimensionsToParent, 300);
+            });
         </script>
     </body>
 </html>
