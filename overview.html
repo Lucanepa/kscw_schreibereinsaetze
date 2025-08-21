@@ -16,61 +16,56 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100dvh;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            font-feature-settings: "liga" 1, "kern" 1;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            overflow-y: auto;
             margin: 0;
             padding: 0;
-            color: #333;
-            overflow-y: auto;
-            overscroll-behavior: contain;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .container {
-            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
-            height: 100vh;
+            background: white;
+            overflow: hidden;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            backdrop-filter: blur(10px);
+            min-height: calc(100vh - 40px);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            padding: 5px;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            color: white;
-        }
 
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
 
         .nav-buttons {
             display: flex;
             gap: 15px;
             justify-content: center;
             margin-bottom: 30px;
+            background: white;
+            padding: 15px 0;
+            border-bottom: 2px solid #e9ecef;
         }
 
         .btn {
             padding: 12px 24px;
             border: none;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: 600;
+            font-family: 'Aptos Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            letter-spacing: 0.01em;
             text-decoration: none;
             display: inline-block;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .btn-primary {
@@ -110,7 +105,7 @@
         }
 
         .filter-title {
-            font-size: 1.1rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: #495057;
             margin-bottom: 15px;
@@ -134,7 +129,7 @@
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
         }
 
@@ -143,9 +138,7 @@
             transform: translateY(-2px);
         }
 
-        .team-radio-item input[type="radio"] {
-            /* Remove display: none to keep radios accessible */
-        }
+
 
         /* Visual hide class that keeps elements in accessibility tree */
         .visual-hide {
@@ -171,7 +164,7 @@
             text-align: center;
             padding: 50px;
             color: white;
-            font-size: 1.2rem;
+            font-size: 0.85rem;
         }
 
         .spinner {
@@ -226,7 +219,7 @@
         }
 
         .team-section-title {
-            font-size: 1.8rem;
+            font-size: 0.85rem;
             font-weight: bold;
             color: #333;
         }
@@ -246,7 +239,7 @@
         }
 
         .team-name {
-            font-size: 1.5rem;
+            font-size: 0.85rem;
             font-weight: bold;
             color: #333;
         }
@@ -286,10 +279,11 @@
         .game-date {
             font-weight: 600;
             color: #495057;
+            font-size: 0.85rem;
         }
 
         .game-teams {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #6c757d;
         }
 
@@ -298,7 +292,7 @@
             color: white;
             padding: 4px 8px;
             border-radius: 6px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: bold;
         }
 
@@ -325,7 +319,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: bold;
             color: white;
         }
@@ -352,7 +346,7 @@
         .duty-type {
             font-weight: 500;
             color: #495057;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .duty-status {
@@ -392,12 +386,8 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Team Overview</h1>
-        </div>
-
-        <div class="nav-buttons">
-            <a href="index.html" class="btn btn-secondary">← Back to Main</a>
+            <div class="nav-buttons">
+                <a href="index.html" class="btn btn-secondary">← Back to Main</a>
         </div>
         <div class="filter-section">
             <div class="team-filter">
@@ -485,7 +475,7 @@
                 document.getElementById('loading').innerHTML = `
                     <div style="color: #dc3545;">
                         <div>❌ Error loading data</div>
-                        <div style="font-size: 0.9rem; margin-top: 10px;">${error.message}</div>
+                        <div style="font-size: 0.85rem; margin-top: 10px;">${error.message}</div>
                     </div>
                 `;
             }
