@@ -125,7 +125,7 @@
             .search-section h3 {
                 margin: 0 0 16px 0;
                 color: #495057;
-                font-size: 1.1rem;
+                font-size: 0.85rem;
                 font-weight: 600;
                 display: flex;
                 align-items: center;
@@ -207,16 +207,18 @@
                 padding: 8px 20px;
                 font-size: 0.9rem;
                 border-radius: 20px;
-                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-                border: 1px solid #495057;
+                background: white;
+                border: 1px solid #dee2e6;
+                color: #495057;
                 transition: all 0.3s ease;
                 margin: 0;
             }
             
             .search-actions .btn:hover {
-                background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+                background: #f8f9fa;
+                border-color: #adb5bd;
                 transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             }
 
             .results-count {
@@ -253,7 +255,7 @@
                 text-align: left;
                 font-weight: 600;
                 color: #495057;
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 border-bottom: 2px solid #dee2e6;
@@ -262,12 +264,29 @@
             .games-table td {
                 padding: 16px 12px;
                 border-bottom: 1px solid #f1f3f4;
-                vertical-align: top;
+                vertical-align: middle;
+            }
+
+            /* Add separator between games */
+            .games-table tbody tr:not(.expanded-row) {
+                border-bottom: 2px solid #e9ecef;
+            }
+
+            .games-table tbody tr.expanded-row {
+                border-bottom: none;
             }
 
             .games-table tbody tr {
                 cursor: pointer;
                 transition: all 0.2s ease;
+            }
+
+            .games-table tbody tr:not(.expanded-row) {
+                cursor: pointer;
+            }
+
+            .games-table tbody tr.expanded-row {
+                cursor: default;
             }
 
             .games-table tbody tr:hover {
@@ -301,7 +320,7 @@
             .game-date {
                 font-weight: 700;
                 color: #333;
-                font-size: 1rem;
+                font-size: 0.75rem;
             }
 
             .game-time {
@@ -309,7 +328,7 @@
                 color: white;
                 padding: 4px 8px;
                 border-radius: 12px;
-                font-size: 0.8rem;
+                font-size: 0.7rem;
                 font-weight: 600;
                 text-align: center;
                 width: fit-content;
@@ -319,7 +338,7 @@
                 flex: 1;
                 font-weight: 500;
                 color: #333;
-                font-size: 1rem;
+                font-size: 0.75rem;
             }
 
             .game-duties {
@@ -331,7 +350,7 @@
             .duty-badge {
                 padding: 6px 12px;
                 border-radius: 16px;
-                font-size: 0.8rem;
+                font-size: 0.75rem;
                 font-weight: 600;
                 color: white;
                 min-width: 80px;
@@ -359,39 +378,22 @@
                 background: #28a745;
             }
 
-            /* Expand Arrow Styling */
-            .expand-arrow {
-                cursor: pointer;
+            /* Gym Information Styling */
+            .gym-info {
                 text-align: center;
                 padding: 8px;
                 transition: all 0.3s ease;
-                border-radius: 50%;
-                width: 32px;
-                height: 32px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto;
             }
 
-            .expand-arrow:hover {
-                background-color: #f8f9fa;
-                transform: scale(1.1);
-            }
-
-            .arrow {
-                font-size: 16px;
-                color: #667eea;
-                transition: all 0.3s ease;
-                font-weight: bold;
-            }
-
-            .arrow-down {
-                transform: rotate(0deg);
-            }
-
-            .arrow-up {
-                transform: rotate(180deg);
+            .gym-name {
+                font-size: 0.75rem;
+                color: #6c757d;
+                font-weight: 500;
+                background: #f8f9fa;
+                padding: 4px 8px;
+                border-radius: 12px;
+                display: inline-block;
+                min-width: 60px;
             }
 
             /* Expanded Game Details */
@@ -674,12 +676,12 @@
                 <div id="gamesTableContainer" style="display: none;">
                     <table class="games-table">
                         <thead>
-                            <tr>
-                                <th>Date & Time</th>
-                                <th>Game</th>
-                                <th>Duties</th>
-                                <th></th>
-                            </tr>
+                                                         <tr>
+                                 <th>Date & Time</th>
+                                 <th>Game</th>
+                                 <th>Duties</th>
+                                 <th>Gym</th>
+                             </tr>
                         </thead>
                         <tbody id="gamesTableBody">
                             <!-- Games will be rendered here -->
@@ -694,6 +696,7 @@
             let allGames = [];
             let currentFilteredGames = [];
             let expandedGameId = null;
+            let allScorers = []; // Add this global variable
 
             // Initialize Supabase
             const supabaseUrl = SUPABASE_CONFIG.url;
@@ -715,6 +718,16 @@
                     if (gamesError) throw gamesError;
                     allGames = games || [];
                     currentFilteredGames = [...allGames];
+
+                    // Fetch all scorers
+                    const { data: scorers, error: scorersError } = await supabaseClient
+                        .from('scorer_scorers')
+                        .select('*')
+                        .order('lname', { ascending: true })
+                        .order('fname', { ascending: true });
+
+                    if (scorersError) throw scorersError;
+                    allScorers = scorers || [];
 
                     // Populate duty team filter
                     populateDutyTeamFilter();
@@ -828,37 +841,21 @@
             }
 
             function renderGames() {
-                console.log('🎨 renderGames called with', currentFilteredGames.length, 'games');
-                
                 const tbody = document.getElementById('gamesTableBody');
                 tbody.innerHTML = '';
 
                 currentFilteredGames.forEach((game, index) => {
-                    console.log(`📋 Creating row ${index + 1} for game:`, game.match_id);
                     const row = createGameRow(game);
                     tbody.appendChild(row);
                     
                     // Also append the expanded row right after the main row
                     if (row.expandedRow) {
-                        console.log(`📋 Appending expanded row for game:`, game.match_id);
                         tbody.appendChild(row.expandedRow);
-                    } else {
-                        console.warn(`⚠️ No expanded row found for game:`, game.match_id);
                     }
                 });
-                
-                console.log('📊 Final tbody has', tbody.children.length, 'children');
-                console.log('🔍 All rows in tbody:', Array.from(tbody.children).map(child => ({
-                    tagName: child.tagName,
-                    className: child.className,
-                    'data-game-id': child.getAttribute('data-game-id'),
-                    'data-expanded-for': child.getAttribute('data-expanded-for')
-                })));
             }
 
             function createGameRow(game) {
-                console.log('🔧 Creating row for game:', game.match_id);
-                
                 const row = document.createElement('tr');
                 row.setAttribute('data-game-id', game.match_id);
                 
@@ -884,17 +881,32 @@
                         </div>
                     </td>
                     <td>
-                        <div class="expand-arrow" onclick="toggleGameExpansion(${game.match_id})">
-                            <span class="arrow ${expandedGameId === game.match_id ? 'arrow-up' : 'arrow-down'}">▼</span>
+                        <div class="gym-info">
+                            <span class="gym-name">${game.halle || 'N/A'}</span>
                         </div>
                     </td>
                 `;
+
+                // Add click handler to the entire row
+                row.addEventListener('click', function(e) {
+                    // Don't expand if clicking on buttons or interactive elements
+                    if (e.target.tagName === 'BUTTON' || 
+                        e.target.closest('button') || 
+                        e.target.closest('.selection-controls') ||
+                        e.target.closest('.role-section')) {
+                        return;
+                    }
+                    toggleGameExpansion(game.match_id);
+                });
 
                 // Add expanded details row
                 const expandedRow = document.createElement('tr');
                 expandedRow.className = 'expanded-row';
                 expandedRow.setAttribute('data-expanded-for', game.match_id);
                 expandedRow.style.display = 'none';
+                
+                // Check if this is a combined scorer/täfeler game
+                const isCombinedGame = game.scorer_taefeler_team || game.scorer_taefeler_id;
                 
                 expandedRow.innerHTML = `
                     <td colspan="4">
@@ -927,31 +939,73 @@
                             </div>
                             
                             <div class="role-selection-section">
-                                <div class="role-section">
-                                    <h3>🎯 Scorer Assignment</h3>
-                                    <div class="current-selection">
-                                        <label>Current Scorer Team:</label>
-                                        <span>${game.scorer_team || 'Unassigned'}</span>
+                                ${isCombinedGame ? `
+                                    <div class="role-section">
+                                        <h3>🎯 Scorer/Täfeler Assignment</h3>
+                                        <div class="current-selection">
+                                            <label>Current Scorer/Täfeler Team:</label>
+                                            <span>${game.scorer_taefeler_team || 'Unassigned'}</span>
+                                        </div>
+                                        <div class="current-selection">
+                                            <label>Current Person:</label>
+                                            <span>${getPersonDisplayName(game.scorer_taefeler_id, allScorers) || 'Unassigned'}</span>
+                                        </div>
+                                        <div class="selection-controls">
+                                            ${game.scorer_taefeler_id ? 
+                                                `<div style="padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; color: #155724; text-align: center;">
+                                                    ✅ Assignment Complete
+                                                </div>` :
+                                                `<button class="btn btn-primary" onclick="assignScorerTaefeler(${game.match_id})">
+                                                    Assign Scorer/Täfeler
+                                                </button>`
+                                            }
+                                        </div>
                                     </div>
-                                    <div class="selection-controls">
-                                        <button class="btn btn-primary" onclick="assignScorer(${game.match_id})">
-                                            Assign Scorer
-                                        </button>
+                                ` : `
+                                    <div class="role-section">
+                                        <h3>🎯 Scorer Assignment</h3>
+                                        <div class="current-selection">
+                                            <label>Current Scorer Team:</label>
+                                            <span>${game.scorer_team || 'Unassigned'}</span>
+                                        </div>
+                                        <div class="current-selection">
+                                            <label>Current Person:</label>
+                                            <span>${getPersonDisplayName(game.scorer_id, allScorers) || 'Unassigned'}</span>
+                                        </div>
+                                        <div class="selection-controls">
+                                            ${game.scorer_id ? 
+                                                `<div style="padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; color: #155724; text-align: center;">
+                                                    ✅ Assignment Complete
+                                                </div>` :
+                                                `<button class="btn btn-primary" onclick="assignScorer(${game.match_id})">
+                                                    Assign Scorer
+                                                </button>`
+                                            }
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <div class="role-section">
-                                    <h3>📊 Täfeler Assignment</h3>
-                                    <div class="current-selection">
-                                        <label>Current Täfeler Team:</label>
-                                        <span>${game.taefeler_team || 'Unassigned'}</span>
+                                    
+                                    <div class="role-section">
+                                        <h3>📊 Täfeler Assignment</h3>
+                                        <div class="current-selection">
+                                            <label>Current Täfeler Team:</label>
+                                            <span>${game.taefeler_team || 'Unassigned'}</span>
+                                        </div>
+                                        <div class="current-selection">
+                                            <label>Current Person:</label>
+                                            <span>${getPersonDisplayName(game.taefeler_id, allScorers) || 'Unassigned'}</span>
+                                        </div>
+                                        <div class="selection-controls">
+                                            ${game.taefeler_id ? 
+                                                `<div style="padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; color: #155724; text-align: center;">
+                                                    ✅ Assignment Complete
+                                                </div>` :
+                                                `<button class="btn btn-primary" onclick="assignTaefeler(${game.match_id})">
+                                                    Assign Täfeler
+                                                </button>`
+                                            }
+                                        </div>
                                     </div>
-                                    <div class="selection-controls">
-                                        <button class="btn btn-primary" onclick="assignTaefeler(${game.match_id})">
-                                            Assign Täfeler
-                                        </button>
-                                    </div>
-                                </div>
+                                `}
                             </div>
                         </div>
                     </td>
@@ -959,7 +1013,6 @@
 
                 // Store the expanded row reference in the main row for easier access
                 row.expandedRow = expandedRow;
-                console.log('📋 Created expanded row for game:', game.match_id, 'with data-expanded-for:', expandedRow.getAttribute('data-expanded-for'));
                 
                 return row;
             }
@@ -967,109 +1020,72 @@
             function getGameDuties(game) {
                 let duties = [];
                 
-                if (game.scorer_team) {
-                    const hasScorer = game.scorer_id;
+                // Check if this is a combined scorer/täfeler game
+                if (game.scorer_taefeler_team || game.scorer_taefeler_id) {
+                    const hasPerson = game.scorer_taefeler_id;
                     duties.push(`
-                        <div class="duty-badge scorer ${hasScorer ? 'assigned' : 'unassigned'}">
-                            ${hasScorer ? 'Scorer' : `Scorer (${game.scorer_team})`}
+                        <div class="duty-badge combined ${hasPerson ? 'assigned' : 'unassigned'}">
+                            ${hasPerson ? 'Scorer/Täfeler' : `Scorer/Täfeler (${game.scorer_taefeler_team})`}
                         </div>
                     `);
-                }
-                
-                if (game.taefeler_team) {
-                    const hasTaefeler = game.taefeler_id;
-                    duties.push(`
-                        <div class="duty-badge taefeler ${hasTaefeler ? 'assigned' : 'unassigned'}">
-                            ${hasTaefeler ? 'Täfeler' : `Täfeler (${game.taefeler_team})`}
-                        </div>
-                    `);
-                }
-                
-                if (game.scorer_taefeler_team) {
-                    const hasBoth = game.scorer_id && game.taefeler_id;
-                    duties.push(`
-                        <div class="duty-badge combined ${hasBoth ? 'assigned' : 'unassigned'}">
-                            ${hasBoth ? 'S/T' : `S/T (${game.scorer_taefeler_team})`}
-                        </div>
-                    `);
+                } else {
+                    // Separate assignments
+                    if (game.scorer_team) {
+                        const hasScorer = game.scorer_id;
+                        duties.push(`
+                            <div class="duty-badge scorer ${hasScorer ? 'assigned' : 'unassigned'}">
+                                ${hasScorer ? 'Scorer' : `Scorer (${game.scorer_team})`}
+                            </div>
+                        `);
+                    }
+                    
+                    if (game.taefeler_team) {
+                        const hasTaefeler = game.taefeler_id;
+                        duties.push(`
+                            <div class="duty-badge taefeler ${hasTaefeler ? 'assigned' : 'unassigned'}">
+                                ${hasTaefeler ? 'Täfeler' : `Täfeler (${game.taefeler_team})`}
+                            </div>
+                        `);
+                    }
                 }
                 
                 return duties.join('');
             }
 
             function toggleGameExpansion(gameId) {
-                console.log('🔍 toggleGameExpansion called with gameId:', gameId);
-                
                 const tbody = document.getElementById('gamesTableBody');
-                console.log('📋 Found tbody:', tbody);
                 
                 const allRows = tbody.querySelectorAll('tr');
-                console.log('📊 Total rows in tbody:', allRows.length);
                 
                 // Close previously expanded game
                 if (expandedGameId && expandedGameId !== gameId) {
-                    console.log('🔄 Closing previously expanded game:', expandedGameId);
                     const prevExpandedRow = tbody.querySelector(`tr[data-expanded-for="${expandedGameId}"]`);
-                    console.log('📋 Previous expanded row found:', !!prevExpandedRow);
                     if (prevExpandedRow) {
                         prevExpandedRow.style.display = 'none';
                     }
                     
                     const prevMainRow = tbody.querySelector(`tr[data-game-id="${expandedGameId}"]`);
-                    console.log('📋 Previous main row found:', !!prevMainRow);
                     if (prevMainRow) {
                         prevMainRow.classList.remove('expanded');
-                        const prevArrow = prevMainRow.querySelector('.arrow');
-                        if (prevArrow) {
-                            prevArrow.classList.remove('arrow-up');
-                            prevArrow.classList.add('arrow-down');
-                        }
                     }
                 }
                 
                 // Toggle current game
                 const expandedRow = tbody.querySelector(`tr[data-expanded-for="${gameId}"]`);
-                console.log('📋 Current expanded row found:', !!expandedRow);
-                
                 const mainRow = tbody.querySelector(`tr[data-game-id="${gameId}"]`);
-                console.log('📋 Current main row found:', !!mainRow);
                 
                 if (expandedRow && mainRow) {
-                    console.log('✅ Both rows found, checking display state');
-                    console.log('📊 Expanded row display:', expandedRow.style.display);
-                    
                     if (expandedRow.style.display === 'none') {
-                        console.log('🔼 Expanding game...');
                         // Expand
                         expandedRow.style.display = 'table-row';
                         mainRow.classList.add('expanded');
                         expandedGameId = gameId;
-                        
-                        const arrow = mainRow.querySelector('.arrow');
-                        if (arrow) {
-                            arrow.classList.remove('arrow-down');
-                            arrow.classList.add('arrow-up');
-                        }
-                        console.log('✅ Game expanded successfully');
                     } else {
-                        console.log('🔽 Collapsing game...');
                         // Collapse
                         expandedRow.style.display = 'none';
                         mainRow.classList.remove('expanded');
                         expandedGameId = null;
-                        
-                        const arrow = mainRow.querySelector('.arrow');
-                        if (arrow) {
-                            arrow.classList.remove('arrow-up');
-                            arrow.classList.add('arrow-down');
-                        }
-                        console.log('✅ Game collapsed successfully');
                     }
-                } else {
-                    console.error('❌ Missing rows:', {
-                        expandedRow: !!expandedRow,
-                        mainRow: !!mainRow
-                    });
                 }
             }
 
@@ -1093,13 +1109,383 @@
             }
 
             function assignScorer(gameId) {
-                // Placeholder for scorer assignment logic
-                alert(`Scorer assignment for game ${gameId} - Implementation needed`);
+                // Find the game data
+                const game = allGames.find(g => g.match_id === gameId);
+                if (!game) {
+                    alert('Game not found');
+                    return;
+                }
+                
+                // Show assignment modal for scorer
+                showAssignmentModal(game, 'scorer');
             }
 
             function assignTaefeler(gameId) {
-                // Placeholder for täfeler assignment logic
-                alert(`Täfeler assignment for game ${gameId} - Implementation needed`);
+                // Find the game data
+                const game = allGames.find(g => g.match_id === gameId);
+                if (!game) {
+                    alert('Game not found');
+                    return;
+                }
+                
+                // Show assignment modal for täfeler
+                showAssignmentModal(game, 'taefeler');
+            }
+
+            async function showAssignmentModal(game, roleType) {
+                try {
+                    // Determine which team to filter by
+                    let teamFilter = null;
+                    if (roleType === 'scorer' && game.scorer_team) {
+                        teamFilter = game.scorer_team;
+                    } else if (roleType === 'taefeler' && game.taefeler_team) {
+                        teamFilter = game.taefeler_team;
+                    } else if (roleType === 'scorerTaefeler' && game.scorer_taefeler_team) {
+                        teamFilter = game.scorer_taefeler_team;
+                    }
+
+                    // Load available scorers/täfelers with proper filtering
+                    let query = supabaseClient
+                        .from('scorer_scorers')
+                        .select('*')
+                        .order('lname', { ascending: true })
+                        .order('fname', { ascending: true });
+
+                    // Add license filter for scorers
+                    if (roleType === 'scorer' || roleType === 'scorerTaefeler') {
+                        query = query.eq('scorer_licence', true);
+                    }
+
+                    const { data: people, error } = await query;
+                    if (error) throw error;
+
+                    // Filter by team if we have a team filter
+                    let filteredPeople = people || [];
+                    if (teamFilter) {
+                        console.log('Filtering by team:', teamFilter);
+                        console.log('Available people before filtering:', people.length);
+                        
+                        filteredPeople = filteredPeople.filter(person => {
+                            if (!person.teams || !Array.isArray(person.teams)) {
+                                console.log('Person has no teams array:', person.fname, person.lname);
+                                return false;
+                            }
+                            
+                            // Try to match team names with more flexible logic
+                            const personTeams = person.teams.map(team => team.toString().toLowerCase().trim());
+                            const targetTeam = teamFilter.toString().toLowerCase().trim();
+                            
+                            const hasMatchingTeam = personTeams.some(team => 
+                                team.includes(targetTeam) || targetTeam.includes(team)
+                            );
+                            
+                            if (!hasMatchingTeam) {
+                                console.log('Person teams do not match:', person.fname, person.lname, 'teams:', person.teams, 'target:', teamFilter);
+                            }
+                            
+                            return hasMatchingTeam;
+                        });
+                        
+                        console.log('People after team filtering:', filteredPeople.length);
+                    } else {
+                        console.log('No team filter applied, showing all people:', filteredPeople.length);
+                    }
+                    
+                    // If team filtering resulted in no people, show all people as fallback
+                    if (filteredPeople.length === 0 && teamFilter) {
+                        console.log('Team filtering resulted in no people, showing all people as fallback');
+                        filteredPeople = people || [];
+                    }
+                    
+                    console.log('Final filtered people count:', filteredPeople.length);
+                    console.log('Sample people:', filteredPeople.slice(0, 3).map(p => `${p.fname} ${p.lname} (teams: ${p.teams})`));
+
+                    // Create modal
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0,0,0,0.5);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 1000;
+                    `;
+
+                    const modalContent = document.createElement('div');
+                    modalContent.className = 'modal-content';
+                    modalContent.style.cssText = `
+                        background: white;
+                        padding: 30px;
+                        border-radius: 12px;
+                        max-width: 500px;
+                        width: 90%;
+                        max-height: 80vh;
+                        overflow-y: auto;
+                        position: relative;
+                    `;
+
+                    const roleTitle = roleType === 'scorer' ? 'Scorer' : 
+                                   roleType === 'taefeler' ? 'Täfeler' : 'Scorer/Täfeler';
+                    const teamField = roleType === 'scorer' ? 'scorer_team' : 
+                                   roleType === 'taefeler' ? 'taefeler_team' : 'scorer_taefeler_team';
+                    const currentTeam = game[teamField] || 'Unassigned';
+
+                    modalContent.innerHTML = `
+                        <span class="close" onclick="this.parentElement.parentElement.remove()" style="
+                            position: absolute;
+                            right: 20px;
+                            top: 20px;
+                            font-size: 24px;
+                            cursor: pointer;
+                            color: #666;
+                        ">&times;</span>
+                        
+                        <h2 style="margin-bottom: 20px; color: #1e3a8a;">Assign ${roleTitle}</h2>
+                        <p style="margin-bottom: 20px; color: #666;">
+                            <strong>Game:</strong> ${game.home_team} vs ${game.away_team}<br>
+                            <strong>Date:</strong> ${formatDate(game.date)} at ${formatTime(game.time)}<br>
+                            <strong>Team:</strong> ${currentTeam}
+                        </p>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                                Select ${roleTitle}:
+                            </label>
+                            <select id="selectedPerson" onchange="onPersonSelected()" style="
+                                width: 100%;
+                                padding: 10px;
+                                border: 1px solid #ddd;
+                                border-radius: 6px;
+                                font-size: 14px;
+                            ">
+                                <option value="">Select a person...</option>
+                                ${filteredPeople.map(person => `
+                                    <option value="${person.id}" data-person='${JSON.stringify(person)}'>${person.fname} ${person.lname}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        
+                        <div id="actionButtons" style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+                                padding: 10px 20px;
+                                border: 1px solid #ddd;
+                                background: #f8f9fa;
+                                border-radius: 6px;
+                                cursor: pointer;
+                            ">Cancel</button>
+                        </div>
+                    `;
+
+                    modal.appendChild(modalContent);
+                    document.body.appendChild(modal);
+
+                    // Store current game ID and role type globally
+                    window.currentGameId = game.match_id;
+                    window.currentRoleType = roleType;
+
+                } catch (error) {
+                    console.error('Error showing assignment modal:', error);
+                    alert('Error loading assignment options: ' + error.message);
+                }
+            }
+
+            function onPersonSelected() {
+                const select = document.getElementById('selectedPerson');
+                const selectedOption = select.options[select.selectedIndex];
+                
+                if (selectedOption.value) {
+                    const person = JSON.parse(selectedOption.dataset.person);
+                    const fullName = `${person.fname} ${person.lname}`;
+                    
+                    // Store the selected person globally
+                    window.selectedPerson = person;
+                    
+                    // Show confirmation buttons
+                    const actionButtons = document.getElementById('actionButtons');
+                    actionButtons.innerHTML = `
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="cancelSelection()" style="
+                                padding: 10px 20px;
+                                border: 1px solid #ddd;
+                                background: #f8f9fa;
+                                border-radius: 6px;
+                                cursor: pointer;
+                            ">Cancel</button>
+                            <button onclick="showConfirmationPopup()" style="
+                                padding: 10px 20px;
+                                border: none;
+                                background: #007bff;
+                                color: white;
+                                border-radius: 6px;
+                                cursor: pointer;
+                            ">Confirm Selection</button>
+                        </div>
+                    `;
+                }
+            }
+
+            function cancelSelection() {
+                // Reset selection
+                document.getElementById('selectedPerson').value = '';
+                window.selectedPerson = null;
+                window.currentRoleType = null;
+                
+                // Show original buttons
+                const actionButtons = document.getElementById('actionButtons');
+                actionButtons.innerHTML = `
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+                        padding: 10px 20px;
+                        border: 1px solid #ddd;
+                        background: #f8f9fa;
+                        border-radius: 6px;
+                        cursor: pointer;
+                    ">Cancel</button>
+                `;
+            }
+
+            function showConfirmationPopup() {
+                if (!window.selectedPerson) {
+                    alert('No person selected');
+                    return;
+                }
+
+                const person = window.selectedPerson;
+                const fullName = `${person.fname} ${person.lname}`;
+                
+                // Create confirmation popup
+                const popup = document.createElement('div');
+                popup.className = 'modal';
+                popup.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1001;
+                `;
+
+                const popupContent = document.createElement('div');
+                popupContent.className = 'modal-content';
+                popupContent.style.cssText = `
+                    background: white;
+                    padding: 30px;
+                    border-radius: 12px;
+                    max-width: 500px;
+                    width: 90%;
+                    text-align: center;
+                    position: relative;
+                `;
+
+                popupContent.innerHTML = `
+                    <div style="padding: 20px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; color: #856404; margin-bottom: 25px; text-align: left;">
+                        <strong>Warning:</strong> If you confirm, you will not be able to change your decision later. In case of emergency or dire need to change the name, please contact Luca or Thamy.
+                    </div>
+                    
+                    <div style="margin-bottom: 25px; padding: 15px; background: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 8px; color: #004085;">
+                        <strong>Selected:</strong> ${fullName}
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+                            padding: 12px 24px;
+                            border: 1px solid #ddd;
+                            background: #f8f9fa;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                        ">Cancel</button>
+                        <button onclick="finalConfirmSelection()" style="
+                            padding: 12px 24px;
+                            border: none;
+                            background: #dc3545;
+                            color: white;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                        ">Confirm Assignment</button>
+                    </div>
+                `;
+
+                popup.appendChild(popupContent);
+                document.body.appendChild(popup);
+            }
+
+            async function finalConfirmSelection() {
+                if (!window.selectedPerson) {
+                    alert('No person selected');
+                    return;
+                }
+
+                try {
+                    let updateData = {};
+                    
+                    if (window.currentRoleType === 'scorer') {
+                        updateData.scorer_id = window.selectedPerson.id;
+                    } else if (window.currentRoleType === 'taefeler') {
+                        updateData.taefeler_id = window.selectedPerson.id;
+                    } else if (window.currentRoleType === 'scorerTaefeler') {
+                        updateData.scorer_taefeler_id = window.selectedPerson.id;
+                    }
+
+                    const { error } = await supabaseClient
+                        .from('scorer_matches')
+                        .update(updateData)
+                        .eq('match_id', window.currentGameId);
+
+                    if (error) throw error;
+
+                    // Close all modals
+                    document.querySelectorAll('.modal').forEach(modal => modal.remove());
+                    
+                    // Reset global variables
+                    window.selectedPerson = null;
+                    window.currentRoleType = null;
+                    window.currentGameId = null;
+                    
+                    // Refresh data and re-render
+                    await loadData();
+                    
+                    const roleTitle = window.currentRoleType === 'scorer' ? 'Scorer' : 
+                                   window.currentRoleType === 'taefeler' ? 'Täfeler' : 'Scorer/Täfeler';
+                    alert(`${roleTitle} assigned successfully!`);
+
+                } catch (error) {
+                    console.error('Error saving assignment:', error);
+                    alert('Error saving assignment: ' + error.message);
+                }
+            }
+
+            // Add the missing assignScorerTaefeler function
+            function assignScorerTaefeler(gameId) {
+                // Find the game data
+                const game = allGames.find(g => g.match_id === gameId);
+                if (!game) {
+                    alert('Game not found');
+                    return;
+                }
+                
+                // Show assignment modal for combined scorer/täfeler
+                showAssignmentModal(game, 'scorerTaefeler');
+            }
+
+            // Add helper function to get person's display name
+            function getPersonDisplayName(personId, peopleArray) {
+                if (!personId || !peopleArray) return null;
+                
+                const person = peopleArray.find(p => p.id === personId);
+                if (person) {
+                    return `${person.fname} ${person.lname}`;
+                }
+                return null;
             }
 
             function showSummary() {
