@@ -575,17 +575,30 @@
                 }
 
                 .search-grid {
-                    flex-direction: column;
-                    gap: 10px;
+                    flex-direction: row;
+                    gap: 8px;
+                    flex-wrap: wrap;
                 }
 
                 .search-group {
-                    min-width: 100%;
-                    flex: 1 1 100%;
+                    min-width: calc(33.33% - 6px);
+                    flex: 1 1 calc(33.33% - 6px);
                 }
 
                 .search-group.compact {
-                    min-width: 100%;
+                    min-width: calc(33.33% - 6px);
+                    flex: 1 1 calc(33.33% - 6px);
+                }
+
+                /* Ensure search inputs and selects don't get too small */
+                .search-group input,
+                .search-group select {
+                    min-width: 120px;
+                }
+
+                /* Allow wrapping only when necessary on very small screens */
+                .search-grid {
+                    flex-wrap: wrap;
                 }
 
                 .games-table {
@@ -684,10 +697,6 @@
                 <!-- Compact Search Section -->
                 <div class="search-section">
                     <div class="search-grid">
-                        <div class="search-group compact">
-                            <label for="filterFreeSearch">Free Search</label>
-                            <input type="text" id="filterFreeSearch" placeholder="Search teams, names, etc." onchange="filterGames()">
-                        </div>
                         <div class="search-group compact">
                             <label for="filterDateTime">Date</label>
                             <input type="date" id="filterDateTime" onchange="filterGames()">
@@ -845,57 +854,11 @@
             }
 
             function filterGames() {
-                const filterFreeSearch = document.getElementById('filterFreeSearch').value;
                 const filterDateTime = document.getElementById('filterDateTime').value;
                 const filterDutyTeam = document.getElementById('filterDutyTeam').value;
                 const filterDutyType = document.getElementById('filterDutyType').value;
 
                 let filtered = [...allGames];
-
-                // Free search filter - searches across multiple fields
-                if (filterFreeSearch) {
-                    const searchTerm = filterFreeSearch.toLowerCase();
-                    filtered = filtered.filter(game => {
-                        // Search in home team
-                        if (game.home_team && game.home_team.toLowerCase().includes(searchTerm)) {
-                            return true;
-                        }
-                        // Search in away team
-                        if (game.away_team && game.away_team.toLowerCase().includes(searchTerm)) {
-                            return true;
-                        }
-                        // Search in scorer names
-                        if (game.scorer_id) {
-                            const scorer = allScorers.find(s => s.id === game.scorer_id);
-                            if (scorer && (scorer.fname.toLowerCase().includes(searchTerm) || scorer.lname.toLowerCase().includes(searchTerm))) {
-                                return true;
-                            }
-                        }
-                        // Search in täfeler names
-                        if (game.taefeler_id) {
-                            const taefeler = allScorers.find(s => s.id === game.taefeler_id);
-                            if (taefeler && (taefeler.fname.toLowerCase().includes(searchTerm) || taefeler.lname.toLowerCase().includes(searchTerm))) {
-                                return true;
-                            }
-                        }
-                        // Search in combined scorer/täfeler names
-                        if (game.scorer_taefeler_id) {
-                            const combined = allScorers.find(s => s.id === game.scorer_taefeler_id);
-                            if (combined && (combined.fname.toLowerCase().includes(searchTerm) || combined.lname.toLowerCase().includes(searchTerm))) {
-                                return true;
-                            }
-                        }
-                        // Search in gym/halle
-                        if (game.halle && game.halle.toLowerCase().includes(searchTerm)) {
-                            return true;
-                        }
-                        // Search in game ID
-                        if (game.gamen && game.gamen.toString().toLowerCase().includes(searchTerm)) {
-                            return true;
-                        }
-                        return false;
-                    });
-                }
 
                 // Date filter
                 if (filterDateTime) {
@@ -943,7 +906,6 @@
             }
 
                          function clearFilters() {
-                 document.getElementById('filterFreeSearch').value = '';
                  document.getElementById('filterDateTime').value = '';
                  document.getElementById('filterDutyTeam').value = '';
                  document.getElementById('filterDutyType').value = '';
