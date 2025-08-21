@@ -13,21 +13,28 @@
       
         body {
             font-family: Arial, sans-serif;
+            overflow: hidden; /* Prevent body scrolling */
+            height: 100vh;
         }
         
         .seamless-container {
             width: 100%;
+            height: 100vh;
             overflow: hidden;
+            position: relative;
         }
         
         .seamless-frame {
             width: 100%;
-            min-height: 600px;
-            height: auto;
+            height: 100%;
             border: none;
             display: block;
-            overflow-x: hidden;
-            transition: height 0.3s ease;
+            overflow: auto; /* Allow scrolling within iframe */
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
     </style>
 </head>
@@ -37,22 +44,8 @@
     </div>
 
     <script>
-        // Add iframe resize handler
-        window.addEventListener('message', function(event) {
-            // Verify the origin for security (adjust this to match your domain)
-            if (event.origin !== window.location.origin) {
-                return;
-            }
-            
-            if (event.data && event.data.type === 'resize') {
-                const iframe = document.querySelector('.seamless-frame');
-                if (iframe) {
-                    // Add some padding to prevent content from being cut off
-                    const newHeight = event.data.height + 50;
-                    iframe.style.height = newHeight + 'px';
-                }
-            }
-        });
+        // Remove the resize handler since we're using fixed height now
+        // This prevents the iframe from constantly changing size and cutting content
     </script>
 </body>
 </html>
