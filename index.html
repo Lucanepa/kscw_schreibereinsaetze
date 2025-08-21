@@ -244,6 +244,7 @@
                 border-radius: 12px;
                 overflow: hidden;
                 box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                table-layout: fixed;
             }
 
             .games-table thead {
@@ -259,12 +260,36 @@
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 border-bottom: 2px solid #dee2e6;
+                vertical-align: middle;
+            }
+
+            /* Column width adjustments */
+            .games-table th:nth-child(1),
+            .games-table td:nth-child(1) {
+                width: 20%;
+            }
+
+            .games-table th:nth-child(2),
+            .games-table td:nth-child(2) {
+                width: 25%;
+            }
+
+            .games-table th:nth-child(3),
+            .games-table td:nth-child(3) {
+                width: 35%; /* Increased duties column width */
+            }
+
+            .games-table th:nth-child(4),
+            .games-table td:nth-child(4) {
+                width: 20%;
             }
 
             .games-table td {
                 padding: 16px 12px;
                 border-bottom: 1px solid #f1f3f4;
                 vertical-align: middle;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
 
             /* Add separator between games */
@@ -315,6 +340,7 @@
                 flex-direction: column;
                 gap: 4px;
                 min-width: 120px;
+                align-items: flex-start;
             }
 
             .game-date {
@@ -345,6 +371,8 @@
                 display: flex;
                 gap: 8px;
                 flex-wrap: wrap;
+                align-items: flex-start;
+                justify-content: flex-start;
             }
 
             .duty-badge {
@@ -380,9 +408,13 @@
 
             /* Gym Information Styling */
             .gym-info {
-                text-align: center;
+                text-align: left;
                 padding: 8px;
                 transition: all 0.3s ease;
+                width: 100%;
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
             }
 
             .gym-name {
@@ -677,12 +709,12 @@
                 <div id="gamesTableContainer" style="display: none;">
                     <table class="games-table">
                         <thead>
-                                                         <tr>
-                                 <th>Date & Time</th>
-                                 <th>Game</th>
-                                 <th>Duties</th>
-                                 <th>Gym</th>
-                             </tr>
+                            <tr>
+                                <th>📅</th>
+                                <th>Game</th>
+                                <th>Duties</th>
+                                <th>Gym</th>
+                            </tr>
                         </thead>
                         <tbody id="gamesTableBody">
                             <!-- Games will be rendered here -->
