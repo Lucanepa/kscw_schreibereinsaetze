@@ -89,6 +89,16 @@
                 box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
             }
 
+            .btn-success {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                color: white;
+            }
+
+            .btn-success:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+            }
+
             /* Compact Professional Filter System */
             .search-section {
                 background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -153,22 +163,22 @@
 
             .search-grid {
                 display: flex;
-                flex-wrap: wrap;
+                flex-direction: column;
                 gap: 12px;
-                align-items: end;
+                align-items: stretch;
                 margin-bottom: 16px;
             }
 
             .search-group {
                 display: flex;
                 flex-direction: column;
-                min-width: 180px;
+                width: 100%;
                 flex: 1;
             }
 
             .search-group.compact {
-                min-width: 140px;
-                flex: 0 0 auto;
+                width: 100%;
+                flex: 1;
             }
 
             .search-group label {
@@ -286,25 +296,29 @@
                 vertical-align: middle;
             }
 
-            /* Column width adjustments */
+            /* Column width adjustments - Even distribution to eliminate unused space */
             .games-table th:nth-child(1),
             .games-table td:nth-child(1) {
-                width: 20%;
+                width: 25%;
+                min-width: 120px;
             }
 
             .games-table th:nth-child(2),
             .games-table td:nth-child(2) {
-                width: 25%;
+                width: 15%;
+                min-width: 80px;
             }
 
             .games-table th:nth-child(3),
             .games-table td:nth-child(3) {
-                width: 35%; /* Increased duties column width */
+                width: 40%;
+                min-width: 150px;
             }
 
             .games-table th:nth-child(4),
             .games-table td:nth-child(4) {
                 width: 20%;
+                min-width: 80px;
             }
 
             .games-table td {
@@ -565,6 +579,10 @@
 
             /* Mobile optimizations */
             @media (max-width: 768px) {
+                html {
+                    font-size: 0.75rem;
+                }
+                
                 .container {
                     margin: 10px;
                     border-radius: 15px;
@@ -575,40 +593,62 @@
                 }
 
                 .search-grid {
-                    flex-direction: row;
-                    gap: 8px;
-                    flex-wrap: wrap;
+                    flex-direction: column;
+                    gap: 0.75rem;
+                    flex-wrap: nowrap;
                 }
 
                 .search-group {
-                    min-width: calc(33.33% - 6px);
-                    flex: 1 1 calc(33.33% - 6px);
+                    width: 100%;
+                    flex: 1;
                 }
 
                 .search-group.compact {
-                    min-width: calc(33.33% - 6px);
-                    flex: 1 1 calc(33.33% - 6px);
+                    width: 100%;
+                    flex: 1;
                 }
 
-                /* Ensure search inputs and selects don't get too small */
+                /* Ensure search inputs and selects work well with column layout */
                 .search-group input,
                 .search-group select {
-                    min-width: 120px;
+                    width: 100%;
                 }
 
-                /* Allow wrapping only when necessary on very small screens */
-                .search-grid {
-                    flex-wrap: wrap;
-                }
+
 
                 .games-table {
                     font-size: 0.85rem;
                 }
 
                             .games-table th,
-            .games-table td {
-                padding: 12px 4px;
-            }
+                .games-table td {
+                    padding: 12px 4px;
+                }
+
+                /* Mobile column width overrides */
+                .games-table th:nth-child(1),
+                .games-table td:nth-child(1) {
+                    min-width: 80px;
+                    width: auto;
+                }
+
+                .games-table th:nth-child(2),
+                .games-table td:nth-child(2) {
+                    min-width: 60px;
+                    width: auto;
+                }
+
+                .games-table th:nth-child(3),
+                .games-table td:nth-child(3) {
+                    min-width: 100px;
+                    width: auto;
+                }
+
+                .games-table th:nth-child(4),
+                .games-table td:nth-child(4) {
+                    min-width: 60px;
+                    width: auto;
+                }
 
                 .game-basic-info {
                     flex-direction: column;
@@ -688,6 +728,16 @@
                 .modal-content {
                     -webkit-overflow-scrolling: touch;
                 }
+
+                /* Mobile table overflow handling */
+                #gamesTableContainer {
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                }
+
+                .games-table {
+                    min-width: 300px; /* Ensure table doesn't get too narrow */
+                }
             }
         </style>
     </head>
@@ -719,8 +769,8 @@
                     </div>
                     <div class="search-actions">
                         <button class="btn" onclick="clearFilters()">Clear Filters</button>
-                        <a href="overview.html" class="btn btn-primary">🏐 Team Overview</a>
-                        <button class="btn btn-secondary" onclick="openCoachAccess()">Coach Access</button>
+                        <a href="overview.html" class="btn btn-primary">Team Overview</a>
+                        <button class="btn btn-success" onclick="openCoachAccess()">Coach Access</button>
                     </div>
                 </div>
 
@@ -736,10 +786,10 @@
                     <table class="games-table">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Game</th>
-                                <th>Duties</th>
-                                <th>Gym</th>
+                                                             <th>Date</th>
+                             <th>Game #</th>
+                             <th>Duties</th>
+                             <th>Gym</th>
                             </tr>
                         </thead>
                         <tbody id="gamesTableBody">
@@ -945,11 +995,11 @@
                             <div class="game-time">${gameTime}</div>
                         </div>
                     </td>
-                    <td>
-                        <div class="game-teams">
-                            ${game.home_team} vs ${game.away_team}
-                        </div>
-                    </td>
+                                         <td>
+                         <div class="game-teams">
+                             #${game.gamen || game.match_id}
+                         </div>
+                     </td>
                     <td>
                         <div class="game-duties">
                             ${duties}
