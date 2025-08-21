@@ -1239,76 +1239,32 @@
 
                                          // Filter by team if we have a team filter
                      let filteredPeople = people || [];
-                     if (teamFilter) {
-                         console.log('Filtering by team:', teamFilter);
-                         console.log('Available people before filtering:', people.length);
-                         
-                         // Debug: Log all people and their teams
-                         console.log('=== ALL PEOPLE AND THEIR TEAMS ===');
-                         people.forEach(person => {
-                             console.log(`${person.fname} ${person.lname}:`, {
-                                 teams: person.teams,
-                                 teamsType: typeof person.teams,
-                                 isArray: Array.isArray(person.teams),
-                                 teamsLength: person.teams ? person.teams.length : 'N/A'
-                             });
-                         });
-                         console.log('=== END ALL PEOPLE ===');
-                         
-                         filteredPeople = filteredPeople.filter(person => {
-                             if (!person.teams || !Array.isArray(person.teams)) {
-                                 console.log(`❌ ${person.fname} ${person.lname} has no teams array:`, person.teams);
-                                 return false;
-                             }
-                             
-                             // Log the person's teams for debugging
-                             console.log(`\n🔍 Checking person: ${person.fname} ${person.lname}`);
-                             console.log(`   Raw teams:`, person.teams);
-                             console.log(`   Teams type:`, typeof person.teams);
-                             console.log(`   Is array:`, Array.isArray(person.teams));
-                             
-                             // Try to match team names with more flexible logic
-                             const personTeams = person.teams.map(team => {
-                                 const normalized = team.toString().toLowerCase().trim();
-                                 console.log(`   Normalizing team "${team}" -> "${normalized}"`);
-                                 return normalized;
-                             });
-                             const targetTeam = teamFilter.toString().toLowerCase().trim();
-                             
-                             console.log(`   Person teams (normalized):`, personTeams);
-                             console.log(`   Target team (normalized):`, targetTeam);
-                             
-                             const hasMatchingTeam = personTeams.some(team => {
-                                 const matches = team.includes(targetTeam) || targetTeam.includes(team);
-                                 console.log(`   Team "${team}" vs target "${targetTeam}": ${matches ? '✅ MATCH' : '❌ no match'}`);
-                                 return matches;
-                             });
-                             
-                             if (hasMatchingTeam) {
-                                 console.log(`✅ ${person.fname} ${person.lname} MATCHES team filter`);
-                             } else {
-                                 console.log(`❌ ${person.fname} ${person.lname} does NOT match team filter`);
-                             }
-                             
-                             return hasMatchingTeam;
-                         });
-                         
-                         console.log('\n=== FILTERING RESULTS ===');
-                         console.log('People after team filtering:', filteredPeople.length);
-                         console.log('Filtered people:', filteredPeople.map(p => `${p.fname} ${p.lname} (teams: ${p.teams})`));
-                         console.log('=== END FILTERING RESULTS ===\n');
-                     } else {
-                         console.log('No team filter applied, showing all people:', filteredPeople.length);
-                     }
-                    
-                    // If team filtering resulted in no people, show all people as fallback
-                    if (filteredPeople.length === 0 && teamFilter) {
-                        console.log('Team filtering resulted in no people, showing all people as fallback');
-                        filteredPeople = people || [];
-                    }
-                    
-                    console.log('Final filtered people count:', filteredPeople.length);
-                    console.log('Sample people:', filteredPeople.slice(0, 3).map(p => `${p.fname} ${p.lname} (teams: ${p.teams})`));
+                                           if (teamFilter) {
+                          filteredPeople = filteredPeople.filter(person => {
+                              if (!person.teams || !Array.isArray(person.teams)) {
+                                  return false;
+                              }
+                              
+                              // Try to match team names with more flexible logic
+                              const personTeams = person.teams.map(team => {
+                                  const normalized = team.toString().toLowerCase().trim();
+                                  return normalized;
+                              });
+                              const targetTeam = teamFilter.toString().toLowerCase().trim();
+                              
+                              const hasMatchingTeam = personTeams.some(team => {
+                                  const matches = team.includes(targetTeam) || targetTeam.includes(team);
+                                  return matches;
+                              });
+                              
+                              return hasMatchingTeam;
+                          });
+                      }
+                      
+                      // If team filtering resulted in no people, show all people as fallback
+                      if (filteredPeople.length === 0 && teamFilter) {
+                          filteredPeople = people || [];
+                      }
 
                     // Create modal
                     const modal = document.createElement('div');
