@@ -1126,7 +1126,7 @@ observer.observe(document.body);
             const filterDutyType = document.getElementById('filterDutyType').value;
             
             console.log('Filter values:', { filterHomeTeam, filterDate: filterDateTime, filterDutyTeam, filterDutyType });
-            
+
             let filtered = filterCurrentGames(allGames);
             console.log('Games after current filter:', filtered.length);
 
