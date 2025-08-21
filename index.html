@@ -1599,13 +1599,54 @@
                 try {
                     // Format date and time for ICS
                     const gameDate = new Date(game.date + 'T' + game.time);
+                    const startDate = new Date(gameDate.getTime() - 30 * 60000); // 30 minutes before game
                     const endDate = new Date(gameDate.getTime() + 90 * 60000); // 90 minutes duration
                     
                     // Get location plus code
                     const plusCode = locationData[game.halle] || '';
                     const location = game.halle + (plusCode ? ` (${plusCode})` : '');
                     
-                    // Create ICS content
+                    // Determine assignment type and create summary
+                    let assignmentType = '';
+                    if (game.scorer_taefeler_team || game.scorer_taefeler_id) {
+                        assignmentType = 'SCORER/TÄFELER';
+                    } else if (game.scorer_team || game.scorer_id) {
+                        assignmentType = 'SCORER';
+                    } else if (game.taefeler_team || game.taefeler_id) {
+                        assignmentType = 'TÄFELER';
+                    } else {
+                        assignmentType = 'ASSIGNMENT';
+                    }
+                    
+                    // Create description with all data
+                    let description = `Assignment: ${assignmentType}`;
+                    
+                    // Add other assignment info if confirmed
+                    if (game.scorer_taefeler_id) {
+                        const person = allScorers.find(s => s.id === game.scorer_taefeler_id);
+                        if (person) {
+                            description += `\\nScorer/Täfeler: ${person.fname} ${person.lname}`;
+                        }
+                    } else if (game.scorer_id) {
+                        const person = allScorers.find(s => s.id === game.scorer_id);
+                        if (person) {
+                            description += `\\nScorer: ${person.fname} ${person.lname}`;
+                        }
+                    } else if (game.taefeler_id) {
+                        const person = allScorers.find(s => s.id === game.taefeler_id);
+                        if (person) {
+                            description += `\\nTäfeler: ${person.fname} ${person.lname}`;
+                        }
+                    }
+                    
+                    description += `\\nHome Team: ${game.home_team || 'N/A'}`;
+                    description += `\\nAway Team: ${game.away_team || 'N/A'}`;
+                    description += `\\nDate: ${formatDate(game.date)}`;
+                    description += `\\nTime: ${formatTime(game.time)}`;
+                    description += `\\nLocation: ${game.halle || 'N/A'}`;
+                    description += `\\nGame n.: #${game.gamen || game.match_id || 'N/A'}`;
+                    
+                    // Create ICS content with reminders
                     const icsContent = [
                         'BEGIN:VCALENDAR',
                         'VERSION:2.0',
@@ -1613,11 +1654,27 @@
                         'BEGIN:VEVENT',
                         `UID:${game.match_id}@kscw.ch`,
                         `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-                        `DTSTART:${gameDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                        `DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                         `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-                        `SUMMARY:${game.home_team} vs ${game.away_team}`,
-                        `DESCRIPTION:Volleyball game assignment${game.halle ? '\\nLocation: ' + game.halle : ''}`,
+                        `SUMMARY:${assignmentType} - ${game.home_team} vs ${game.away_team}`,
+                        `DESCRIPTION:${description}`,
                         `LOCATION:${location}`,
+                        // Add reminders: 1 week, 2 days, and 1 day before
+                        `BEGIN:VALARM`,
+                        `TRIGGER:-P1W`,
+                        `ACTION:DISPLAY`,
+                        `DESCRIPTION:Reminder: ${assignmentType} assignment in 1 week`,
+                        `END:VALARM`,
+                        `BEGIN:VALARM`,
+                        `TRIGGER:-P2D`,
+                        `ACTION:DISPLAY`,
+                        `DESCRIPTION:Reminder: ${assignmentType} assignment in 2 days`,
+                        `END:VALARM`,
+                        `BEGIN:VALARM`,
+                        `TRIGGER:-P1D`,
+                        `ACTION:DISPLAY`,
+                        `DESCRIPTION:Reminder: ${assignmentType} assignment tomorrow`,
+                        `END:VALARM`,
                         'END:VEVENT',
                         'END:VCALENDAR'
                     ].join('\r\n');
