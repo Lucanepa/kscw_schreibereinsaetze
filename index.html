@@ -1569,8 +1569,29 @@
                 window.location.href = 'coaches.html';
             }
 
-            // Removed iframe communication since we're using fixed height embedding
-            // The iframe will handle its own scrolling internally
+            // Enhanced iframe communication for proper sizing
+            function sendDimensionsToParent() {
+                // Send both height and width
+                window.parent.postMessage({
+                    type: 'resize',
+                    height: document.body.scrollHeight,
+                    width: document.body.scrollWidth
+                }, '*'); // Use '*' to work across domains if needed
+            }
+
+            // Call on important events
+            window.addEventListener('load', sendDimensionsToParent);
+            window.addEventListener('resize', sendDimensionsToParent);
+
+            // Observe DOM changes
+            const observer = new ResizeObserver(sendDimensionsToParent);
+            observer.observe(document.body);
+
+            // Listen for modal open/close events
+            document.addEventListener('click', function(e) {
+                // Wait for modal animation to complete
+                setTimeout(sendDimensionsToParent, 300);
+            });
         </script>
     </body>
 </html>
