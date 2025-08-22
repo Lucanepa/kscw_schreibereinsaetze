@@ -1305,32 +1305,21 @@
 
                                          // Filter by team if we have a team filter
                      let filteredPeople = people || [];
-                                           if (teamFilter) {
-                          filteredPeople = filteredPeople.filter(person => {
-                              if (!person.teams || !Array.isArray(person.teams)) {
-                                  return false;
-                              }
-                              
-                              // Try to match team names with more flexible logic
-                              const personTeams = person.teams.map(team => {
-                                  const normalized = team.toString().toLowerCase().trim();
-                                  return normalized;
-                              });
-                              const targetTeam = teamFilter.toString().toLowerCase().trim();
-                              
-                              const hasMatchingTeam = personTeams.some(team => {
-                                  const matches = team.includes(targetTeam) || targetTeam.includes(team);
-                                  return matches;
-                              });
-                              
-                              return hasMatchingTeam;
-                          });
-                      }
+                     if (teamFilter) {
+                         filteredPeople = filteredPeople.filter(person => {
+                             // Use the shared team matching function for consistent behavior
+                             return window.teamUtils && window.teamUtils.personHasTeam ? 
+                                 window.teamUtils.personHasTeam(person, teamFilter) :
+                                 // Fallback logic if teamUtils is not available
+                                 (person.teams && Array.isArray(person.teams) && 
+                                  person.teams.some(team => 
+                                      team.toString().toLowerCase().trim() === teamFilter.toString().toLowerCase().trim()
+                                  ));
+                         });
+                     }
                       
-                      // If team filtering resulted in no people, show all people as fallback
-                      if (filteredPeople.length === 0 && teamFilter) {
-                          filteredPeople = people || [];
-                      }
+                                           // If team filtering resulted in no people, keep the empty list
+                     // This ensures proper team filtering behavior
 
                     // Create modal
                     const modal = document.createElement('div');
