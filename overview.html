@@ -721,19 +721,12 @@
             
             // Check if team has combined scorer/täfeler duty
             if (game.scorer_taefeler_team === team) {
-                const hasScorer = game.scorer_id;
-                const hasTaefeler = game.taefeler_id;
-                let scorerName = '';
-                let taefelerName = '';
+                const hasScorerTaefeler = game.scorer_taefeler_id;
+                let scorerTaefelerName = '';
                 
-                if (game.scorer_id) {
-                    const scorer = allScorers.find(s => s.id === game.scorer_id);
-                    scorerName = scorer ? `${scorer.fname} ${scorer.lname}` : 'Unknown';
-                }
-                
-                if (game.taefeler_id) {
-                    const taefeler = allTaefelers.find(s => s.id === game.taefeler_id);
-                    taefelerName = taefeler ? `${taefeler.fname} ${taefeler.lname}` : 'Unknown';
+                if (game.scorer_taefeler_id) {
+                    const scorerTaefeler = allScorers.find(s => s.id === game.scorer_taefeler_id);
+                    scorerTaefelerName = scorerTaefeler ? `${scorerTaefeler.fname} ${scorerTaefeler.lname}` : 'Unknown';
                 }
                 
                 duties.push(`
@@ -741,8 +734,8 @@
                         <div class="duty-icon combined">S/T</div>
                         <div class="duty-details">
                             <div class="duty-type">Scorer/Täfeler</div>
-                            <div class="duty-status ${hasScorer && hasTaefeler ? 'confirmed' : 'unconfirmed'}">
-                                ${hasScorer && hasTaefeler ? `${scorerName} / ${taefelerName}` : 'Unconfirmed'}
+                            <div class="duty-status ${hasScorerTaefeler ? 'confirmed' : 'unconfirmed'}">
+                                ${hasScorerTaefeler ? scorerTaefelerName : 'Unconfirmed'}
                             </div>
                         </div>
                     </div>
