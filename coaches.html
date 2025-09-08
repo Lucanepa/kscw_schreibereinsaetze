@@ -2030,15 +2030,33 @@ observer.observe(document.body);
             // Open duty filter - show only games with missing assignments
             if (openDuty === 'open') {
                 filtered = filtered.filter(game => {
-                    // Check if it's a combined game
-                    if (game.scorer_taefeler_id || (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '')) {
-                        // Combined game - check if scorer_taefeler_id is missing
-                        return !game.scorer_taefeler_id;
+                    // If a specific team is selected, only check for unassigned duties for that team
+                    if (dutyTeam) {
+                        let hasUnassignedDutyForTeam = false;
+                        
+                        // Check if the selected team has any unassigned duties
+                        if (game.taefeler_team === dutyTeam && !game.taefeler_id) {
+                            hasUnassignedDutyForTeam = true;
+                        }
+                        if (game.scorer_team === dutyTeam && !game.scorer_id) {
+                            hasUnassignedDutyForTeam = true;
+                        }
+                        if (game.scorer_taefeler_team === dutyTeam && !game.scorer_taefeler_id) {
+                            hasUnassignedDutyForTeam = true;
+                        }
+                        
+                        return hasUnassignedDutyForTeam;
                     } else {
-                        // Separate game - check if täfeler_id is missing or scorer_id is missing when scorer_team is assigned
-                        const taefelerIssue = !game.taefeler_id;
-                        const scorerIssue = game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
-                        return taefelerIssue || scorerIssue;
+                        // No team filter - check if it's a combined game
+                        if (game.scorer_taefeler_id || (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '')) {
+                            // Combined game - check if scorer_taefeler_id is missing
+                            return !game.scorer_taefeler_id;
+                        } else {
+                            // Separate game - check if täfeler_id is missing or scorer_id is missing when scorer_team is assigned
+                            const taefelerIssue = !game.taefeler_id;
+                            const scorerIssue = game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
+                            return taefelerIssue || scorerIssue;
+                        }
                     }
                 });
             }
@@ -2085,6 +2103,7 @@ observer.observe(document.body);
             document.getElementById('filterDutyType').value = '';
             document.getElementById('filterOpenDuty').value = '';
             document.getElementById('filterAssignee').value = '';
+            document.getElementById('filterAssigneeSearch').value = '';
             
             // Log the filters clear action
             logSystemEvent('FILTERS_CLEARED', {
