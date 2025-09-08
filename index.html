@@ -221,6 +221,59 @@
                 appearance: none;
             }
 
+            /* Searchable dropdown styles */
+            .searchable-dropdown {
+                position: relative;
+                width: 100%;
+            }
+
+            .searchable-dropdown input[type="text"] {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #ced4da;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                background: white;
+                cursor: pointer;
+            }
+
+            .searchable-dropdown input[type="text"]:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+                transform: translateY(-1px);
+            }
+
+            .dropdown-options {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border: 1px solid #ced4da;
+                border-top: none;
+                border-radius: 0 0 6px 6px;
+                max-height: 200px;
+                overflow-y: auto;
+                z-index: 1000;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .dropdown-option {
+                padding: 8px 12px;
+                cursor: pointer;
+                font-size: 0.85rem;
+                border-bottom: 1px solid #f8f9fa;
+            }
+
+            .dropdown-option:hover {
+                background-color: #f8f9fa;
+            }
+
+            .dropdown-option:last-child {
+                border-bottom: none;
+            }
+
             .search-actions {
                 display: flex;
                 justify-content: center;
@@ -779,6 +832,23 @@
                                 <option value="scorer_taefeler">Scorer/Täfeler</option>
                             </select>
                         </div>
+                        <div class="search-group compact">
+                            <label for="filterOpenDuty">Unassigned Duty</label>
+                            <select id="filterOpenDuty" onchange="filterGames()">
+                                <option value="">All Duties</option>
+                                <option value="open">Unassigned Only</option>
+                            </select>
+                        </div>
+                        <div class="search-group compact">
+                            <label for="filterAssignee">Look for Assignee</label>
+                            <div class="searchable-dropdown">
+                                <input type="text" id="filterAssigneeSearch" placeholder="Search assignees..." oninput="filterAssigneeOptions()" onfocus="showAssigneeDropdown()" onblur="hideAssigneeDropdown()">
+                                <div id="filterAssigneeDropdown" class="dropdown-options" style="display: none;">
+                                    <div class="dropdown-option" data-value="" onclick="selectAssignee('')">All Assignees</div>
+                                </div>
+                                <input type="hidden" id="filterAssignee" onchange="filterGames()">
+                            </div>
+                        </div>
                     </div>
                     <div class="search-actions">
                         <button class="btn" onclick="clearFilters()">Clear Filters</button>
@@ -858,6 +928,9 @@
                     // Populate duty team filter
                     populateDutyTeamFilter();
 
+                    // Populate assignee filter
+                    populateAssigneeFilter();
+
                     // Render games
                     renderGames();
 
@@ -916,10 +989,65 @@
                 });
             }
 
+            function populateAssigneeFilter() {
+                const assigneeDropdown = document.getElementById('filterAssigneeDropdown');
+                
+                // Sort scorers by last name, then first name
+                const sortedScorers = allScorers.sort((a, b) => {
+                    if (a.lname !== b.lname) {
+                        return a.lname.localeCompare(b.lname);
+                    }
+                    return a.fname.localeCompare(b.fname);
+                });
+
+                sortedScorers.forEach(scorer => {
+                    const option = document.createElement('div');
+                    option.className = 'dropdown-option';
+                    option.setAttribute('data-value', scorer.id);
+                    option.textContent = `${scorer.fname} ${scorer.lname}`;
+                    option.onclick = () => selectAssignee(scorer.id, `${scorer.fname} ${scorer.lname}`);
+                    assigneeDropdown.appendChild(option);
+                });
+            }
+
+            function selectAssignee(value, text) {
+                document.getElementById('filterAssignee').value = value;
+                document.getElementById('filterAssigneeSearch').value = text || 'All Assignees';
+                document.getElementById('filterAssigneeDropdown').style.display = 'none';
+                filterGames();
+            }
+
+            function showAssigneeDropdown() {
+                document.getElementById('filterAssigneeDropdown').style.display = 'block';
+            }
+
+            function hideAssigneeDropdown() {
+                // Delay hiding to allow clicks on options
+                setTimeout(() => {
+                    document.getElementById('filterAssigneeDropdown').style.display = 'none';
+                }, 200);
+            }
+
+            function filterAssigneeOptions() {
+                const searchTerm = document.getElementById('filterAssigneeSearch').value.toLowerCase();
+                const options = document.querySelectorAll('#filterAssigneeDropdown .dropdown-option');
+                
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        option.style.display = 'block';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+            }
+
             function filterGames() {
                 const filterDateTime = document.getElementById('filterDateTime').value;
                 const filterDutyTeam = document.getElementById('filterDutyTeam').value;
                 const filterDutyType = document.getElementById('filterDutyType').value;
+                const filterOpenDuty = document.getElementById('filterOpenDuty').value;
+                const filterAssignee = document.getElementById('filterAssignee').value;
 
                 let filtered = [...allGames];
 
@@ -951,6 +1079,49 @@
                     });
                 }
 
+                // Open duty filter - show only games with missing assignments
+                if (filterOpenDuty === 'open') {
+                    filtered = filtered.filter(game => {
+                        // If a specific team is selected, only check for unassigned duties for that team
+                        if (filterDutyTeam) {
+                            let hasUnassignedDutyForTeam = false;
+                            
+                            // Check if the selected team has any unassigned duties
+                            if (game.taefeler_team === filterDutyTeam && !game.taefeler_id) {
+                                hasUnassignedDutyForTeam = true;
+                            }
+                            if (game.scorer_team === filterDutyTeam && !game.scorer_id) {
+                                hasUnassignedDutyForTeam = true;
+                            }
+                            if (game.scorer_taefeler_team === filterDutyTeam && !game.scorer_taefeler_id) {
+                                hasUnassignedDutyForTeam = true;
+                            }
+                            
+                            return hasUnassignedDutyForTeam;
+                        } else {
+                            // No team filter - check if it's a combined game
+                            if (game.scorer_taefeler_id || (game.scorer_taefeler_team && game.scorer_taefeler_team.trim() !== '')) {
+                                // Combined game - check if scorer_taefeler_id is missing
+                                return !game.scorer_taefeler_id;
+                            } else {
+                                // Separate game - check if täfeler_id is missing or scorer_id is missing when scorer_team is assigned
+                                const taefelerIssue = !game.taefeler_id;
+                                const scorerIssue = game.scorer_team && game.scorer_team.trim() !== '' && !game.scorer_id;
+                                return taefelerIssue || scorerIssue;
+                            }
+                        }
+                    });
+                }
+
+                // Assignee filter - show only games assigned to specific person
+                if (filterAssignee) {
+                    filtered = filtered.filter(game => {
+                        return (game.scorer_id == filterAssignee) ||
+                               (game.taefeler_id == filterAssignee) ||
+                               (game.scorer_taefeler_id == filterAssignee);
+                    });
+                }
+
                 currentFilteredGames = filtered;
                 renderGames();
                 updateResultsCount();
@@ -972,6 +1143,9 @@
                  document.getElementById('filterDateTime').value = '';
                  document.getElementById('filterDutyTeam').value = '';
                  document.getElementById('filterDutyType').value = '';
+                 document.getElementById('filterOpenDuty').value = '';
+                 document.getElementById('filterAssignee').value = '';
+                 document.getElementById('filterAssigneeSearch').value = '';
                  
                  currentFilteredGames = [...allGames];
                  renderGames();
