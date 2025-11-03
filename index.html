@@ -890,6 +890,7 @@
             let expandedGameId = null;
             let allScorers = []; // Add this global variable
             let locationData = {}; // Add location data storage
+            let olderGamesVisible = false; // Controls collapse/expand of older games
 
             // Initialize Supabase
             const supabaseUrl = SUPABASE_CONFIG.url;
@@ -1155,16 +1156,87 @@
             function renderGames() {
                 const tbody = document.getElementById('gamesTableBody');
                 tbody.innerHTML = '';
-
-                currentFilteredGames.forEach((game, index) => {
-                    const row = createGameRow(game);
-                    tbody.appendChild(row);
-                    
-                    // Also append the expanded row right after the main row
-                    if (row.expandedRow) {
-                        tbody.appendChild(row.expandedRow);
+                
+                // Split into upcoming (>= today) and older (< today) by date only
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const upcomingGames = [];
+                const olderGames = [];
+                currentFilteredGames.forEach(game => {
+                    const d = new Date(game.date);
+                    d.setHours(0, 0, 0, 0);
+                    if (!isNaN(d) && d < today) {
+                        olderGames.push(game);
+                    } else {
+                        upcomingGames.push(game);
                     }
                 });
+
+                // If there are older games, add a toggle row at the top and render them hidden/shown based on olderGamesVisible
+                if (olderGames.length > 0) {
+                    const toggleRow = document.createElement('tr');
+                    toggleRow.id = 'olderToggleRow';
+                    const toggleCell = document.createElement('td');
+                    toggleCell.colSpan = 4;
+                    toggleCell.style.textAlign = 'center';
+                    toggleCell.style.background = '#f8f9fa';
+                    toggleCell.style.borderTop = '2px solid #e9ecef';
+                    const btn = document.createElement('button');
+                    btn.className = 'btn';
+                    btn.onclick = function(e) {
+                        e.stopPropagation();
+                        olderGamesVisible = !olderGamesVisible;
+                        updateOlderGamesVisibility();
+                    };
+                    btn.id = 'olderToggleButton';
+                    toggleCell.appendChild(btn);
+                    toggleRow.appendChild(toggleCell);
+                    // Place toggle row at the very top
+                    tbody.appendChild(toggleRow);
+
+                    // Render older games rows (initially hidden unless olderGamesVisible)
+                    olderGames.forEach(game => {
+                        const row = createGameRow(game);
+                        row.classList.add('older-game');
+                        tbody.appendChild(row);
+                        if (row.expandedRow) {
+                            row.expandedRow.classList.add('older-game');
+                            tbody.appendChild(row.expandedRow);
+                        }
+                    });
+
+                    // Apply visibility state and button label
+                    updateOlderGamesVisibility(olderGames.length);
+                }
+
+                // Render upcoming games after the toggle row
+                upcomingGames.forEach(game => {
+                    const row = createGameRow(game);
+                    tbody.appendChild(row);
+                    if (row.expandedRow) tbody.appendChild(row.expandedRow);
+                });
+            }
+
+            function updateOlderGamesVisibility(countOverride) {
+                const rows = document.querySelectorAll('#gamesTableBody tr.older-game');
+                rows.forEach(r => {
+                    // When showing older games, only show main rows; keep expanded rows hidden until user clicks
+                    if (olderGamesVisible) {
+                        if (r.classList.contains('expanded-row')) {
+                            r.style.display = 'none';
+                        } else {
+                            r.style.display = 'table-row';
+                        }
+                    } else {
+                        r.style.display = 'none';
+                    }
+                });
+                const btn = document.getElementById('olderToggleButton');
+                if (btn) {
+                    // Count only main rows (exclude expanded-row) for label when not provided
+                    const count = typeof countOverride === 'number' ? countOverride : Array.from(rows).filter(r => !r.classList.contains('expanded-row')).length;
+                    btn.textContent = olderGamesVisible ? `Hide older games` : `Show older games (${count})`;
+                }
             }
 
             function createGameRow(game) {
