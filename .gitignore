@@ -1,7 +1,6 @@
 # ===========================================
 # CONFIGURATION FILES (SENSITIVE DATA)
 # ===========================================
-config.js
 config.local.js
 .env
 .env.local
