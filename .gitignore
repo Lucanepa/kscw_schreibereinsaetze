@@ -72,6 +72,8 @@ data/
 databases/
 pb_data/
 migrate-data.js
+fix-relations.js
+drop-redundant-fields.js
 
 # ===========================================
 # MEDIA FILES (if not needed in repo)
