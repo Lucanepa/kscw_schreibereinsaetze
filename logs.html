@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Logs - Schreibereinsätze</title>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/pocketbase@0.25.2/dist/pocketbase.umd.js"></script>
     <script src="config.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -78,7 +78,7 @@
     </div>
 
     <script>
-        let supabase;
+        let pb;
         let allLogs = [];
         let filteredLogs = [];
 
@@ -93,24 +93,18 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
             try {
-                if (typeof SUPABASE_CONFIG === 'undefined') {
+                if (typeof POCKETBASE_CONFIG === 'undefined') {
                     throw new Error('Configuration not loaded');
                 }
-                
-                supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-                
+
+                pb = new PocketBase(POCKETBASE_CONFIG.url);
+
                 // Check authentication before loading logs
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) {
-                    // Not authenticated, show login prompt
+                if (!pb.authStore.isValid) {
                     document.getElementById('logsTable').innerHTML = '<div class="error">Please log in to view logs. <a href="admin.html">Go to Admin Panel</a></div>';
                     return;
                 }
-                
-                // Check if user is admin (you may need to implement this based on your auth system)
-                // For now, we'll assume any authenticated user can view logs
-                // You can add additional role checks here
-                
+
                 await loadLogs();
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -121,15 +115,11 @@
         // Load logs
         async function loadLogs() {
             try {
-                const { data: logs, error } = await supabase
-                    .from('scorer_edit_log')
-                    .select('*')
-                    .order('timestamp', { ascending: false })
-                    .limit(1000); // Load more logs for filtering
+                const logs = await pb.collection('scorer_edit_log').getList(1, 1000, {
+                    sort: '-timestamp',
+                });
 
-                if (error) throw error;
-                
-                allLogs = logs || [];
+                allLogs = logs.items || [];
                 filteredLogs = [...allLogs];
                 renderLogsTable();
             } catch (error) {

@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>KSCW Game Assignments</title>
         <link rel="icon" type="image/x-icon" href="https://kscw.ch/clubdesk/fileservlet?type=file&id=1000716&s=djEt3z7ABYLi8hd4sWeb8Qisb2m20xnaKr4H9W6HvJnKgDU=">
-        <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+        <script src="https://unpkg.com/pocketbase@0.25.2/dist/pocketbase.umd.js"></script>
         <script src="config.js"></script>
         <script src="teamUtils.js"></script>
         <style>
@@ -892,10 +892,8 @@
             let locationData = {}; // Add location data storage
             let olderGamesVisible = false; // Controls collapse/expand of older games
 
-            // Initialize Supabase
-            const supabaseUrl = SUPABASE_CONFIG.url;
-            const supabaseKey = SUPABASE_CONFIG.anonKey;
-            const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+            // Initialize PocketBase
+            const pb = new PocketBase(POCKETBASE_CONFIG.url);
 
             // Load data when page loads
             document.addEventListener('DOMContentLoaded', loadData);
@@ -903,24 +901,16 @@
             async function loadData() {
                 try {
                     // Fetch all games
-                    const { data: games, error: gamesError } = await supabaseClient
-                        .from('scorer_matches')
-                        .select('*')
-                        .order('date', { ascending: true })
-                        .order('time', { ascending: true });
-
-                    if (gamesError) throw gamesError;
+                    const games = await pb.collection('scorer_matches').getFullList({
+                        sort: 'date,time',
+                    });
                     allGames = games || [];
                     currentFilteredGames = [...allGames];
 
                     // Fetch all scorers
-                    const { data: scorers, error: scorersError } = await supabaseClient
-                        .from('scorer_scorers')
-                        .select('*')
-                        .order('lname', { ascending: true })
-                        .order('fname', { ascending: true });
-
-                    if (scorersError) throw scorersError;
+                    const scorers = await pb.collection('scorer_scorers').getFullList({
+                        sort: 'lname,fname',
+                    });
                     allScorers = scorers || [];
                     
                     // Load location data from scorer_places table
@@ -952,11 +942,7 @@
 
             async function loadLocationData() {
                 try {
-                    const { data: locations, error } = await supabaseClient
-                        .from('scorer_places')
-                        .select('*');
-                    
-                    if (error) throw error;
+                    const locations = await pb.collection('scorer_places').getFullList();
                     
                     // Create a mapping from hall name to plus code
                     locationData = {};
@@ -1241,7 +1227,7 @@
 
             function createGameRow(game) {
                 const row = document.createElement('tr');
-                row.setAttribute('data-game-id', game.match_id);
+                row.setAttribute('data-game-id', game.id);
                 
                 const gameDate = formatDate(game.date);
                 const gameTime = formatTime(game.time);
@@ -1280,13 +1266,13 @@
                         e.target.closest('.role-section')) {
                         return;
                     }
-                    toggleGameExpansion(game.match_id);
+                    toggleGameExpansion(game.id);
                 });
 
                 // Add expanded details row
                 const expandedRow = document.createElement('tr');
                 expandedRow.className = 'expanded-row';
-                expandedRow.setAttribute('data-expanded-for', game.match_id);
+                expandedRow.setAttribute('data-expanded-for', game.id);
                 expandedRow.style.display = 'none';
                 
                 // Check if this is a combined scorer/täfeler game
@@ -1294,7 +1280,7 @@
                 
                 expandedRow.innerHTML = `
                     <td colspan="4">
-                        <div class="game-expanded-details" id="expanded-${game.match_id}">
+                        <div class="game-expanded-details" id="expanded-${game.id}">
                             <div class="expanded-grid">
                                 <div class="expanded-item">
                                     <label>Home Team</label>
@@ -1345,7 +1331,7 @@
                                                 `<div style="padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; color: #155724; text-align: center;">
                                                     ✅ Assignment Complete
                                                 </div>` :
-                                                `<button class="btn btn-primary" onclick="assignScorerTaefeler(${game.match_id})">
+                                                `<button class="btn btn-primary" onclick="assignScorerTaefeler(${game.id})">
                                                     Assign Scorer/Täfeler
                                                 </button>`
                                             }
@@ -1367,7 +1353,7 @@
                                                 `<div style="padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; color: #155724; text-align: center;">
                                                     ✅ Assignment Complete
                                                 </div>` :
-                                                `<button class="btn btn-primary" onclick="assignScorer(${game.match_id})">
+                                                `<button class="btn btn-primary" onclick="assignScorer(${game.id})">
                                                     Assign Scorer
                                                 </button>`
                                             }
@@ -1389,7 +1375,7 @@
                                                 `<div style="padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; color: #155724; text-align: center;">
                                                     ✅ Assignment Complete
                                                 </div>` :
-                                                `<button class="btn btn-primary" onclick="assignTaefeler(${game.match_id})">
+                                                `<button class="btn btn-primary" onclick="assignTaefeler(${game.id})">
                                                     Assign Täfeler
                                                 </button>`
                                             }
@@ -1500,7 +1486,7 @@
 
             function assignScorer(gameId) {
                 // Find the game data
-                const game = allGames.find(g => g.match_id === gameId);
+                const game = allGames.find(g => g.id === gameId);
                 if (!game) {
                     alert('Game not found');
                     return;
@@ -1512,7 +1498,7 @@
 
             function assignTaefeler(gameId) {
                 // Find the game data
-                const game = allGames.find(g => g.match_id === gameId);
+                const game = allGames.find(g => g.id === gameId);
                 if (!game) {
                     alert('Game not found');
                     return;
@@ -1535,19 +1521,15 @@
                     }
 
                     // Load available scorers/täfelers with proper filtering
-                    let query = supabaseClient
-                        .from('scorer_scorers')
-                        .select('*')
-                        .order('lname', { ascending: true })
-                        .order('fname', { ascending: true });
+                    let filterStr = '';
+                    if (roleType === 'scorer') {
+                        filterStr = 'scorer_licence = true';
+                    }
 
-                                         // Add license filter ONLY for scorer assignments (not for täfeler or combined)
-                     if (roleType === 'scorer') {
-                         query = query.eq('scorer_licence', true);
-                     }
-
-                    const { data: people, error } = await query;
-                    if (error) throw error;
+                    const people = await pb.collection('scorer_scorers').getFullList({
+                        sort: 'lname,fname',
+                        filter: filterStr,
+                    });
 
                                          // Filter by team if we have a team filter
                      let filteredPeople = people || [];
@@ -1652,7 +1634,7 @@
                     document.body.appendChild(modal);
 
                     // Store current game ID and role type globally
-                    window.currentGameId = game.match_id;
+                    window.currentGameId = game.id;
                     window.currentRoleType = roleType;
 
                 } catch (error) {
@@ -1803,12 +1785,7 @@
                         updateData.scorer_taefeler_id = window.selectedPerson.id;
                     }
 
-                    const { error } = await supabaseClient
-                        .from('scorer_matches')
-                        .update(updateData)
-                        .eq('match_id', window.currentGameId);
-
-                    if (error) throw error;
+                    await pb.collection('scorer_matches').update(window.currentGameId, updateData);
 
                     // Close all modals
                     document.querySelectorAll('.modal').forEach(modal => modal.remove());
@@ -1834,7 +1811,7 @@
             // Add the missing assignScorerTaefeler function
             function assignScorerTaefeler(gameId) {
                 // Find the game data
-                const game = allGames.find(g => g.match_id === gameId);
+                const game = allGames.find(g => g.id === gameId);
                 if (!game) {
                     alert('Game not found');
                     return;
@@ -1904,7 +1881,7 @@
                     description += `\\nDate: ${formatDate(game.date)}`;
                     description += `\\nTime: ${formatTime(game.time)}`;
                     description += `\\nLocation: ${game.halle || 'N/A'}`;
-                    description += `\\nGame n.: #${game.gamen || game.match_id || 'N/A'}`;
+                    description += `\\nGame n.: #${game.gamen || game.id || 'N/A'}`;
                     
                     // Create ICS content with reminders
                     const icsContent = [
@@ -1912,7 +1889,7 @@
                         'VERSION:2.0',
                         'PRODID:-//KSCW//Game Assignment//EN',
                         'BEGIN:VEVENT',
-                        `UID:${game.match_id}@kscw.ch`,
+                        `UID:${game.id}@kscw.ch`,
                         `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                         `DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                         `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
@@ -1943,7 +1920,7 @@
                     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.download = `game_${game.gamen || game.match_id}_${game.date}.ics`;
+                    link.download = `game_${game.gamen || game.id}_${game.date}.ics`;
                     link.click();
                     URL.revokeObjectURL(link.href);
                     

@@ -1,26 +1,25 @@
 // ===========================================
-// SUPABASE CONFIGURATION
+// POCKETBASE CONFIGURATION
 // ===========================================
 // This file contains sensitive configuration data
 // DO NOT commit this file to version control
 
-const SUPABASE_CONFIG = {
-    // Supabase Project URL
-    url: 'https://wilrrlwqgvzjdhmnwmte.supabase.co',
+const POCKETBASE_CONFIG = {
+    // PocketBase Server URL
+    url: 'https://pocketbase.lucanepa.com',
 
-    // Supabase Anonymous Key (safe for client-side use)
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpbHJybHdxZ3Z6amRobW53bXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2MDU2NzcsImV4cCI6MjA2OTE4MTY3N30.XUGU99itVC9sbNvh6qkuxgAT1lirnu4u_MBJDFzoB2Q',
-
-    // Database table names
-    tables: {
-        matches: 'matches_complete',
-        teams: 'teams'
+    // Collection names
+    collections: {
+        matches: 'scorer_matches',
+        scorers: 'scorer_scorers',
+        places: 'scorer_places',
+        editLog: 'scorer_edit_log'
     },
 
     // Application settings
     app: {
         name: 'Volleyball Games Management',
-        version: '1.0.0',
+        version: '2.0.0',
         debug: false
     },
 
@@ -53,10 +52,10 @@ const SUPABASE_CONFIG = {
 
 if (typeof module !== 'undefined' && module.exports) {
     // Node.js environment
-    module.exports = SUPABASE_CONFIG;
+    module.exports = POCKETBASE_CONFIG;
 } else if (typeof window !== 'undefined') {
     // Browser environment
-    window.SUPABASE_CONFIG = SUPABASE_CONFIG;
+    window.POCKETBASE_CONFIG = POCKETBASE_CONFIG;
 }
 
 // ===========================================
@@ -65,7 +64,7 @@ if (typeof module !== 'undefined' && module.exports) {
 // Basic configuration validation
 
 (function validateConfig() {
-    if (!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) {
-        // Supabase configuration is incomplete
+    if (!POCKETBASE_CONFIG.url) {
+        console.error('PocketBase URL not configured. Please update config.js.');
     }
-})(); 
+})();

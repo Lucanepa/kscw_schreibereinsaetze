@@ -71,6 +71,8 @@ yarn-error.log*
 *.sqlite3
 data/
 databases/
+pb_data/
+migrate-data.js
 
 # ===========================================
 # MEDIA FILES (if not needed in repo)

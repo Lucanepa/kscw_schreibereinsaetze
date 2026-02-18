@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schreibereinsätze Coaches Panel</title>
     <link rel="icon" type="image/x-icon" href="https://kscw.ch/clubdesk/fileservlet?type=file&id=1000716&s=djEt3z7ABYLi8hd4sWeb8Qisb2m20xnaKr4H9W6HvJnKgDU=">
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/pocketbase@0.25.2/dist/pocketbase.umd.js"></script>
     <script src="config.js"></script>
     <script src="teamUtils.js"></script>
     <style>
@@ -1624,18 +1624,14 @@ observer.observe(document.body);
         let allTeams = [];              // keep camel-case consistency
         let currentFilteredGames = [];  // For pagination
         let gamesToShow = 6;           // Initial number of games to show
-        // Initialize Supabase
-        
+        // Initialize PocketBase
+
         // Check if config is loaded
-        if (typeof SUPABASE_CONFIG === 'undefined') {
+        if (typeof POCKETBASE_CONFIG === 'undefined') {
             alert('Configuration error. Please refresh the page.');
         } else {
-            // Make supabase globally accessible
-            window.supabase = window.supabase.createClient(
-                SUPABASE_CONFIG.url,
-                SUPABASE_CONFIG.anonKey
-            );
-            const supabase = window.supabase; // Local reference for convenience
+            // Make PocketBase globally accessible
+            window.pb = new PocketBase(POCKETBASE_CONFIG.url);
         }
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -1646,11 +1642,9 @@ observer.observe(document.body);
         // Load teams from games data
         async function loadTeams() {
             try {
-                const { data, error } = await window.supabase
-                    .from('scorer_matches')
-                    .select('home_team, away_team, scorer_team, taefeler_team, scorer_taefeler_team');
-
-                if (error) throw error;
+                const data = await window.pb.collection('scorer_matches').getFullList({
+                    fields: 'home_team,away_team,scorer_team,taefeler_team,scorer_taefeler_team',
+                });
                 
                 // Extract all unique teams from all team fields
                 const allTeamValues = [];
@@ -1751,24 +1745,17 @@ observer.observe(document.body);
             successDiv.style.display = 'none';
 
             try {
-                const { data, error } = await window.supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
+                await window.pb.collection('users').authWithPassword(email, password);
 
-                if (error) {
-                    showError(error.message);
-                } else {
-                    showSuccess('Login successful!');
-                    setTimeout(() => {
-                        // Hide login modal and show coaches content
-                        document.getElementById('loginModal').style.display = 'none';
-                        document.getElementById('adminContent').style.display = 'block';
-                        initializeCoachesContent();
-                    }, 1000);
-                }
+                showSuccess('Login successful!');
+                setTimeout(() => {
+                    // Hide login modal and show coaches content
+                    document.getElementById('loginModal').style.display = 'none';
+                    document.getElementById('adminContent').style.display = 'block';
+                    initializeCoachesContent();
+                }, 1000);
             } catch (error) {
-                showError('An unexpected error occurred. Please try again.');
+                showError(error.message || 'An unexpected error occurred. Please try again.');
             } finally {
                 loadingDiv.style.display = 'none';
             }
@@ -1790,7 +1777,7 @@ observer.observe(document.body);
 
         // Logout function
         async function logout() {
-            await window.supabase.auth.signOut();
+            window.pb.authStore.clear();
             // Show login modal and hide coaches content
             document.getElementById('loginModal').style.display = 'block';
             document.getElementById('adminContent').style.display = 'none';
@@ -1883,41 +1870,28 @@ observer.observe(document.body);
             }
         }
 
-        // Load games from Supabase
+        // Load games from PocketBase
         async function loadGames() {
-            const { data, error } = await window.supabase
-                .from('scorer_matches')
-                .select('*')
-                .order('date', { ascending: true })
-                .order('time', { ascending: true })
-                .order('halle', { ascending: true });
-
-            if (error) throw error;
+            const data = await window.pb.collection('scorer_matches').getFullList({
+                sort: 'date,time,halle',
+            });
             allGames = data || [];
         }
 
-        // Load scorers from scorer_scorers table
+        // Load scorers from scorer_scorers collection
         async function loadScorers() {
-            const { data, error } = await window.supabase
-                .from('scorer_scorers')
-                .select('*')
-                .eq('scorer_licence', true)
-                .order('lname', { ascending: true })
-                .order('fname', { ascending: true });
-
-            if (error) throw error;
+            const data = await window.pb.collection('scorer_scorers').getFullList({
+                filter: 'scorer_licence = true',
+                sort: 'lname,fname',
+            });
             allScorers = data || [];
         }
 
-        // Load all täfelers from scorer_scorers table
+        // Load all täfelers from scorer_scorers collection
         async function loadTaefelers() {
-            const { data, error } = await window.supabase
-                .from('scorer_scorers')
-                .select('*')
-                .order('lname', { ascending: true })
-                .order('fname', { ascending: true });
-
-            if (error) throw error;
+            const data = await window.pb.collection('scorer_scorers').getFullList({
+                sort: 'lname,fname',
+            });
             allTaefelers = data || [];
         }
 
@@ -2252,7 +2226,7 @@ observer.observe(document.body);
             
             // Log the game view action
             logSystemEvent('GAME_VIEWED', {
-                game_id: game.match_id,
+                game_id: game.id,
                 home_team: game.home_team,
                 away_team: game.away_team,
                 date: game.date,
@@ -2414,7 +2388,7 @@ observer.observe(document.body);
             // Log the return to main view action
             if (currentGame) {
                 logSystemEvent('RETURN_TO_MAIN_VIEW', {
-                    game_id: currentGame.match_id,
+                    game_id: currentGame.id,
                     home_team: currentGame.home_team,
                     away_team: currentGame.away_team,
                     date: currentGame.date
@@ -2451,59 +2425,27 @@ observer.observe(document.body);
         async function logChange(action, fieldName, oldValue, newValue, gameInfo, additionalContext = {}) {
             try {
                 const clientIP = await getClientIP();
-                const { data, error } = await window.supabase
-                    .from('scorer_edit_log')
-                    .insert({
-                        action: action, // 'CREATE', 'UPDATE', 'DELETE'
-                        table_name: gameInfo?.table_name || 'scorer_matches',
-                        record_id: gameInfo?.record_id || currentGame?.match_id,
-                        field_name: fieldName,
-                        old_value: oldValue,
-                        new_value: newValue,
-                        user_agent: navigator.userAgent,
-                        session_id: getSessionId(),
-                        client_ip: clientIP,
-                        timestamp: new Date().toISOString(),
-                        game_info: gameInfo?.game_info || (currentGame ? {
-                            home_team: currentGame.home_team,
-                            away_team: currentGame.away_team,
-                            date: currentGame.date,
-                            time: currentGame.time,
-                            halle: currentGame.halle
-                        } : null),
-                        additional_context: additionalContext
-                    });
-
-                if (error) {
-                    // Log Supabase error with detailed information
-                    console.error('Supabase insert error in logChange:', {
-                        error: error,
-                        action: action,
-                        fieldName: fieldName,
-                        oldValue: oldValue,
-                        newValue: newValue,
-                        gameInfo: gameInfo,
-                        timestamp: new Date().toISOString(),
-                        userAgent: navigator.userAgent,
-                        sessionId: getSessionId(),
-                        clientIP: clientIP
-                    });
-                    
-                    // Optionally send to external logging service if available
-                    if (window.logErrorToService) {
-                        window.logErrorToService('supabase_insert_error', {
-                            error: error.message,
-                            details: error.details,
-                            hint: error.hint,
-                            code: error.code,
-                            context: {
-                                action: action,
-                                fieldName: fieldName,
-                                gameInfo: gameInfo
-                            }
-                        });
-                    }
-                }
+                await window.pb.collection('scorer_edit_log').create({
+                    action: action,
+                    table_name: gameInfo?.table_name || 'scorer_matches',
+                    record_id: gameInfo?.record_id || currentGame?.id,
+                    field_name: fieldName,
+                    old_value: oldValue,
+                    new_value: newValue,
+                    user_agent: navigator.userAgent,
+                    session_id: getSessionId(),
+                    client_ip: clientIP,
+                    timestamp: new Date().toISOString(),
+                    game_info: gameInfo?.game_info || (currentGame ? {
+                        home_team: currentGame.home_team,
+                        away_team: currentGame.away_team,
+                        date: currentGame.date,
+                        time: currentGame.time,
+                        halle: currentGame.halle
+                    } : null),
+                    additional_context: additionalContext,
+                    expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+                });
             } catch (error) {
                 // Log unexpected exception with full context
                 console.error('Unexpected error in logChange:', {
@@ -2881,22 +2823,17 @@ observer.observe(document.body);
             }
 
             try {
-                const { data, error } = await window.supabase
-                    .from('scorer_scorers')
-                    .insert({
-                        fname: fname,
-                        lname: lname,
-                        phone: phone,
-                        scorer_licence: false
-                    })
-                    .select();
-
-                if (error) throw error;
+                const data = await window.pb.collection('scorer_scorers').create({
+                    fname: fname,
+                    lname: lname,
+                    phone: phone,
+                    scorer_licence: false
+                });
 
                 // Log the person creation
                 await logChange('CREATE', 'scorer_scorers', null, `${fname} ${lname}`, {
                     table_name: 'scorer_scorers',
-                    record_id: data[0]?.id,
+                    record_id: data.id,
                     game_info: null
                 }, {
                     person_type: 'scorer',
@@ -2933,111 +2870,58 @@ observer.observe(document.body);
         async function saveGameDetails() {
             if (!currentGame) return;
 
-            const taefelerName = document.getElementById('taefelerName').value;
-            const taefelerPhone = document.getElementById('taefelerPhone').value;
-            const scorerName = document.getElementById('scorerName').value;
-            const scorerPhone = document.getElementById('scorerPhone').value;
+            // Resolve scorer names from the local allScorers array
+            const getPersonName = (id) => {
+                if (!id) return 'unassigned';
+                const person = allScorers.find(s => s.id === id);
+                return person ? `${person.fname} ${person.lname}`.trim() : 'unassigned';
+            };
+
+            // Get old IDs from the unmodified allGames array
+            const originalGame = allGames.find(g => g.id === currentGame.id);
+            const oldTaefelerId = originalGame ? originalGame.taefeler_id : '';
+            const oldScorerId = originalGame ? originalGame.scorer_id : '';
+            const oldScorerTaefelerId = originalGame ? originalGame.scorer_taefeler_id : '';
 
             try {
-                // Log changes for each field that was modified
-                if (currentGame.taefeler_name !== taefelerName) {
-                    await logChange('UPDATE', 'taefeler_name', 
-                        currentGame.taefeler_name || 'unassigned', 
-                        taefelerName || 'unassigned', 
-                        {
-                            table_name: 'scorer_matches',
-                            record_id: currentGame.match_id,
-                            game_info: {
-                                home_team: currentGame.home_team,
-                                away_team: currentGame.away_team,
-                                date: currentGame.date,
-                                time: currentGame.time,
-                                halle: currentGame.halle
-                            }
-                        }
-                    );
-                }
-                if (currentGame.taefeler_phone !== taefelerPhone) {
-                    await logChange('UPDATE', 'taefeler_phone', 
-                        currentGame.taefeler_phone || 'unassigned', 
-                        taefelerPhone || 'unassigned', 
-                        {
-                            table_name: 'scorer_matches',
-                            record_id: currentGame.match_id,
-                            game_info: {
-                                home_team: currentGame.home_team,
-                                away_team: currentGame.away_team,
-                                date: currentGame.date,
-                                time: currentGame.time,
-                                halle: currentGame.halle
-                            }
-                        }
-                    );
-                }
-                if (currentGame.scorer_name !== scorerName) {
-                    await logChange('UPDATE', 'scorer_name',
-                        (currentGame.scorer_name?.trim() || 'unassigned'),
-                        (scorerName?.trim() || 'unassigned'),
-                        {
-                            table_name: 'scorer_matches',
-                            record_id: currentGame.match_id,
-                            game_info: {
-                                home_team: currentGame.home_team,
-                                away_team: currentGame.away_team,
-                                date: currentGame.date,
-                                time: currentGame.time,
-                                halle: currentGame.halle
-                            }
-                        }
-                    );                }
-                if (currentGame.scorer_phone !== scorerPhone) {
-                    await logChange('UPDATE', 'scorer_phone', 
-                        currentGame.scorer_phone || 'unassigned', 
-                        scorerPhone || 'unassigned', 
-                        {
-                            table_name: 'scorer_matches',
-                            record_id: currentGame.match_id,
-                            game_info: {
-                                home_team: currentGame.home_team,
-                                away_team: currentGame.away_team,
-                                date: currentGame.date,
-                                time: currentGame.time,
-                                halle: currentGame.halle
-                            }
-                        }
-                    );
-                }
-                
-                // Use match_id for updates (much simpler and more reliable)
-                const updateData = {};
-                
-                // Only store IDs, not names or phones
-                if (currentGame.taefeler_id) {
-                    updateData.taefeler_id = currentGame.taefeler_id;
-                }
-                if (currentGame.scorer_id) {
-                    updateData.scorer_id = currentGame.scorer_id;
-                }
-                
-                const { error } = await window.supabase
-                    .from('scorer_matches')
-                    .update(updateData)
-                    .eq('match_id', currentGame.match_id);
+                const gameInfo = {
+                    table_name: 'scorer_matches',
+                    record_id: currentGame.id,
+                    game_info: {
+                        home_team: currentGame.home_team,
+                        away_team: currentGame.away_team,
+                        date: currentGame.date,
+                        time: currentGame.time,
+                        halle: currentGame.halle
+                    }
+                };
 
-                if (error) {
-                    throw error;
+                // Log changes for each field that was modified
+                if (oldTaefelerId !== currentGame.taefeler_id) {
+                    await logChange('UPDATE', 'taefeler_id', getPersonName(oldTaefelerId), getPersonName(currentGame.taefeler_id), gameInfo);
                 }
+                if (oldScorerId !== currentGame.scorer_id) {
+                    await logChange('UPDATE', 'scorer_id', getPersonName(oldScorerId), getPersonName(currentGame.scorer_id), gameInfo);
+                }
+                if (oldScorerTaefelerId !== currentGame.scorer_taefeler_id) {
+                    await logChange('UPDATE', 'scorer_taefeler_id', getPersonName(oldScorerTaefelerId), getPersonName(currentGame.scorer_taefeler_id), gameInfo);
+                }
+                
+                // Update via PocketBase — always send all three relation fields
+                const updateData = {
+                    taefeler_id: currentGame.taefeler_id || '',
+                    scorer_id: currentGame.scorer_id || '',
+                    scorer_taefeler_id: currentGame.scorer_taefeler_id || '',
+                };
+
+                await window.pb.collection('scorer_matches').update(currentGame.id, updateData);
 
                 // Update the game in our local array
-                const gameIndex = allGames.findIndex(g => g.match_id === currentGame.match_id);
+                const gameIndex = allGames.findIndex(g => g.id === currentGame.id);
                 if (gameIndex !== -1) {
-                    // Only store IDs, not names or phones
-                    if (currentGame.taefeler_id) {
-                        allGames[gameIndex].taefeler_id = currentGame.taefeler_id;
-                    }
-                    if (currentGame.scorer_id) {
-                        allGames[gameIndex].scorer_id = currentGame.scorer_id;
-                    }
+                    allGames[gameIndex].taefeler_id = currentGame.taefeler_id || '';
+                    allGames[gameIndex].scorer_id = currentGame.scorer_id || '';
+                    allGames[gameIndex].scorer_taefeler_id = currentGame.scorer_taefeler_id || '';
                 }
 
                 closeModal();
@@ -3062,30 +2946,20 @@ observer.observe(document.body);
         // Check authentication status on page load
         async function checkAuthStatus() {
             try {
-                // Use global supabase reference
-                if (!window.supabase) {
+                // Use global PocketBase reference
+                if (!window.pb) {
                     document.getElementById('loginModal').style.display = 'block';
                     document.getElementById('adminContent').style.display = 'none';
                     return;
                 }
-                
-                const { data: { user }, error } = await window.supabase.auth.getUser();
-                
-                if (error) {
-                    // AuthSessionMissingError is expected when user is not logged in
-                    // Show login modal on error
-                    document.getElementById('loginModal').style.display = 'block';
-                    document.getElementById('adminContent').style.display = 'none';
-                    return;
-                }
-                
-                if (!user) {
+
+                if (!window.pb.authStore.isValid) {
                     // User is not authenticated, show login modal
                     document.getElementById('loginModal').style.display = 'block';
                     document.getElementById('adminContent').style.display = 'none';
                     return;
                 }
-                
+
                 // User is authenticated, hide login modal and show coaches content
                 document.getElementById('loginModal').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
@@ -3575,7 +3449,7 @@ observer.observe(document.body);
                 'VERSION:2.0',
                 'PRODID:-//Volleyball Calendar//EN',
                 'BEGIN:VEVENT',
-                `UID:${currentGame.match_id}@volleyball-calendar.com`,
+                `UID:${currentGame.id}@volleyball-calendar.com`,
                 `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTSTART:${eventStart.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
                 `DTEND:${eventEnd.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
@@ -3612,14 +3486,10 @@ observer.observe(document.body);
         // Handle Enter key in password field
         document.addEventListener('DOMContentLoaded', function() {
             
-            // Check if Supabase is properly initialized
-            if (!window.supabase) {
-                // Try to reinitialize
+            // Check if PocketBase is properly initialized
+            if (!window.pb) {
                 try {
-                    window.supabase = window.supabase.createClient(
-                        SUPABASE_CONFIG.url,
-                        SUPABASE_CONFIG.anonKey
-                    );
+                    window.pb = new PocketBase(POCKETBASE_CONFIG.url);
                 } catch (error) {
                     alert('Failed to initialize application. Please refresh the page.');
                     return;

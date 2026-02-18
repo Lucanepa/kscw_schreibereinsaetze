@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Schreibereinsätze</title>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/pocketbase@0.25.2/dist/pocketbase.umd.js"></script>
     <script src="config.js"></script>
     <script src="teamUtils.js"></script>
     <style>
@@ -226,71 +226,19 @@
 
     <script>
         // ============================================================================
-        // RLS POLICIES REQUIRED IN SUPABASE DATABASE
+        // POCKETBASE API RULES (set in PocketBase Admin UI)
         // ============================================================================
-        // 
-        // 1. ENABLE RLS ON ALL TABLES:
-        //    ALTER TABLE scorer_matches ENABLE ROW LEVEL SECURITY;
-        //    ALTER TABLE scorer_scorers ENABLE ROW LEVEL SECURITY;
-        //    ALTER TABLE scorer_edit_log ENABLE ROW LEVEL SECURITY;
         //
-        // 2. scorer_matches TABLE POLICIES:
-        //    -- Allow anonymous users to read games
-        //    CREATE POLICY "Allow anonymous read access" ON scorer_matches
-        //    FOR SELECT USING (true);
-        //
-        //    -- Allow anonymous users to update only assignments via function
-        //    -- (No direct UPDATE policy needed - use the RPC function)
-        //
-        //    -- Admin users get full access
-        //    CREATE POLICY "Admin full access" ON scorer_matches
-        //    FOR ALL USING (
-        //      auth.jwt() ->> 'user_metadata' ->> 'is_admin' = 'true'
-        //    );
-        //
-        // 3. scorer_scorers TABLE POLICIES:
-        //    -- Allow anonymous users to read basic info (id, fname, lname only)
-        //    CREATE POLICY "Allow anonymous basic read" ON scorer_scorers
-        //    FOR SELECT USING (true);
-        //
-        //    -- Admin users get full access
-        //    CREATE POLICY "Admin full access" ON scorer_scorers
-        //    FOR ALL USING (
-        //      auth.jwt() ->> 'user_metadata' ->> 'is_admin' = 'true'
-        //    );
-        //
-        // 4. scorer_edit_log TABLE POLICIES:
-        //    -- Only admin users can read/write logs
-        //    CREATE POLICY "Admin only access" ON scorer_edit_log
-        //    FOR ALL USING (
-        //      auth.jwt() ->> 'user_metadata' ->> 'is_admin' = 'true'
-        //    );
-        //
-        // 5. CREATE THE ASSIGNMENT UPDATE FUNCTION:
-        //    CREATE OR REPLACE FUNCTION update_scorer_assignments(
-        //      match_id UUID,
-        //      new_scorer_id UUID DEFAULT NULL,
-        //      new_taefeler_id UUID DEFAULT NULL
-        //    )
-        //    RETURNS void
-        //    LANGUAGE plpgsql
-        //    SECURITY DEFINER
-        //    AS $$
-        //    BEGIN
-        //      UPDATE scorer_matches 
-        //      SET 
-        //        scorer_id = COALESCE(new_scorer_id, scorer_id),
-        //        taefeler_id = COALESCE(new_taefeler_id, taefeler_id)
-        //      WHERE match_id = update_scorer_assignments.match_id;
-        //    END;
-        //    $$;
-        //
-        //    GRANT EXECUTE ON FUNCTION update_scorer_assignments TO anon;
+        // scorer_matches: List/View = public, Create/Delete = admin only, Update = authenticated
+        // scorer_scorers: List/View = public, Create = authenticated, Update/Delete = admin only
+        // scorer_places:  List/View = public, Create/Update/Delete = admin only
+        // scorer_edit_log: Read/Create = authenticated, Update/Delete = admin only
+        // users: Add custom 'is_admin' boolean field
         //
         // ============================================================================
 
         // Global variables
-        let supabase;
+        let pb;
         let currentUser = null;
         let games = [];
         let scorers = [];
@@ -309,13 +257,13 @@
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 console.log('DOM loaded, initializing...');
-                if (typeof SUPABASE_CONFIG === 'undefined') {
+                if (typeof POCKETBASE_CONFIG === 'undefined') {
                     throw new Error('Configuration not loaded');
                 }
-                
-                console.log('Supabase config found:', SUPABASE_CONFIG);
-                supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-                console.log('Supabase client created');
+
+                console.log('PocketBase config found:', POCKETBASE_CONFIG);
+                pb = new PocketBase(POCKETBASE_CONFIG.url);
+                console.log('PocketBase client created');
                 await checkAuth();
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -327,16 +275,15 @@
         async function checkAuth() {
             try {
                 console.log('Checking authentication...');
-                const { data: { user } } = await supabase.auth.getUser();
-                console.log('Auth result:', user);
-                if (user) {
-                    // Check if user is admin from user_metadata
-                    if (!user.user_metadata || !user.user_metadata.is_admin) {
+                if (pb.authStore.isValid) {
+                    const user = pb.authStore.record;
+                    console.log('Auth result:', user);
+                    if (!user.is_admin) {
                         console.log('User is not admin');
                         document.getElementById('loginError').textContent = 'Access denied. Admin privileges required.';
                         return;
                     }
-                    
+
                     currentUser = user;
                     console.log('Admin user authenticated, showing admin panel');
                     showAdminPanel();
@@ -354,17 +301,15 @@
             const password = document.getElementById('password').value;
             
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                
-                // Check if user is admin from user_metadata
-                if (!data.user.user_metadata || !data.user.user_metadata.is_admin) {
-                    // Sign out the user since they're not admin
-                    await supabase.auth.signOut();
+                const authData = await pb.collection('users').authWithPassword(email, password);
+
+                // Check if user is admin
+                if (!authData.record.is_admin) {
+                    pb.authStore.clear();
                     throw new Error('Access denied. Admin privileges required.');
                 }
-                
-                currentUser = data.user;
+
+                currentUser = authData.record;
                 showAdminPanel();
             } catch (error) {
                 document.getElementById('loginError').textContent = error.message;
@@ -373,7 +318,7 @@
 
         async function logout() {
             stopAdminStatusCheck();
-            await supabase.auth.signOut();
+            pb.authStore.clear();
             currentUser = null;
             hideAdminPanel();
         }
@@ -412,10 +357,13 @@
 
         async function checkAdminStatus() {
             try {
-                if (!currentUser) return;
-                
-                // Check admin status from user metadata
-                if (!currentUser.user_metadata || !currentUser.user_metadata.is_admin) {
+                if (!currentUser || !pb.authStore.isValid) return;
+
+                // Refresh auth to get latest user data
+                await pb.collection('users').authRefresh();
+                currentUser = pb.authStore.record;
+
+                if (!currentUser || !currentUser.is_admin) {
                     console.log('User no longer has admin privileges');
                     await logout();
                     document.getElementById('loginError').textContent = 'Admin privileges revoked. Please log in again.';
@@ -428,15 +376,14 @@
         // Verify admin status before sensitive operations
         async function verifyAdminStatus() {
             if (!currentUser) return false;
-            
+
             try {
-                // Check admin status from user metadata
-                if (!currentUser.user_metadata || !currentUser.user_metadata.is_admin) {
+                if (!currentUser.is_admin) {
                     await logout();
                     document.getElementById('loginError').textContent = 'Admin privileges revoked. Please log in again.';
                     return false;
                 }
-                
+
                 return true;
             } catch (error) {
                 console.error('Error verifying admin status:', error);
@@ -496,7 +443,7 @@
         // Function to check if user can update assignments
         function canUpdateAssignments() {
             // Admin users can update everything
-            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+            if (currentUser && currentUser && currentUser.is_admin) {
                 return true;
             }
             // Non-admin users can only update assignments
@@ -506,7 +453,7 @@
         // Function to check if user can access scorer data
         function canAccessScorerData() {
             // Admin users can access everything
-            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+            if (currentUser && currentUser && currentUser.is_admin) {
                 return true;
             }
             // Non-admin users can only read scorer data (for assignments)
@@ -516,7 +463,7 @@
         // Function to check if user can access logs
         function canAccessLogs() {
             // Only admin users can access logs
-            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+            if (currentUser && currentUser && currentUser.is_admin) {
                 return true;
             }
             return false;
@@ -553,16 +500,11 @@
         async function loadBasicScorerInfo() {
             try {
                 console.log('Loading basic scorer info for non-admin users...');
-                const { data, error } = await supabase
-                    .from('scorer_scorers')
-                    .select('id, fname, lname')
-                    .order('lname', { ascending: true });
-                
-                if (error) {
-                    console.error('Error loading basic scorer info:', error);
-                    throw error;
-                }
-                
+                const data = await pb.collection('scorer_scorers').getFullList({
+                    sort: 'lname',
+                    fields: 'id,fname,lname',
+                });
+
                 scorers = data || [];
                 console.log('Basic scorer info loaded:', scorers.length);
             } catch (error) {
@@ -582,16 +524,10 @@
                     return;
                 }
                 
-                const { data, error } = await supabase
-                    .from('scorer_scorers')
-                    .select('*')
-                    .order('lname', { ascending: true });
-                
-                if (error) {
-                    console.error('Error loading scorers:', error);
-                    throw error;
-                }
-                
+                const data = await pb.collection('scorer_scorers').getFullList({
+                    sort: 'lname',
+                });
+
                 scorers = data || [];
                 console.log('Scorers loaded:', scorers.length, scorers);
             } catch (error) {
@@ -603,17 +539,10 @@
         async function loadGames() {
             try {
                 console.log('Loading games...');
-                const { data, error } = await supabase
-                    .from('scorer_matches')
-                    .select('*')
-                    .order('date', { ascending: true })
-                    .order('time', { ascending: true });
-                
-                if (error) {
-                    console.error('Error loading games:', error);
-                    throw error;
-                }
-                
+                const data = await pb.collection('scorer_matches').getFullList({
+                    sort: 'date,time',
+                });
+
                 games = data || [];
                 console.log('Games loaded:', games.length);
             } catch (error) {
@@ -1040,7 +969,7 @@
 
         function editGame(id) {
             editingId = id;
-            const game = games.find(g => g.match_id === id);
+            const game = games.find(g => g.id === id);
             if (!game) return;
 
             document.getElementById('gameModalTitle').textContent = 'Edit Game';
@@ -1126,16 +1055,9 @@
 
             try {
                 if (editingId) {
-                    const { error } = await supabase
-                        .from('scorer_matches')
-                        .update(gameData)
-                        .eq('match_id', editingId);
-                    if (error) throw error;
+                    await pb.collection('scorer_matches').update(editingId, gameData);
                 } else {
-                    const { error } = await supabase
-                        .from('scorer_matches')
-                        .insert([gameData]);
-                    if (error) throw error;
+                    await pb.collection('scorer_matches').create(gameData);
                 }
 
                 await loadGames();
@@ -1150,30 +1072,27 @@
         async function updateScorerAssignments(matchId, scorerId, taefelerId) {
             try {
                 // First, get the current game to check if it's a combined game
-                const currentGame = games.find(g => g.match_id === matchId);
+                const currentGame = games.find(g => g.id === matchId);
                 if (!currentGame) {
                     throw new Error('Game not found');
                 }
 
                 // Check if this is a combined scorer/täfeler game
                 if (currentGame.scorer_taefeler_id || currentGame.scorer_taefeler_team) {
-                    // For combined games, we need to update the scorer_taefeler_id field
-                    // Use the taefelerId parameter for combined games
-                    const { error } = await supabase
-                        .from('scorer_matches')
-                        .update({ scorer_taefeler_id: taefelerId })
-                        .eq('match_id', matchId);
-                    
-                    if (error) throw error;
+                    // For combined games, update the scorer_taefeler_id field
+                    await pb.collection('scorer_matches').update(matchId, { scorer_taefeler_id: taefelerId });
                 } else {
-                    // For separate games, use the RPC function
-                    const { data, error } = await supabase.rpc('update_scorer_assignments', {
-                        match_id: matchId,
-                        new_scorer_id: scorerId || null,
-                        new_taefeler_id: taefelerId || null
-                    });
-                    
-                    if (error) throw error;
+                    // For separate games, update scorer and/or taefeler
+                    const updateData = {};
+                    if (scorerId !== null && scorerId !== undefined) {
+                        updateData.scorer_id = scorerId;
+                    }
+                    if (taefelerId !== null && taefelerId !== undefined) {
+                        updateData.taefeler_id = taefelerId;
+                    }
+                    if (Object.keys(updateData).length > 0) {
+                        await pb.collection('scorer_matches').update(matchId, updateData);
+                    }
                 }
                 
                 // Refresh the games table to show updated assignments
@@ -1190,7 +1109,7 @@
         // Function to check if user can update assignments
         function canUpdateAssignments() {
             // Admin users can update everything
-            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+            if (currentUser && currentUser && currentUser.is_admin) {
                 return true;
             }
             // Non-admin users can only update assignments
@@ -1200,7 +1119,7 @@
         // Function to check if user can access scorer data
         function canAccessScorerData() {
             // Admin users can access everything
-            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+            if (currentUser && currentUser && currentUser.is_admin) {
                 return true;
             }
             // Non-admin users can only read scorer data (for assignments)
@@ -1210,7 +1129,7 @@
         // Function to check if user can access logs
         function canAccessLogs() {
             // Only admin users can access logs
-            if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_admin) {
+            if (currentUser && currentUser && currentUser.is_admin) {
                 return true;
             }
             return false;
@@ -1232,16 +1151,9 @@
 
             try {
                 if (editingId) {
-                    const { error } = await supabase
-                        .from('scorer_scorers')
-                        .update(scorerData)
-                        .eq('id', editingId);
-                    if (error) throw error;
+                    await pb.collection('scorer_scorers').update(editingId, scorerData);
                 } else {
-                    const { error } = await supabase
-                        .from('scorer_scorers')
-                        .insert([scorerData]);
-                    if (error) throw error;
+                    await pb.collection('scorer_scorers').create(scorerData);
                 }
 
                 await loadScorers();
@@ -1258,12 +1170,7 @@
             if (!confirm('Are you sure you want to delete this game?')) return;
             
             try {
-                const { error } = await supabase
-                    .from('scorer_matches')
-                    .delete()
-                    .eq('match_id', id);
-                
-                if (error) throw error;
+                await pb.collection('scorer_matches').delete(id);
                 
                 await loadGames();
                 renderGamesTable();
@@ -1279,15 +1186,7 @@
             
             try {
                 console.log('Deleting scorer from database...');
-                const { error } = await supabase
-                    .from('scorer_scorers')
-                    .delete()
-                    .eq('id', id);
-                
-                if (error) {
-                    console.error('Database error:', error);
-                    throw error;
-                }
+                await pb.collection('scorer_scorers').delete(id);
                 
                 console.log('Scorer deleted successfully');
                 await loadScorers();
@@ -1579,13 +1478,8 @@
                 }
                 
                 if (Object.keys(updateData).length > 0) {
-                    const { error } = await supabase
-                        .from('scorer_matches')
-                        .update(updateData)
-                        .eq('match_id', matchId);
-                    
-                    if (error) throw error;
-                    
+                    await pb.collection('scorer_matches').update(matchId, updateData);
+
                     // Refresh the games table
                     await loadGames();
                     renderGamesTable();
@@ -1603,13 +1497,13 @@
                 const editBtn = document.createElement('button');
                 editBtn.className = 'btn btn-primary';
                 editBtn.textContent = 'Edit';
-                editBtn.addEventListener('click', () => editGame(game.match_id));
+                editBtn.addEventListener('click', () => editGame(game.id));
                 actionsCell.appendChild(editBtn);
                 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'btn btn-danger';
                 deleteBtn.textContent = 'Delete';
-                deleteBtn.addEventListener('click', () => deleteGame(game.match_id));
+                deleteBtn.addEventListener('click', () => deleteGame(game.id));
                 actionsCell.appendChild(deleteBtn);
             } else {
                 // Non-admin users can only update assignments
@@ -1666,7 +1560,7 @@
                 </div>
                 `}
                 
-                <button class="btn btn-success" onclick="saveQuickAssignments('${game.match_id}', ${isCombinedGame})">Save Assignments</button>
+                <button class="btn btn-success" onclick="saveQuickAssignments('${game.id}', ${isCombinedGame})">Save Assignments</button>
                 <button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()">Cancel</button>
             `;
             
@@ -1683,12 +1577,7 @@
                 const scorerTaefelerId = document.getElementById('quickScorerTaefelerId').value || null;
                 // For combined games, we need to update the scorer_taefeler_id field
                 try {
-                    const { error } = await supabase
-                        .from('scorer_matches')
-                        .update({ scorer_taefeler_id: scorerTaefelerId })
-                        .eq('match_id', matchId);
-                    
-                    if (error) throw error;
+                    await pb.collection('scorer_matches').update(matchId, { scorer_taefeler_id: scorerTaefelerId });
                     
                     // Refresh the games table
                     await loadGames();

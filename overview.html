@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Overview - KSCW Schreibereinsätze</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏐</text></svg>">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/pocketbase@0.25.2/dist/pocketbase.umd.js"></script>
     <script src="config.js"></script>
     <script src="teamUtils.js"></script>
     <style>
@@ -415,10 +415,8 @@
         let allScorers = [];
         let allTaefelers = [];
 
-        // Initialize Supabase
-        const supabaseUrl = SUPABASE_CONFIG.url;
-        const supabaseKey = SUPABASE_CONFIG.anonKey;
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // Initialize PocketBase
+        const pb = new PocketBase(POCKETBASE_CONFIG.url);
 
         // Load data when page loads
         document.addEventListener('DOMContentLoaded', loadData);
@@ -431,33 +429,21 @@
         async function loadData() {
             try {
                 // Fetch all games
-                const { data: games, error: gamesError } = await supabaseClient
-                    .from('scorer_matches')
-                    .select('*')
-                    .order('date', { ascending: true })
-                    .order('time', { ascending: true });
-
-                if (gamesError) throw gamesError;
+                const games = await pb.collection('scorer_matches').getFullList({
+                    sort: 'date,time',
+                });
                 allGames = games || [];
 
                 // Fetch all scorers (from scorer_scorers table, all people)
-                const { data: scorers, error: scorersError } = await supabaseClient
-                    .from('scorer_scorers')
-                    .select('*')
-                    .order('lname', { ascending: true })
-                    .order('fname', { ascending: true });
-
-                if (scorersError) throw scorersError;
+                const scorers = await pb.collection('scorer_scorers').getFullList({
+                    sort: 'lname,fname',
+                });
                 allScorers = scorers || [];
 
                 // Fetch all täfelers (from scorer_scorers table, all people)
-                const { data: taefelers, error: taefelersError } = await supabaseClient
-                    .from('scorer_scorers')
-                    .select('*')
-                    .order('lname', { ascending: true })
-                    .order('fname', { ascending: true });
-
-                if (taefelersError) throw taefelersError;
+                const taefelers = await pb.collection('scorer_scorers').getFullList({
+                    sort: 'lname,fname',
+                });
                 allTaefelers = taefelers || [];
 
                 // Process data
